@@ -31,7 +31,7 @@
                     @forelse($perjalanans as $row)
                         <tr>
                             <td class="text-center">{{ $loop->iteration }}</td>
-                            <td>{{ $row->no_spt }}</td>
+                            <td>{{ $row->nomor_spt }}</td>
                             <td>{{ \Carbon\Carbon::parse($row->tanggal_spt)->format('d M Y') }}</td>
                             <td>{{ $row->tujuan_spt }}</td>
                             <td>
@@ -45,7 +45,7 @@
                                 {{ \Carbon\Carbon::parse($row->tanggal_selesai)->format('d M Y') }}
                             </td>
                             <td class="text-center">
-                                @if($row->status == 'selesai')
+                                @if($row->status == 'disetujui')
                                     <span class="badge bg-label-success">SELESAI</span>
                                 @elseif($row->status == 'ditolak')
                                     <span class="badge bg-label-danger">DITOLAK</span>
@@ -229,7 +229,7 @@
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <strong>Nomor SPT:</strong><br>
-                        {{ $row->no_spt ?? '-' }}
+                        {{ $row->nomor_spt ?? '-' }}
                     </div>
                     <div class="col-md-6">
                         <strong>Tanggal SPT:</strong><br>
@@ -358,7 +358,7 @@
                 <h6 class="fw-bold">Status & Catatan</h6>
                 <hr class="horizontal dark mt-1 mb-2">
                 <p>Status Saat Ini:
-                    @if($row->status == 'selesai')
+                    @if($row->status == 'disetujui')
                         <span class="badge bg-label-success">SELESAI</span>
                     @elseif($row->status == 'ditolak')
                         <span class="badge bg-label-danger ">DITOLAK</span>

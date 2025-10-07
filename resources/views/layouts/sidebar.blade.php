@@ -47,17 +47,24 @@
       </a>
     </li>
 
-    <li class="menu-item {{ request()->routeIs('sbu-item.index') ? 'active' : '' }}">
-      <a href="{{ route('sbu-item.index') }}" class="menu-link">
-        <i class="menu-icon tf-icons bx bx-grid"></i>
-        <div data-i18n="Analytics">Manajemen SBU</div>
-      </a>
-    </li>
-
      <li class="menu-item {{ request()->routeIs('persetujuan-atasan.index') ? 'active' : '' }}">
       <a href="{{ route('persetujuan-atasan.index') }}" class="menu-link">
         <i class="menu-icon tf-icons bx bx-badge-check"></i>
         <div data-i18n="Analytics">Persetujuan Atasan</div>
+      </a>
+    </li>
+
+         <li class="menu-item {{ request()->routeIs('dokumen-perjalanan-dinas.index') ? 'active' : '' }}">
+      <a href="{{ route('dokumen-perjalanan-dinas.index') }}" class="menu-link">
+        <i class="menu-icon tf-icons bx bx-folder"></i>
+        <div data-i18n="Analytics">Dokumen SPT/SPPD</div>
+      </a>
+    </li>
+
+        <li class="menu-item {{ request()->routeIs('sbu-item.index') ? 'active' : '' }}">
+      <a href="{{ route('sbu-item.index') }}" class="menu-link">
+        <i class="menu-icon tf-icons bx bx-grid"></i>
+        <div data-i18n="Analytics">Manajemen SBU</div>
       </a>
     </li>
 

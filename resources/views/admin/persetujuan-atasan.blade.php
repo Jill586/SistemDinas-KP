@@ -4,12 +4,15 @@
 
 @section('content')
 <div class="card">
-    {{-- Header --}}
-    <div class="card-header bg-white">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
         <h5 class="mb-0 fw-bold">Daftar Persetujuan Perjalanan Dinas</h5>
     </div>
 
     <div class="card-body">
+        @if(session('success'))
+            <div class="alert alert-success">{{ session('success') }}</div>
+        @endif
+
         <div class="table-responsive">
             <table class="table table-striped table-bordered align-middle">
                 <thead class="table-light">
@@ -30,7 +33,7 @@
                     @forelse($perjalanans as $row)
                         <tr>
                             <td class="text-center">{{ $loop->iteration }}</td>
-                            <td>{{ $row->no_spt ?? '-' }}</td>
+                            <td>{{ $row->nomor_spt ?? '-' }}</td>
                             <td>{{ \Carbon\Carbon::parse($row->tanggal_spt)->format('d M Y') }}</td>
                             <td>{{ $row->operator->name ?? '-' }}</td>
                             <td>{{ $row->verifikator->name ?? '-' }}</td>
@@ -46,7 +49,7 @@
                                 {{ \Carbon\Carbon::parse($row->tanggal_selesai)->format('d M Y') }}
                             </td>
                             <td class="text-center">
-                                @if($row->status == 'selesai')
+                                @if($row->status == 'disetujui')
                                     <span class="badge bg-label-success">SELESAI</span>
                                 @elseif($row->status == 'ditolak')
                                     <span class="badge bg-label-danger">DITOLAK</span>
@@ -59,9 +62,9 @@
                                 @endif
                             </td>
                             <td class="text-center">
-                               <button type="button" class="btn btn-info btn-sm"
+                               <button type="button" class="btn btn-info"
                                     data-bs-toggle="modal" data-bs-target="#modalVerifikasi{{ $row->id }}">
-                                    <i class="bx bx-show"></i> Detail
+                                    <i class="bx bx-show"></i>
                                 </button>
                             </td>
                         </tr>
@@ -72,6 +75,7 @@
                     @endforelse
                 </tbody>
             </table>
+            </div>
         </div>
     </div>
 </div>
@@ -250,7 +254,7 @@
                 {{-- Form Verifikasi --}}
                 <hr>
                 <h6 class="fw-bold mb-3">Form Verifikasi</h6>
-                <form action="{{ route('verifikasi-pengajuan.update', $row->id) }}" method="POST">
+                <form action="{{ route('persetujuan-atasan.update', $row->id) }}" method="POST">
                     @csrf
                     @method('PUT')
 
@@ -278,7 +282,7 @@
                             <i class="bx bx-x-circle"></i> Tolak Pengajuan
                         </button>
                         <button type="submit" name="aksi_verifikasi" value="verifikasi" class="btn btn-success fw-bold">
-                            <i class="bx bx-check-circle"></i> Setujui & Teruskan ke Atasan
+                            <i class="bx bx-check-circle"></i> Setujui & Terbitkan Surat
                         </button>
                     </div>
                 </form>

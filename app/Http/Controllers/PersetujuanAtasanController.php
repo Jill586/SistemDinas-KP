@@ -8,49 +8,57 @@ use Illuminate\Http\Request;
 class PersetujuanAtasanController extends Controller
 {
     public function index()
-{
-   $perjalanans = PerjalananDinas::where('status', 'verifikasi')
-    ->with(['pegawai','biaya'])
-    ->latest()
-    ->get();
-
-return view('admin.persetujuan-atasan', compact('perjalanans'));
-}
+    {
+        $perjalanans = PerjalananDinas::whereIn('status', ['verifikasi', 'disetujui'])
+            ->with(['pegawai','biaya'])
+            ->latest()
+            ->get();
 
 
+        return view('admin.persetujuan-atasan', compact('perjalanans'));
+    }
 
-    public function setujui(Request $request, $id)
+    public function update(Request $request, $id)
     {
         $perjalanan = PerjalananDinas::findOrFail($id);
 
-        if ($perjalanan->status !== 'disetujui_verifikator') {
-            return back()->with('error', 'Pengajuan belum diverifikasi.');
+        $aksi = $request->input('aksi_verifikasi'); // tombol yang ditekan
+        $catatan = $request->input('catatan_verifikator');
+
+        if ($aksi === 'revisi_operator') {
+            $perjalanan->status = 'revisi_operator';
+            $perjalanan->catatan_atasan = $catatan;
+
+        } elseif ($aksi === 'tolak') {
+            $perjalanan->status = 'ditolak';
+            $perjalanan->catatan_atasan = $catatan;
+
+        } elseif ($aksi === 'verifikasi') {
+            // === Setujui & terbitkan surat ===
+            $perjalanan->status = 'disetujui';
+            $perjalanan->catatan_atasan = 'Disetujui dan diterbitkan surat';
+
+            // === Buat No SPT Otomatis ===
+            $prefix = '000.1.2.3/SPT';
+
+            // Ambil surat terakhir yang sudah selesai dan sesuai prefix
+            $last = PerjalananDinas::where('status', 'disetujui')
+                ->where('nomor_spt', 'like', "$prefix/%")
+                ->orderBy('created_at', 'desc')
+                ->first();
+
+            $newNumber = 1;
+            if ($last && $last->nomor_spt) {
+                $parts = explode('/', $last->nomor_spt);
+                $lastNumber = (int)$parts[2];
+                $newNumber = $lastNumber + 1;
+            }
+
+            $perjalanan->nomor_spt = $prefix . '/' . $newNumber;
         }
 
-        $perjalanan->status = 'disetujui_atasan';
-        $perjalanan->catatan_atasan = $request->input('catatan', 'Disetujui oleh Atasan');
         $perjalanan->save();
 
-        return back()->with('success', 'Pengajuan disetujui atasan.');
-    }
-
-    public function tolak(Request $request, $id)
-    {
-        $perjalanan = PerjalananDinas::findOrFail($id);
-        $perjalanan->status = 'ditolak';
-        $perjalanan->catatan_atasan = $request->input('catatan', 'Ditolak oleh Atasan');
-        $perjalanan->save();
-
-        return back()->with('success', 'Pengajuan ditolak atasan.');
-    }
-
-    public function revisi(Request $request, $id)
-    {
-        $perjalanan = PerjalananDinas::findOrFail($id);
-        $perjalanan->status = 'revisi_operator';
-        $perjalanan->catatan_atasan = $request->input('catatan', 'Revisi dari Atasan');
-        $perjalanan->save();
-
-        return back()->with('success', 'Pengajuan dikembalikan untuk revisi.');
+        return back()->with('success', 'Pengajuan berhasil diperbarui.');
     }
 }

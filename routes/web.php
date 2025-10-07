@@ -6,6 +6,7 @@ use App\Http\Controllers\SbuItemController;
 use App\Http\Controllers\PerjalananDinasController;
 use App\Http\Controllers\PersetujuanAtasanController;
 use App\Http\Controllers\VerifikasiPengajuanController;
+use App\Http\Controllers\DokumenPerjalananDinasController;
 
 Route::get('/data-pegawai', [PegawaiController::class, 'index'])->name('data-pegawai');
 Route::get('/pegawai/create', [PegawaiController::class, 'create'])->name('pegawai.create');
@@ -27,15 +28,13 @@ Route::get('/verifikasi-pengajuan', [VerifikasiPengajuanController::class, 'inde
 Route::put('/verifikasi-pengajuan/{id}', [VerifikasiPengajuanController::class, 'update'])->name('verifikasi-pengajuan.update');
 
 // Persetujuan Atasan
-Route::get('/persetujuan-atasan', [PersetujuanAtasanController::class, 'index'])
-    ->name('persetujuan-atasan.index');
+Route::get('/persetujuan-atasan', [PersetujuanAtasanController::class, 'index'])->name('persetujuan-atasan.index');
+Route::post('/persetujuan-atasan/{id}/setujui', [PersetujuanAtasanController::class, 'setujui'])->name('persetujuan-atasan.setujui');
+Route::post('/persetujuan-atasan/{id}/tolak', [PersetujuanAtasanController::class, 'tolak'])->name('persetujuan-atasan.tolak');
+Route::post('/persetujuan-atasan/{id}/revisi', [PersetujuanAtasanController::class, 'revisi'])->name('persetujuan-atasan.revisi');
+Route::put('/persetujuan-atasan/{id}', [PersetujuanAtasanController::class, 'update'])->name('persetujuan-atasan.update');
 
-Route::post('/persetujuan-atasan/{id}/setujui', [PersetujuanAtasanController::class, 'setujui'])
-    ->name('persetujuan-atasan.setujui');
 
-Route::post('/persetujuan-atasan/{id}/tolak', [PersetujuanAtasanController::class, 'tolak'])
-    ->name('persetujuan-atasan.tolak');
-
-Route::post('/persetujuan-atasan/{id}/revisi', [PersetujuanAtasanController::class, 'revisi'])
-    ->name('persetujuan-atasan.revisi');
-
+// Dokumen Perjalanan Dinas
+Route::get('/dokumen-perjalanan-dinas', [DokumenPerjalananDinasController::class, 'index'])->name('dokumen-perjalanan-dinas.index');
+Route::get('/dokumen/download/{id}/{type}', [DokumenPerjalananDinasController::class, 'download'])->name('dokumen.download');
