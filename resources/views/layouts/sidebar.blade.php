@@ -68,5 +68,12 @@
       </a>
     </li>
 
+         <li class="menu-item {{ request()->routeIs('laporan.index') ? 'active' : '' }}">
+      <a href="{{ route('laporan.index') }}" class="menu-link">
+        <i class="menu-icon tf-icons bx bx-car bx-flip-horizontal"></i>
+        <div data-i18n="Analytics">Laporan Perjalanan Dinas</div>
+      </a>
+    </li>
+
 
 </aside>

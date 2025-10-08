@@ -52,4 +52,12 @@ class PerjalananDinas extends Model
     {
         return $this->hasMany(PerjalananDinasBiaya::class, 'perjalanan_dinas_id');
     }
+   public function biayaRiil()
+{
+    return $this->hasMany(PerjalananDinasBiayaRiil::class, 'perjalanan_dinas_id');
+}
+
+
+
+
 }

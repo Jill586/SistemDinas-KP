@@ -7,6 +7,7 @@ use App\Http\Controllers\PerjalananDinasController;
 use App\Http\Controllers\PersetujuanAtasanController;
 use App\Http\Controllers\VerifikasiPengajuanController;
 use App\Http\Controllers\DokumenPerjalananDinasController;
+use App\Http\Controllers\LaporanPerjalananDinasController;
 
 Route::get('/data-pegawai', [PegawaiController::class, 'index'])->name('data-pegawai');
 Route::get('/pegawai/create', [PegawaiController::class, 'create'])->name('pegawai.create');
@@ -38,3 +39,10 @@ Route::put('/persetujuan-atasan/{id}', [PersetujuanAtasanController::class, 'upd
 // Dokumen Perjalanan Dinas
 Route::get('/dokumen-perjalanan-dinas', [DokumenPerjalananDinasController::class, 'index'])->name('dokumen-perjalanan-dinas.index');
 Route::get('/dokumen/download/{id}/{type}', [DokumenPerjalananDinasController::class, 'download'])->name('dokumen.download');
+
+//Laporan Perjalanan Dinas
+Route::get('/laporan-perjalanan-dinas', [LaporanPerjalananDinasController::class, 'index'])->name('laporan.index');
+Route::get('/laporan-perjalanan-dinas/{id}/edit', [LaporanPerjalananDinasController::class, 'edit'])->name('laporan.edit');
+Route::post('/laporan/{id}/update', [LaporanPerjalananDinasController::class, 'update'])->name('laporan.update');
+
+

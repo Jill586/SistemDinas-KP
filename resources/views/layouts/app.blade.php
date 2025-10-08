@@ -1,12 +1,16 @@
 <!DOCTYPE html>
 <html lang="en" class="light-style layout-menu-fixed" dir="ltr"
-      data-theme="theme-default" data-assets-path="../assets3/"
+      data-theme="theme-default"
+      data-assets-path="{{ asset('assets3/') }}/"
       data-template="vertical-menu-template-free">
+
   <head>
+    {{-- === Load CSS Utama === --}}
     @include('layouts.css')
+
     <title>@yield('title', 'Aplikasi Pegawai')</title>
 
-    <!-- CSS Select2 -->
+    {{-- === CSS Library Tambahan === --}}
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
   </head>
 
@@ -15,13 +19,13 @@
     <div class="layout-wrapper layout-content-navbar">
       <div class="layout-container">
 
-        <!-- Sidebar -->
+        {{-- === Sidebar === --}}
         @include('layouts.sidebar')
 
         <!-- Layout container -->
         <div class="layout-page">
 
-          <!-- Header / Navbar -->
+          {{-- === Header / Navbar === --}}
           @include('layouts.header')
 
           <!-- Content wrapper -->
@@ -32,12 +36,12 @@
             </div>
             <!-- / Content -->
 
-            <!-- Footer -->
+            {{-- === Footer === --}}
             @include('layouts.footer')
 
             <div class="content-backdrop fade"></div>
           </div>
-          <!-- Content wrapper -->
+          <!-- / Content wrapper -->
         </div>
         <!-- / Layout page -->
       </div>
@@ -46,13 +50,13 @@
     </div>
     <!-- / Layout wrapper -->
 
-    <!-- JS Utama -->
+    {{-- === JS Utama === --}}
     @include('layouts.js')
 
-    <!-- JS Select2 (harus setelah jQuery dimuat) -->
+    {{-- === JS Library Tambahan === --}}
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
-    {{-- Tambahkan ini supaya script tambahan dari child (SweetAlert, Select2 init, dll) bisa jalan --}}
+    {{-- === Stack Script dari Child Blade (SweetAlert, Select2 init, dll) === --}}
     @stack('scripts')
   </body>
 </html>
