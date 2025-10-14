@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\PerjalananDinas;
 use App\Models\PerjalananDinasBiayaRiil;
+use App\Models\LaporanPerjalananDinas;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -13,7 +14,7 @@ class LaporanPerjalananDinasController extends Controller
     public function index()
     {
         // Ambil data dari perjalanan dinas yang sudah disetujui (dari persetujuan atasan)
-        $perjalanans = PerjalananDinas::with(['pegawai', 'biaya'])
+        $perjalanans = PerjalananDinas::with(['pegawai', 'biaya', 'laporan',])
             ->whereIn('status', ['disetujui', 'selesai'])
             ->orderBy('tanggal_spt', 'desc')
             ->get();
@@ -32,12 +33,20 @@ class LaporanPerjalananDinasController extends Controller
 {
     $perjalanan = PerjalananDinas::findOrFail($id);
 
-    $perjalanan->update([
-        'tanggal_laporan' => $request->tanggal_laporan,
-        'hasil_kegiatan' => $request->hasil_kegiatan,
-        'kendala' => $request->kendala,
-        'saran' => $request->saran,
-    ]);
+    $pegawaiId = $perjalanan->pegawai()->first()->id ?? null;
+
+    // Simpan atau update laporan untuk perjalanan ini
+    $laporan = LaporanPerjalananDinas::updateOrCreate(
+        ['perjalanan_dinas_id' => $perjalanan->id],
+        [
+            'pegawai_id' => $pegawaiId,
+            'tanggal_laporan' => $request->tanggal_laporan,
+            'ringkasan_hasil_kegiatan' => $request->ringkasan_hasil_kegiatan,
+            'kendala_dihadapi' => $request->kendala_dihadapi,
+            'saran_tindak_lanjut' => $request->saran_tindak_lanjut,
+        ]
+    );
+
 
     // Hapus data biaya riil lama
     $perjalanan->biayaRiil()->delete();
@@ -81,4 +90,3 @@ class LaporanPerjalananDinasController extends Controller
 
 
 }
-

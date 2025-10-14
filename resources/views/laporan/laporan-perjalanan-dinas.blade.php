@@ -29,7 +29,7 @@
                 </thead>
                 <tbody>
                     @forelse($perjalanans as $row)
-                        <tr class="text-center">
+                        <tr>
                             <td>{{ $loop->iteration }}</td>
                             <td>{{ $row->nomor_spt ?? '-' }}</td>
                             <td>{{ \Carbon\Carbon::parse($row->tanggal_spt)->format('d M Y') }}</td>
@@ -39,7 +39,7 @@
                                 s/d
                                 {{ \Carbon\Carbon::parse($row->tanggal_selesai)->format('d M Y') }}
                             </td>
-                            <td>
+                            <td class="text-center">
                                 @if($row->status == 'selesai')
                                     <span class="badge bg-label-success">SELESAI</span>
                                 @elseif($row->status == 'proses')
@@ -48,19 +48,22 @@
                                     <span class="badge bg-label-success">{{ $row->status }}</span>
                                 @endif
                             </td>
-                            <td>
+                            <td class="text-center">
                                 @if($row->status_laporan == 'belum_dibuat')
                                     <span class="badge bg-label-danger">BELUM DIBUAT</span>
                                 @elseif($row->status_laporan == 'diproses')
                                     <span class="badge bg-label-primary">PROSES</span>
                                 @elseif($row->status_laporan == 'selesai')
                                     <span class="badge bg-label-success">SELESAI</span>
+                                @elseif($row->status_laporan == 'revisi_operator')
+                                    <span class="badge bg-label-warning">REVISI OPERATOR</span>
                                 @else
-                                    <span class="badge bg-label-warning text-dark">{{ strtoupper($row->status_laporan) }}</span>
+                                    <span class="badge bg-label-warning">{{ strtoupper($row->status_laporan) }}</span>
                                 @endif
                             </td>
-                            <td>
-                                <button class="btn btn-primary btn-sm btn-edit"
+                            <td class="text-center">
+                                @if($row->status_laporan !== 'selesai')
+                                <button class="btn btn-primary btn-edit"
                                     data-id="{{ $row->id }}"
                                     data-nomor="{{ $row->nomor_spt }}"
                                     data-tujuan="{{ $row->tujuan_spt }}"
@@ -70,8 +73,19 @@
                                     data-hasil="{{ $row->hasil_kegiatan }}"
                                     data-kendala="{{ $row->kendala }}"
                                     data-saran="{{ $row->saran }}">
-                                    <i class="bx bx-edit-alt"></i> Edit
+                                    <i class="bx bx-edit-alt"></i>
                                 </button>
+                                @endif
+
+                                 @if($row->status_laporan === 'selesai')
+                                <button 
+                                    type="button" 
+                                    class="btn btn-info"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#modalDetail{{ $row->id }}">
+                                    <i class="bx bx-check-circle"></i>
+                                </button>
+                                @endif
                             </td>
                         </tr>
                     @empty
@@ -85,6 +99,193 @@
     </div>
 </div>
 
+{{-- MODAL DETAIL --}}
+@foreach ($perjalanans as $row)
+<div class="modal fade" id="modalDetail{{ $row->id }}" tabindex="-1" aria-labelledby="modalVerifikasiLabel{{ $row->id }}" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Detail Laporan Perjalanan Dinas</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+
+        <!-- HEADER (Styled Info Box) -->
+        <div class="border rounded p-3 mb-4" style="background-color: #f8fcff; border-color: #6ac4ffff;">
+        <div class="d-flex align-items-start">
+            <div class="me-2">
+            <i class="bi bi-info-circle-fill text-primary fs-4"></i>
+            </div>
+            <div>
+            <ul class="mb-0 ps-3">
+                <li>Pelapor: <strong>{{ $row->pegawai->first()->nama ?? '-' }}</strong></li>
+                <li>Nomor SPT: <strong>{{ $row->nomor_spt }}</strong></li>
+            </ul>
+            </div>
+        </div>
+        </div>
+
+        <!-- DETAIL PERJALANAN -->
+        <h6 class="fw-bold">Informasi Perjalanan Dinas</h6>
+        <div class="row">
+          <div class="col-md-6">
+            <p><strong>Tujuan :</strong><br>
+            {{ $row->tujuan_spt }} ({{$row->kota_tujuan_id}}, {{$row->provinsi_tujuan_id}})</p>
+            <p><strong>Personil yang Ditugaskan:</strong><br>
+              @foreach($row->pegawai as $p)
+                {{ $p->nama }}@if(!$loop->last), @endif
+              @endforeach
+            </p>
+          </div>
+          <div class="col-md-6">
+            <p><strong>Tanggal Pelaksanaan :</strong><br>
+              {{ \Carbon\Carbon::parse($row->tanggal_mulai)->format('d F Y') }}
+              s/d
+              {{ \Carbon\Carbon::parse($row->tanggal_selesai)->format('d F Y') }}
+            </p>
+            <p><strong>Status Laporan :</strong><br>
+            @if($row->status_laporan == 'belum_dibuat')
+                <span class="badge bg-label-danger">BELUM DIBUAT</span>
+            @elseif($row->status_laporan == 'diproses')
+                <span class="badge bg-label-primary">PROSES</span>
+            @elseif($row->status_laporan == 'selesai')
+                <span class="badge bg-label-success">SELESAI</span>
+            @elseif($row->status_laporan == 'revisi_operator')
+                <span class="badge bg-label-warning">REVISI OPERATOR</span>
+            @else
+                <span class="badge bg-label-warning">{{ strtoupper($row->status_laporan) }}</span>
+            @endif
+
+            </p>
+          </div>
+        </div>
+
+        <hr>
+
+        <!-- HASIL LAPORAN PEGAWAI -->
+        <h6 class="fw-bold">Detail Laporan</h6>
+        <div class="row">
+          <div class="col-md-6">
+            <p><strong>Tanggal Laporan:</strong><br>
+            {{ \Carbon\Carbon::parse($row->tanggal_laporan)->format('d F Y') }}</p>
+          </div>
+        </div>
+
+        <p class="mb-1 fw-bold">Ringkasan Hasil Kegiatan:</p>
+        <div class="p-2 bg-light border rounded mb-3">
+            {{ $row->laporan->ringkasan_hasil_kegiatan ?? '-' }}        
+        </div>
+
+        <p class="mb-1 fw-bold">Kendala yang Dihadapi:</p>
+        <div class="p-2 bg-light border rounded mb-3">
+            {{ $row->laporan->kendala_dihadapi ?? '-' }}        
+        </div>
+
+        <p class="mb-1 fw-bold">Saran / Tindak Lanjut:</p>
+        <div class="p-2 bg-light border rounded mb-3">
+            {{ $row->laporan->saran_tindak_lanjut ?? '-' }}        
+        </div>
+
+        <!-- RINCIAN BIAYA RIIL -->
+        <h6 class="fw-bold">Rincian Biaya Riil Dilaporkan</h6>
+        <div class="table-responsive">
+          <table class="table table-bordered align-middle">
+            <thead class="table-light text-center">
+              <tr>
+                <th>Deskripsi Biaya</th>
+                <th>Jumlah</th>
+                <th>Satuan</th>
+                <th>Harga Satuan (Rp)</th>
+                <th>Subtotal (Rp)</th>
+                <th>No. Bukti</th>
+                <th>File Bukti</th>
+                <th>Keterangan</th>
+              </tr>
+            </thead>
+            <tbody>
+              @foreach ($row->biayaRiil as $biaya)
+              <tr>
+                <td>{{ $biaya->deskripsi_biaya }}</td>
+                <td class="text-center">{{ $biaya->jumlah }}</td>
+                <td class="text-center">{{ $biaya->satuan }}</td>
+                <td class="text-end">{{ number_format($biaya->harga_satuan, 0, ',', '.') }}</td>
+                <td class="text-end">{{ number_format($biaya->subtotal_biaya, 0, ',', '.') }}</td>
+                <td class="text-center">{{ $biaya->nomor_bukti }}</td>
+                <td class="text-center">
+                    @if ($biaya->path_bukti_file)
+                        <a href="{{ asset('storage/' . $biaya->path_bukti_file) }}" 
+                        target="_blank" 
+                        class="btn btn-sm btn-primary">
+                        <i class="bx bx-show"></i>
+                        </a>
+                    @else
+                        <span class="text-muted">-</span>
+                    @endif
+                </td>
+                <td>{{ $biaya->keterangan_tambahan ?? '-' }}</td>
+              </tr>
+              @endforeach
+            </tbody>
+          </table>
+        </div>
+
+        <p class="fw-bold text-end">
+          TOTAL BIAYA RIIL DILAPORKAN: Rp {{ number_format($row->biayaRiil->sum('subtotal_biaya'), 0, ',', '.') }}
+        </p>
+
+        {{-- Estimasi Biaya --}}
+                <hr>
+                <h6 class="fw-bold">Estimasi Biaya</h6>
+                @if($row->biaya->isNotEmpty())
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped align-middle">
+                            <thead class="table-dark text-center">
+                                <tr>
+                                    <th>Deskripsi Biaya</th>
+                                    <th>Personil Terkait</th>
+                                    <th>Harga Satuan</th>
+                                    <th>Jml. Unit/Hari</th>
+                                    <th>Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($row->biaya as $biaya)
+                                    <tr>
+                                        <td>{{ $biaya->deskripsi_biaya }}</td>
+                                        <td>{{ $biaya->personil_name ?? ($biaya->pegawaiTerkait->nama ?? 'Semua') }}</td>
+                                        <td class="text-end">Rp {{ number_format($biaya->harga_satuan, 0, ',', '.') }}</td>
+                                        <td class="text-center">
+                                            {{ $biaya->jumlah_unit > 0 ? $biaya->jumlah_unit . ' ' . ($biaya->sbuItem->satuan ?? '') : '-' }}
+                                        </td>
+                                        <td class="text-end">Rp {{ number_format($biaya->subtotal_biaya, 0, ',', '.') }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                            <tfoot>
+                                <tr class="table-light">
+                                    <td colspan="4" class="text-end fw-bold">Total Estimasi Biaya</td>
+                                    <td class="text-end fw-bold">Rp {{ number_format($row->total_estimasi_biaya, 0, ',', '.') }}</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                @else
+                    <div class="alert alert-info text-center">Detail estimasi biaya belum tersedia.</div>
+                @endif
+
+
+        <p class="fw-bold text-end">
+        TOTAL ESTIMASI AWAL: Rp {{ number_format($row->biaya->sum('subtotal_biaya'), 0, ',', '.') }}
+        </p>
+
+      </div>
+    </div>
+  </div>
+</div>
+@endforeach
+
+
 {{-- MODAL EDIT LAPORAN --}}
 <div class="modal fade" id="modalEdit" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-scrollable">
@@ -95,8 +296,6 @@
             <h5 class="modal-title fw-bold">Form Laporan Perjalanan Dinas</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
-
-
                 {{-- ✅ Tambahkan style scroll --}}
                 <div class="modal-body" style="max-height: 75vh; overflow-y: auto;">
                     <div class="mb-4">
@@ -117,15 +316,15 @@
                         </div>
                         <div class="col-md-12 mb-3">
                             <label class="form-label fw-bold">Ringkasan Hasil Kegiatan <span class="text-danger">*</span></label>
-                            <textarea name="hasil_kegiatan" id="hasilKegiatan" class="form-control" rows="4" required></textarea>
+                            <textarea name="ringkasan_hasil_kegiatan" id="hasilKegiatan" class="form-control" rows="4" required></textarea>
                         </div>
                         <div class="col-md-12 mb-3">
                             <label class="form-label fw-bold">Kendala yang Dihadapi</label>
-                            <textarea name="kendala" id="kendala" class="form-control" rows="3"></textarea>
+                            <textarea name="kendala_dihadapi" id="kendala" class="form-control" rows="3"></textarea>
                         </div>
                         <div class="col-md-12 mb-4">
                             <label class="form-label fw-bold">Saran / Tindak Lanjut</label>
-                            <textarea name="saran" id="saran" class="form-control" rows="3"></textarea>
+                            <textarea name="saran_tindak_lanjut" id="saran" class="form-control" rows="3"></textarea>
                         </div>
                     </div>
 

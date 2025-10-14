@@ -361,9 +361,11 @@
                     @if($row->status == 'disetujui')
                         <span class="badge bg-label-success">SELESAI</span>
                     @elseif($row->status == 'ditolak')
-                        <span class="badge bg-label-danger ">DITOLAK</span>
+                        <span class="badge bg-label-danger">DITOLAK</span>
                     @elseif($row->status == 'revisi_operator')
                         <span class="badge bg-label-warning">REVISI OPERATOR</span>
+                    @elseif($row->status == 'verifikasi')
+                        <span class="badge bg-label-warning">VERIFIKASI</span>
                     @else
                         <span class="badge bg-label-primary">PROSES</span>
                     @endif

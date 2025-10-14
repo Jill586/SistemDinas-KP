@@ -64,7 +64,7 @@
                             <td class="text-center">
                                <button type="button" class="btn btn-info"
                                     data-bs-toggle="modal" data-bs-target="#modalVerifikasi{{ $row->id }}">
-                                    <i class="bx bx-show"></i>
+                                    <i class="bx bx-check-circle"></i>
                                 </button>
                             </td>
                         </tr>
@@ -250,7 +250,8 @@
                 @else
                     <div class="alert alert-info text-center">Detail estimasi biaya belum tersedia.</div>
                 @endif
-
+     
+                @if($row->status !== 'disetujui')
                 {{-- Form Verifikasi --}}
                 <hr>
                 <h6 class="fw-bold mb-3">Form Verifikasi</h6>
@@ -286,8 +287,10 @@
                         </button>
                     </div>
                 </form>
+                @else
+                    <p class="text-muted fst-italic">Surat ini sudah <strong>selesai</strong>. Tidak dapat disetujui lagi.</p>
+                @endif
             </div>
-
         </div>
     </div>
 </div>

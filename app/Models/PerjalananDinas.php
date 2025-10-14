@@ -25,6 +25,7 @@ class PerjalananDinas extends Model
         'tanggal_mulai',
         'tanggal_selesai',
         'status',
+        'status_laporan', // ✅ tambahkan ini karena kolom ini memang ada di tabel perjalanan_dinas
         'catatan_verifikator',
         'catatan_atasan',
     ];
@@ -37,6 +38,11 @@ class PerjalananDinas extends Model
             // default status ketika operator membuat pengajuan
             if (empty($perjalanan->status)) {
                 $perjalanan->status = 'diproses';
+            }
+
+            // default status laporan jika belum diisi
+            if (empty($perjalanan->status_laporan)) {
+                $perjalanan->status_laporan = 'belum_dibuat';
             }
         });
     }
@@ -52,12 +58,15 @@ class PerjalananDinas extends Model
     {
         return $this->hasMany(PerjalananDinasBiaya::class, 'perjalanan_dinas_id');
     }
-   public function biayaRiil()
-{
-    return $this->hasMany(PerjalananDinasBiayaRiil::class, 'perjalanan_dinas_id');
-}
 
+    public function biayaRiil()
+    {
+        return $this->hasMany(PerjalananDinasBiayaRiil::class, 'perjalanan_dinas_id');
+    }
 
-
-
+    // ✅ cukup 1 relasi laporan saja
+    public function laporan()
+    {
+        return $this->hasOne(LaporanPerjalananDinas::class, 'perjalanan_dinas_id', 'id');
+    }
 }

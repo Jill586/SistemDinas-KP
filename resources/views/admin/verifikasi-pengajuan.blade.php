@@ -25,6 +25,7 @@
                         <th>Personil</th>
                         <th>Pelaksanaan</th>
                         <th>Estimasi Biaya</th>
+                        <th>Status</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
@@ -48,6 +49,19 @@
                             </td>
                             <td class="text-end">
                                 Rp {{ number_format($row->total_estimasi_biaya ?? 0, 0, ',', '.') }}
+                            </td>
+                            <td>
+                                @if($row->status == 'disetujui')
+                                    <span class="badge bg-label-success">SELESAI</span>
+                                @elseif($row->status == 'ditolak')
+                                    <span class="badge bg-label-danger">DITOLAK</span>
+                                @elseif($row->status == 'revisi_operator')
+                                    <span class="badge bg-label-warning">REVISI OPERATOR</span>
+                                @elseif($row->status == 'verifikasi')
+                                    <span class="badge bg-label-warning">VERIFIKASI</span>
+                                @else
+                                    <span class="badge bg-label-primary">PROSES</span>
+                                @endif
                             </td>
                             <td class="text-center">
                                 <button type="button" class="btn btn-info"
@@ -239,6 +253,7 @@
                     <div class="alert alert-info text-center">Detail estimasi biaya belum tersedia.</div>
                 @endif
 
+                @if($row->status !== 'disetujui')
                 {{-- Form Verifikasi --}}
                 <hr>
                 <h6 class="fw-bold mb-3">Form Verifikasi</h6>
@@ -274,8 +289,10 @@
                         </button>
                     </div>
                 </form>
+                @else
+                    <p class="text-muted fst-italic">Surat ini sudah <strong>selesai</strong>. Tidak dapat diverifikasi lagi.</p>
+                @endif
             </div>
-
         </div>
     </div>
 </div>

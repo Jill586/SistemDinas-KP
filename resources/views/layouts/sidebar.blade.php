@@ -39,12 +39,15 @@
         <div data-i18n="Analytics">Pengajuan Perjalanan Dinas</div>
       </a>
     </li>
-
-        <li class="menu-item {{ request()->routeIs('verifikasi-pengajuan.index') ? 'active' : '' }}">
-      <a href="{{ route('verifikasi-pengajuan.index') }}" class="menu-link">
-        <i class="menu-icon tf-icons bx bx-user-check"></i>
-        <div data-i18n="Analytics">Verifikasi Pengajuan</div>
-      </a>
+  
+    <li class="menu-item {{ request()->routeIs('verifikasi-pengajuan.index') ? 'active' : '' }}">
+        <a href="{{ route('verifikasi-pengajuan.index') }}" 
+          class="menu-link d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center">
+                <i class="menu-icon tf-icons bx bx-user-check"></i>
+                <div data-i18n="Analytics">Verifikasi Pengajuan</div>
+            </div>
+        </a>
     </li>
 
      <li class="menu-item {{ request()->routeIs('persetujuan-atasan.index') ? 'active' : '' }}">
@@ -54,24 +57,31 @@
       </a>
     </li>
 
-         <li class="menu-item {{ request()->routeIs('dokumen-perjalanan-dinas.index') ? 'active' : '' }}">
+    <li class="menu-item {{ request()->routeIs('dokumen-perjalanan-dinas.index') ? 'active' : '' }}">
       <a href="{{ route('dokumen-perjalanan-dinas.index') }}" class="menu-link">
         <i class="menu-icon tf-icons bx bx-folder"></i>
         <div data-i18n="Analytics">Dokumen SPT/SPPD</div>
       </a>
     </li>
 
-        <li class="menu-item {{ request()->routeIs('sbu-item.index') ? 'active' : '' }}">
-      <a href="{{ route('sbu-item.index') }}" class="menu-link">
-        <i class="menu-icon tf-icons bx bx-grid"></i>
-        <div data-i18n="Analytics">Manajemen SBU</div>
+    <li class="menu-item {{ request()->routeIs('laporan.index') ? 'active' : '' }}">
+      <a href="{{ route('laporan.index') }}" class="menu-link">
+        <i class="menu-icon tf-icons bx bx-clipboard"></i>
+        <div data-i18n="Analytics">Laporan Perjadin</div>
       </a>
     </li>
 
-         <li class="menu-item {{ request()->routeIs('laporan.index') ? 'active' : '' }}">
-      <a href="{{ route('laporan.index') }}" class="menu-link">
-        <i class="menu-icon tf-icons bx bx-car bx-flip-horizontal"></i>
-        <div data-i18n="Analytics">Laporan Perjalanan Dinas</div>
+    <li class="menu-item {{ request()->routeIs('verifikasi-laporan.index') ? 'active' : '' }}">
+      <a href="{{ route('verifikasi-laporan.index') }}" class="menu-link">
+        <i class="menu-icon tf-icons bx bx-clipboard"></i>
+        <div data-i18n="Analytics">Verifikasi Laporan Perjadin</div>
+      </a>
+    </li>
+
+    <li class="menu-item {{ request()->routeIs('sbu-item.index') ? 'active' : '' }}">
+      <a href="{{ route('sbu-item.index') }}" class="menu-link">
+        <i class="menu-icon tf-icons bx bx-grid"></i>
+        <div data-i18n="Analytics">Manajemen SBU</div>
       </a>
     </li>
 

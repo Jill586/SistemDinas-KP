@@ -8,6 +8,7 @@ use App\Http\Controllers\PersetujuanAtasanController;
 use App\Http\Controllers\VerifikasiPengajuanController;
 use App\Http\Controllers\DokumenPerjalananDinasController;
 use App\Http\Controllers\LaporanPerjalananDinasController;
+use App\Http\Controllers\VerifikasiLaporanPerjalananDinasController;
 
 Route::get('/data-pegawai', [PegawaiController::class, 'index'])->name('data-pegawai');
 Route::get('/pegawai/create', [PegawaiController::class, 'create'])->name('pegawai.create');
@@ -45,4 +46,5 @@ Route::get('/laporan-perjalanan-dinas', [LaporanPerjalananDinasController::class
 Route::get('/laporan-perjalanan-dinas/{id}/edit', [LaporanPerjalananDinasController::class, 'edit'])->name('laporan.edit');
 Route::post('/laporan/{id}/update', [LaporanPerjalananDinasController::class, 'update'])->name('laporan.update');
 
-
+Route::get('/verifikasi-laporan-perjalanan-dinas', [VerifikasiLaporanPerjalananDinasController::class, 'index'])->name('verifikasi-laporan.index');
+Route::put('/verifikasi-laporan/{id}/update', [VerifikasiLaporanPerjalananDinasController::class, 'update'])->name('verifikasi-laporan.update');

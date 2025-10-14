@@ -38,23 +38,27 @@ class PersetujuanAtasanController extends Controller
             $perjalanan->status = 'disetujui';
             $perjalanan->catatan_atasan = 'Disetujui dan diterbitkan surat';
 
-            // === Buat No SPT Otomatis ===
-            $prefix = '000.1.2.3/SPT';
+        // === Buat No SPT otomatis dengan format 000.1.2.3/SPT/XXX ===
+        $prefix = '000.1.2.3/SPT';
+        $startNumber = 800;
 
-            // Ambil surat terakhir yang sudah selesai dan sesuai prefix
-            $last = PerjalananDinas::where('status', 'disetujui')
-                ->where('nomor_spt', 'like', "$prefix/%")
-                ->orderBy('created_at', 'desc')
-                ->first();
+        // Ambil surat terakhir yang sesuai prefix
+        $last = \App\Models\PerjalananDinas::where('nomor_spt', 'like', "$prefix/%")
+            ->orderBy('created_at', 'desc')
+            ->first();
 
-            $newNumber = 1;
-            if ($last && $last->nomor_spt) {
-                $parts = explode('/', $last->nomor_spt);
-                $lastNumber = (int)$parts[2];
-                $newNumber = $lastNumber + 1;
-            }
+        if ($last && preg_match('/(\d+)$/', $last->nomor_spt, $matches)) {
+            // Ambil angka terakhir dari nomor_spt
+            $lastNumber = (int)$matches[1];
+            $newNumber = $lastNumber + 1;
+        } else {
+            // Kalau belum ada data sama sekali, mulai dari 400
+            $newNumber = $startNumber;
+        }
 
-            $perjalanan->nomor_spt = $prefix . '/' . $newNumber;
+        // Format nomor baru: 000.1.2.3/SPT/400, 000.1.2.3/SPT/401, dst
+        $nomorSPT = "{$prefix}/{$newNumber}";
+        $perjalanan->nomor_spt = $nomorSPT;
         }
 
         $perjalanan->save();
