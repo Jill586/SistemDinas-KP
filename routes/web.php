@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\LoginController;
 use App\Http\Controllers\PegawaiController;
 use App\Http\Controllers\SbuItemController;
 use App\Http\Controllers\PerjalananDinasController;
@@ -10,41 +11,106 @@ use App\Http\Controllers\DokumenPerjalananDinasController;
 use App\Http\Controllers\LaporanPerjalananDinasController;
 use App\Http\Controllers\VerifikasiLaporanPerjalananDinasController;
 
-Route::get('/data-pegawai', [PegawaiController::class, 'index'])->name('data-pegawai');
-Route::get('/pegawai/create', [PegawaiController::class, 'create'])->name('pegawai.create');
-Route::post('/pegawai/store', [PegawaiController::class, 'store'])->name('pegawai.store');
-Route::delete('/pegawai/delete/{id}', [PegawaiController::class, 'destroy'])->name('pegawai.destroy');
-Route::put('/pegawai/{id}', [PegawaiController::class, 'update'])->name('pegawai.update');
+/*
+|--------------------------------------------------------------------------
+| ROUTE LOGIN
+|--------------------------------------------------------------------------
+*/
+Route::get('/login', [LoginController::class, 'index'])->name('login');
+Route::post('/login', [LoginController::class, 'login'])->name('login.post');
 
-Route::get('/perjalanan-dinas', [PerjalananDinasController::class, 'index'])->name('perjalanan-dinas.index');
-Route::get('/perjalanan-dinas/create', [PerjalananDinasController::class, 'create'])->name('perjalanan-dinas.create');
-Route::get('/perjalanan-dinas/{id}/edit', [PerjalananDinasController::class, 'edit'])->name('perjalanan-dinas.edit');
-Route::put('/perjalanan-dinas/{id}', [PerjalananDinasController::class, 'update'])->name('perjalanan-dinas.update');
-Route::post('/perjalanan-dinas/store', [PerjalananDinasController::class, 'store'])->name('perjalanan-dinas.store');
-Route::get('perjalanan-dinas/show/{id}', [PerjalananDinasController::class, 'show'])->name('perjalanan-dinas.show');
-Route::delete('perjalanan-dinas/delete/{id}', [PerjalananDinasController::class, 'destroy'])->name('perjalanan-dinas.destroy');
+/*
+|--------------------------------------------------------------------------
+| ROUTE SUPER ADMIN
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'role:super_admin'])->group(function () {
+    // Data Pegawai
+    Route::controller(PegawaiController::class)->group(function () {
+        Route::get('/data-pegawai', 'index')->name('data-pegawai');
+        Route::get('/pegawai/create', 'create')->name('pegawai.create');
+        Route::post('/pegawai/store', 'store')->name('pegawai.store');
+        Route::put('/pegawai/{id}', 'update')->name('pegawai.update');
+        Route::delete('/pegawai/delete/{id}', 'destroy')->name('pegawai.destroy');
+    });
 
-Route::get('/sbu-item', [SbuItemController::class, 'index'])->name('sbu-item.index');
+    // SBU Item
+    Route::get('/sbu-item', [SbuItemController::class, 'index'])->name('sbu-item.index');
+});
 
-Route::get('/verifikasi-pengajuan', [VerifikasiPengajuanController::class, 'index'])->name('verifikasi-pengajuan.index');
-Route::put('/verifikasi-pengajuan/{id}', [VerifikasiPengajuanController::class, 'update'])->name('verifikasi-pengajuan.update');
+/*
+|--------------------------------------------------------------------------
+| ROUTE ADMIN BIDANG
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'role:admin_bidang'])->group(function () {
+    // Dokumen Perjalanan Dinas
+    Route::controller(DokumenPerjalananDinasController::class)->group(function () {
+        Route::get('/dokumen-perjalanan-dinas', 'index')->name('dokumen-perjalanan-dinas.index');
+        Route::get('/dokumen/download/{id}/{type}', 'download')->name('dokumen.download');
+    });
 
-// Persetujuan Atasan
-Route::get('/persetujuan-atasan', [PersetujuanAtasanController::class, 'index'])->name('persetujuan-atasan.index');
-Route::post('/persetujuan-atasan/{id}/setujui', [PersetujuanAtasanController::class, 'setujui'])->name('persetujuan-atasan.setujui');
-Route::post('/persetujuan-atasan/{id}/tolak', [PersetujuanAtasanController::class, 'tolak'])->name('persetujuan-atasan.tolak');
-Route::post('/persetujuan-atasan/{id}/revisi', [PersetujuanAtasanController::class, 'revisi'])->name('persetujuan-atasan.revisi');
-Route::put('/persetujuan-atasan/{id}', [PersetujuanAtasanController::class, 'update'])->name('persetujuan-atasan.update');
+    // Perjalanan Dinas
+    Route::controller(PerjalananDinasController::class)->group(function () {
+        Route::get('/perjalanan-dinas', 'index')->name('perjalanan-dinas.index');
+        Route::get('/perjalanan-dinas/create', 'create')->name('perjalanan-dinas.create');
+        Route::post('/perjalanan-dinas/store', 'store')->name('perjalanan-dinas.store');
+    });
 
+    // Laporan Perjalanan Dinas
+    Route::controller(LaporanPerjalananDinasController::class)->group(function () {
+        Route::get('/laporan-perjalanan-dinas', 'index')->name('laporan.index');
+        Route::get('/laporan-perjalanan-dinas/{id}/edit', 'edit')->name('laporan.edit');
+        Route::post('/laporan/{id}/update', 'update')->name('laporan.update');
 
-// Dokumen Perjalanan Dinas
-Route::get('/dokumen-perjalanan-dinas', [DokumenPerjalananDinasController::class, 'index'])->name('dokumen-perjalanan-dinas.index');
-Route::get('/dokumen/download/{id}/{type}', [DokumenPerjalananDinasController::class, 'download'])->name('dokumen.download');
+        Route::get('/verifikasi-pengajuan', 'index')->name('verifikasi-pengajuan.index');
+        Route::put('/verifikasi-pengajuan', 'index')->name('verifikasi-pengajuan.update');
+    });
+});
 
-//Laporan Perjalanan Dinas
-Route::get('/laporan-perjalanan-dinas', [LaporanPerjalananDinasController::class, 'index'])->name('laporan.index');
-Route::get('/laporan-perjalanan-dinas/{id}/edit', [LaporanPerjalananDinasController::class, 'edit'])->name('laporan.edit');
-Route::post('/laporan/{id}/update', [LaporanPerjalananDinasController::class, 'update'])->name('laporan.update');
+/*
+|--------------------------------------------------------------------------
+| ROUTE VERIFIKATOR LEVEL 1
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'role:verifikator1'])->group(function () {
+    Route::controller(PerjalananDinasController::class)->group(function () {
+        Route::get('/perjalanan-dinas', 'index')->name('perjalanan-dinas.index');
+        Route::get('/perjalanan-dinas/{id}/edit', 'edit')->name('perjalanan-dinas.edit');
+        Route::put('/perjalanan-dinas/{id}', 'update')->name('perjalanan-dinas.update');
+        Route::get('/perjalanan-dinas/show/{id}', 'show')->name('perjalanan-dinas.show');
+        Route::delete('/perjalanan-dinas/delete/{id}', 'destroy')->name('perjalanan-dinas.destroy');
+    });
+});
 
-Route::get('/verifikasi-laporan-perjalanan-dinas', [VerifikasiLaporanPerjalananDinasController::class, 'index'])->name('verifikasi-laporan.index');
-Route::put('/verifikasi-laporan/{id}/update', [VerifikasiLaporanPerjalananDinasController::class, 'update'])->name('verifikasi-laporan.update');
+/*
+|--------------------------------------------------------------------------
+| ROUTE VERIFIKATOR LEVEL 2
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'role:verifikator2'])->group(function () {
+    Route::controller(VerifikasiPengajuanController::class)->group(function () {
+        Route::get('/verifikasi-pengajuan', 'index')->name('verifikasi-pengajuan.index');
+
+    });
+
+    Route::controller(VerifikasiLaporanPerjalananDinasController::class)->group(function () {
+        Route::get('/verifikasi-laporan-perjalanan-dinas', 'index')->name('verifikasi-laporan.index');
+        Route::put('/verifikasi-laporan/{id}/update', 'update')->name('verifikasi-laporan.update');
+    });
+});
+
+/*
+|--------------------------------------------------------------------------
+| ROUTE VERIFIKATOR LEVEL 3
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'role:verifikator3'])->group(function () {
+    Route::controller(PersetujuanAtasanController::class)->group(function () {
+        Route::get('/persetujuan-atasan', 'index')->name('persetujuan-atasan.index');
+        Route::post('/persetujuan-atasan/{id}/setujui', 'setujui')->name('persetujuan-atasan.setujui');
+        Route::post('/persetujuan-atasan/{id}/tolak', 'tolak')->name('persetujuan-atasan.tolak');
+        Route::post('/persetujuan-atasan/{id}/revisi', 'revisi')->name('persetujuan-atasan.revisi');
+        Route::put('/persetujuan-atasan/{id}', 'update')->name('persetujuan-atasan.update');
+    });
+});

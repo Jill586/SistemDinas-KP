@@ -9,6 +9,19 @@
     </div>
     <div class="card-body">
 
+                @if (session('success'))
+            <div class="alert alert-success">
+                {{ session('success') }}
+            </div>
+        @endif
+
+        @if (session('error'))
+            <div class="alert alert-danger">
+                {{ session('error') }}
+            </div>
+        @endif
+
+
         {{-- Pesan Error --}}
         @if (session('error'))
             <div class="alert alert-danger">{{ session('error') }}</div>
@@ -252,4 +265,25 @@ $(document).ready(function() {
     });
 });
 </script>
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+$(document).ready(function() {
+
+    // Jika ada session success dari controller
+    @if (session('success'))
+        Swal.fire({
+            title: "Success!",
+            icon: "success",
+            draggable: true,
+            text: "{{ session('success') }}"
+        });
+    @endif
+
+});
+</script>
+@endpush
+
 @endpush

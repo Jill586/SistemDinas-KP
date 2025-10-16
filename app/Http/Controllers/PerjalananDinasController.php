@@ -22,11 +22,10 @@ class PerjalananDinasController extends Controller
             'biaya.userTerkait',
         ])->latest()->get();
 
-        $pegawai = Pegawai::all(); // tambahkan ini
+        $pegawai = Pegawai::all();
 
         return view('admin.perjalanan-dinas', compact('perjalanans', 'pegawai'));
     }
-
 
     public function create()
     {
@@ -38,24 +37,30 @@ class PerjalananDinasController extends Controller
     {
         $this->validasiForm($request);
 
-        $data = $request->except(['pegawai_ids', 'bukti_undangan']);
+        try {
+            $data = $request->except(['pegawai_ids', 'bukti_undangan']);
 
-        // Upload file bukti undangan
-        if ($request->hasFile('bukti_undangan')) {
-            $data['bukti_undangan'] = $request->file('bukti_undangan')->store('undangan', 'public');
+            // Upload file bukti undangan
+            if ($request->hasFile('bukti_undangan')) {
+                $data['bukti_undangan'] = $request->file('bukti_undangan')->store('undangan', 'public');
+            }
+
+            // Simpan perjalanan dinas
+            $perjalanan = PerjalananDinas::create($data);
+
+            // Relasi pegawai
+            $perjalanan->pegawai()->sync($request->pegawai_ids);
+
+            // Hitung biaya
+            $this->hitungEstimasiBiaya($perjalanan, $request);
+
+            return redirect()->route('perjalanan-dinas.create')
+                             ->with('success', '✅ Pengajuan berhasil disimpan dengan estimasi biaya!');
+        } catch (\Throwable $e) {
+            return back()
+                ->withInput()
+                ->with('error', '❌ Data gagal dikirim: ' . $e->getMessage());
         }
-
-        // Simpan perjalanan dinas
-        $perjalanan = PerjalananDinas::create($data);
-
-        // Relasi pegawai
-        $perjalanan->pegawai()->sync($request->pegawai_ids);
-
-        // Hitung biaya
-        $this->hitungEstimasiBiaya($perjalanan, $request);
-
-        return redirect()->route('perjalanan-dinas.index')
-                         ->with('success', 'Pengajuan berhasil disimpan dengan estimasi biaya!');
     }
 
     public function show($id)
@@ -71,64 +76,77 @@ class PerjalananDinasController extends Controller
         return view('admin.form-pengajuan', compact('perjalanan', 'pegawai'));
     }
 
-public function update(Request $request, $id)
-{
-    $this->validasiForm($request);
+    public function update(Request $request, $id)
+    {
+        $this->validasiForm($request);
 
-    $perjalanan = PerjalananDinas::findOrFail($id);
+        try {
+            $perjalanan = PerjalananDinas::findOrFail($id);
 
-    $data = $request->only([
-        'tanggal_spt',
-        'jenis_spt',
-        'jenis_kegiatan',
-        'tujuan_spt',
-        'provinsi_tujuan_id',
-        'kota_tujuan_id',
-        'dasar_spt',
-        'uraian_spt',
-        'alat_angkut',
-        'alat_angkut_lainnya',
-        'tanggal_mulai',
-        'tanggal_selesai',
-    ]);
+            $data = $request->only([
+                'tanggal_spt',
+                'jenis_spt',
+                'jenis_kegiatan',
+                'tujuan_spt',
+                'provinsi_tujuan_id',
+                'kota_tujuan_id',
+                'dasar_spt',
+                'uraian_spt',
+                'alat_angkut',
+                'alat_angkut_lainnya',
+                'tanggal_mulai',
+                'tanggal_selesai',
+            ]);
 
-    //ENUM fix → pastikan string persis
-    $perjalanan->status = 'diproses';
+            // Status otomatis PROSES
+            $perjalanan->status = 'diproses';
 
-    if ($request->hasFile('bukti_undangan')) {
-        if ($perjalanan->bukti_undangan && Storage::disk('public')->exists($perjalanan->bukti_undangan)) {
-            Storage::disk('public')->delete($perjalanan->bukti_undangan);
+            // Ganti file bukti jika ada
+            if ($request->hasFile('bukti_undangan')) {
+                if ($perjalanan->bukti_undangan && Storage::disk('public')->exists($perjalanan->bukti_undangan)) {
+                    Storage::disk('public')->delete($perjalanan->bukti_undangan);
+                }
+                $data['bukti_undangan'] = $request->file('bukti_undangan')->store('undangan', 'public');
+            }
+
+            $perjalanan->update($data);
+
+            // Update relasi pegawai
+            if ($request->filled('pegawai_ids')) {
+                $perjalanan->pegawai()->sync($request->pegawai_ids);
+            }
+
+            // Hapus dan hitung ulang biaya
+            $perjalanan->biaya()->delete();
+            $this->hitungEstimasiBiaya($perjalanan, $request);
+
+            return redirect()->route('perjalanan-dinas.index')
+                             ->with('success', '✅ Pengajuan berhasil diperbarui! Status otomatis jadi PROSES.');
+        } catch (\Throwable $e) {
+            return back()
+                ->withInput()
+                ->with('error', '❌ Gagal memperbarui data: ' . $e->getMessage());
         }
-        $data['bukti_undangan'] = $request->file('bukti_undangan')->store('undangan', 'public');
     }
-
-    $perjalanan->update($data);
-
-    if ($request->filled('pegawai_ids')) {
-        $perjalanan->pegawai()->sync($request->pegawai_ids);
-    }
-
-    $perjalanan->biaya()->delete();
-    $this->hitungEstimasiBiaya($perjalanan, $request);
-
-    return redirect()->route('perjalanan-dinas.index')
-                     ->with('success', 'Pengajuan berhasil diperbarui! Status otomatis jadi PROSES.');
-}
 
     public function destroy($id)
     {
-        $perjalanan = PerjalananDinas::findOrFail($id);
+        try {
+            $perjalanan = PerjalananDinas::findOrFail($id);
 
-        if ($perjalanan->bukti_undangan && Storage::disk('public')->exists($perjalanan->bukti_undangan)) {
-            Storage::disk('public')->delete($perjalanan->bukti_undangan);
+            if ($perjalanan->bukti_undangan && Storage::disk('public')->exists($perjalanan->bukti_undangan)) {
+                Storage::disk('public')->delete($perjalanan->bukti_undangan);
+            }
+
+            $perjalanan->pegawai()->detach();
+            $perjalanan->biaya()->delete();
+            $perjalanan->delete();
+
+            return redirect()->route('perjalanan-dinas.index')
+                             ->with('success', '✅ Data perjalanan dinas berhasil dihapus!');
+        } catch (\Throwable $e) {
+            return back()->with('error', '❌ Gagal menghapus data: ' . $e->getMessage());
         }
-
-        $perjalanan->pegawai()->detach();
-        $perjalanan->biaya()->delete();
-        $perjalanan->delete();
-
-        return redirect()->route('perjalanan-dinas.index')
-                         ->with('success', 'Data perjalanan dinas berhasil dihapus!');
     }
 
     /**
