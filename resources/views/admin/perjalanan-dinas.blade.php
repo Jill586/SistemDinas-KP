@@ -7,9 +7,6 @@
     {{-- Header --}}
     <div class="card-header d-flex justify-content-between align-items-center bg-white">
         <h5 class="mb-0 fw-bold">Daftar Pengajuan Perjalanan Dinas Saya</h5>
-        <a href="{{ route('perjalanan-dinas.create') }}" class="btn btn-primary">
-            + Buat Pengajuan Baru
-        </a>
     </div>
 
     <div class="card-body">

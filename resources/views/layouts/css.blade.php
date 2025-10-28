@@ -57,3 +57,36 @@
     line-height: 1.5;
 }
 </style>
+
+<style>
+  /* Pastikan avatar di tengah secara vertikal dan horizontal */
+  .avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 8px;
+  }
+
+  /* Ukuran icon Boxicon biar konsisten */
+  .avatar i {
+    font-size: 24px;
+    line-height: 1;
+  }
+
+  /* Pastikan tinggi card seragam */
+  .card.h-100 {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  /* Hilangkan margin aneh dari card-body */
+  .card-body {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+  }
+</style>

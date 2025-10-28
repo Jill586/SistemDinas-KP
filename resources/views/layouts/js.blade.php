@@ -1,7 +1,6 @@
 <!-- Core JS -->
 <script src="../assets3/vendor/libs/jquery/jquery.js"></script>
-<script src="../assets3/vendor/libs/popper/popper.js"></script>
-<script src="../assets3/vendor/js/bootstrap.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="../assets3/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
 <script src="../assets3/vendor/js/menu.js"></script>
 

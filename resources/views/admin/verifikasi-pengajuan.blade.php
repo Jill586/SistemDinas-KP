@@ -33,9 +33,15 @@
                     @forelse($perjalanans as $row)
                         <tr>
                             <td class="text-center">{{ $loop->iteration }}</td>
-                            <td>{{ $row->nomor_spt }}</td>
+                            <td>
+                            @if ($row->nomor_spt)
+                                {{ $row->nomor_spt }}
+                            @else
+                                <span class="fst-italic text-muted">Belum ada</span>
+                            @endif
+                            </td>
                             <td>{{ \Carbon\Carbon::parse($row->tanggal_spt)->format('d M Y') }}</td>
-                            <td>{{ $row->user_pengaju->nama ?? '-' }}</td>
+                            <td>{{ $row->operator->name ?? '-' }}</td>
                             <td>{{ $row->tujuan_spt }}</td>
                             <td>
                                 @foreach($row->pegawai as $i => $u)
@@ -188,18 +194,18 @@
                                     <strong>File Bukti Undangan:</strong>
                                     <span class="text-muted">{{ basename($row->bukti_undangan) }}</span>
                                 </div>
-                                <div class="ms-3">
-                                    <a href="{{ Storage::url($row->bukti_undangan) }}"
+                                <div class="ms-2">
+                                    <a href="{{ asset('storage/' . $row->bukti_undangan) }}"
                                        target="_blank"
-                                       class="btn btn-sm btn-outline-info me-2"
+                                       class="btn btn-info me-1"
                                        title="Lihat Bukti Undangan">
-                                        <i class="fas fa-eye"></i> Lihat
+                                        <i class="bx bx-show"></i> Lihat
                                     </a>
-                                    <a href="{{ Storage::url($row->bukti_undangan) }}"
+                                    <a href="{{ asset('storage/' . $row->bukti_undangan) }}"
                                        download
-                                       class="btn btn-sm btn-outline-success"
+                                       class="btn btn-primary"
                                        title="Download Bukti Undangan">
-                                        <i class="fas fa-download"></i> Download
+                                        <i class="bx bx-download"></i> Download
                                     </a>
                                 </div>
                             </div>

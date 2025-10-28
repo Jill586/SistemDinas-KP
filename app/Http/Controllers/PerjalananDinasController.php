@@ -30,7 +30,21 @@ class PerjalananDinasController extends Controller
     public function create()
     {
         $pegawai = Pegawai::all();
-        return view('admin.form-pengajuan', compact('pegawai'));
+
+         // Ambil semua perjalanan dinas yang masih aktif hari ini
+        $perjalananAktif = PerjalananDinas::whereDate('tanggal_mulai', '<=', now())
+            ->whereDate('tanggal_selesai', '>=', now())
+            ->get();
+
+        // Ambil semua pegawai yang sedang dinas
+        $pegawaiSedangDinas = [];
+        foreach ($perjalananAktif as $p) {
+            foreach ($p->pegawai as $pg) {
+                $pegawaiSedangDinas[] = $pg->id;
+            }
+        }
+
+        return view('admin.form-pengajuan', compact('pegawai', 'pegawaiSedangDinas'));
     }
 
     public function store(Request $request)
@@ -39,6 +53,9 @@ class PerjalananDinasController extends Controller
 
         try {
             $data = $request->except(['pegawai_ids', 'bukti_undangan']);
+
+             // 👉 Tambahkan operator_id, verifikator_id, atasan_id otomatis
+            $data['operator_id'] = auth()->id();
 
             // Upload file bukti undangan
             if ($request->hasFile('bukti_undangan')) {

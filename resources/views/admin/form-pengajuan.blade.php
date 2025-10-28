@@ -9,7 +9,7 @@
     </div>
     <div class="card-body">
 
-                @if (session('success'))
+        @if (session('success'))
             <div class="alert alert-success">
                 {{ session('success') }}
             </div>
@@ -112,15 +112,21 @@
 
             {{-- Personil --}}
             <div class="mb-3">
-                <label class="form-label">Personil yang Berangkat <span class="text-danger">*</span></label>
-                <select name="pegawai_ids[]" id="pegawai_ids" class="form-select" multiple required>
-                    @foreach($pegawai as $p)
-                        <option value="{{ $p->id }}"
-                            {{ (collect(old('pegawai_ids'))->contains($p->id)) ? 'selected' : '' }}>
-                            {{ $p->nama }} (NIP: {{ $p->nip ?? '-' }})
-                        </option>
-                    @endforeach
-                </select>
+            <label class="form-label">Personil yang Berangkat <span class="text-danger">*</span></label>
+            <select name="pegawai_ids[]" id="pegawai_ids" class="form-select" multiple required>
+                @foreach($pegawai as $p)
+                @php
+                    $sedangDinas = in_array($p->id, $pegawaiSedangDinas ?? []);
+                @endphp
+
+                <option value="{{ $p->id }}"
+                    {{ (collect(old('pegawai_ids'))->contains($p->id)) ? 'selected' : '' }}
+                    {{ $sedangDinas ? 'disabled' : '' }}>
+                    {{ $p->nama }} (NIP: {{ $p->nip ?? '-' }})
+                    {{ $sedangDinas ? ' — Sedang Dinas' : '' }}
+                </option>
+                @endforeach
+            </select>
             </div>
 
             {{-- Tanggal --}}

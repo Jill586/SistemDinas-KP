@@ -67,12 +67,34 @@ if ($aksi === 'disetujui') {
         $perjalanan->status = 'proses';
     } elseif ($aksi === 'verifikasi')
         $perjalanan->status = 'verifikasi';
+        $perjalanan->verifikator_id = auth()->id(); // ✅ jika status verifikasi juga simpan id
 
     $perjalanan->catatan_verifikator = $catatan;
     $perjalanan->save();
 
-    return redirect()->route('verifikasi-pengajuan.index')
-                     ->with('success', 'Status pengajuan berhasil diperbarui.');
+    return redirect()->back()->with('success', 'Status laporan berhasil diperbarui.');
 }
+
+public function uploadUndangan(Request $request, $id)
+{
+    $request->validate([
+        'bukti_undangan' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+    ]);
+
+    $perjalanan = PerjalananDinas::findOrFail($id);
+
+    if ($request->hasFile('bukti_undangan')) {
+        // Simpan file ke folder public/undangan
+        $file = $request->file('bukti_undangan');
+        $path = $file->store('undangan', 'public'); // ✅ hasil: undangan/nama_file.pdf
+
+        // Simpan ke database
+        $perjalanan->bukti_undangan = $path;
+        $perjalanan->save();
+    }
+
+    return redirect()->back()->with('success', 'Bukti undangan berhasil diunggah.');
+}
+
 
 }

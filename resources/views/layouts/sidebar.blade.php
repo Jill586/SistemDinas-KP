@@ -19,24 +19,15 @@
 
   <ul class="menu-inner py-1 flex-grow-1">
 
-    {{-- ================= SUPER ADMIN ================= --}}
     @if ($role === 'super_admin')
-      <li class="menu-item {{ request()->routeIs('data-pegawai') ? 'active' : '' }}">
-        <a href="{{ route('data-pegawai') }}" class="menu-link">
-          <i class="menu-icon tf-icons bx bx-user"></i>
-          <div>Data Pegawai</div>
-        </a>
-      </li>
-
-      <li class="menu-item {{ request()->routeIs('sbu-item.index') ? 'active' : '' }}">
-        <a href="{{ route('sbu-item.index') }}" class="menu-link">
-          <i class="menu-icon tf-icons bx bx-grid"></i>
-          <div>Manajemen SBU</div>
+      <li class="menu-item {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+        <a href="{{ route('dashboard') }}" class="menu-link">
+          <i class="menu-icon tf-icons bx bx-loader-circle"></i>
+          <div>Dashboard</div>
         </a>
       </li>
     @endif
 
-    {{-- ================= ADMIN BIDANG ================= --}}
     @if ($role === 'admin_bidang' || $role === 'super_admin')
       <li class="menu-item {{ request()->routeIs('perjalanan-dinas.create') ? 'active' : '' }}">
         <a href="{{ route('perjalanan-dinas.create') }}" class="menu-link">
@@ -44,24 +35,9 @@
           <div>Buat Pengajuan</div>
         </a>
       </li>
-
-      <li class="menu-item {{ request()->routeIs('dokumen-perjalanan-dinas.index') ? 'active' : '' }}">
-        <a href="{{ route('dokumen-perjalanan-dinas.index') }}" class="menu-link">
-          <i class="menu-icon tf-icons bx bx-folder"></i>
-          <div>Dokumen SPT/SPPD</div>
-        </a>
-      </li>
-
-      <li class="menu-item {{ request()->routeIs('laporan.index') ? 'active' : '' }}">
-        <a href="{{ route('laporan.index') }}" class="menu-link">
-          <i class="menu-icon tf-icons bx bx-clipboard"></i>
-          <div>Laporan Perjadin</div>
-        </a>
-      </li>
     @endif
 
-    {{-- ================= VERIFIKATOR LEVEL 1 ================= --}}
-    @if ($role === 'verifikator1' || $role === 'super_admin')
+    @if ($role === 'verifikator1' || $role === 'super_admin' || $role === 'admin_bidang')
       <li class="menu-item {{ request()->routeIs('perjalanan-dinas.index') ? 'active' : '' }}">
         <a href="{{ route('perjalanan-dinas.index') }}" class="menu-link">
           <i class="menu-icon tf-icons bx bx-list-ul"></i>
@@ -70,7 +46,6 @@
       </li>
     @endif
 
-    {{-- ================= VERIFIKATOR LEVEL 2 ================= --}}
     @if ($role === 'verifikator2' || $role === 'super_admin')
       <li class="menu-item {{ request()->routeIs('verifikasi-pengajuan.index') ? 'active' : '' }}">
         <a href="{{ route('verifikasi-pengajuan.index') }}" class="menu-link">
@@ -78,7 +53,36 @@
           <div>Verifikasi Pengajuan</div>
         </a>
       </li>
+    @endif
+    
+    @if ($role === 'verifikator3' || $role === 'super_admin')
+      <li class="menu-item {{ request()->routeIs('persetujuan-atasan.index') ? 'active' : '' }}">
+        <a href="{{ route('persetujuan-atasan.index') }}" class="menu-link">
+          <i class="menu-icon tf-icons bx bx-badge-check"></i>
+          <div>Persetujuan Atasan</div>
+        </a>
+      </li>
+    @endif
 
+        @if ($role === 'admin_bidang' || $role === 'super_admin' || $role === 'verifikator2' || $role === 'verifikator3')
+      <li class="menu-item {{ request()->routeIs('dokumen-perjalanan-dinas.index') ? 'active' : '' }}">
+        <a href="{{ route('dokumen-perjalanan-dinas.index') }}" class="menu-link">
+          <i class="menu-icon tf-icons bx bx-folder"></i>
+          <div>Dokumen SPT/SPPD</div>
+        </a>
+      </li>
+    @endif
+
+    @if ($role === 'admin_bidang' || $role === 'super_admin')
+      <li class="menu-item {{ request()->routeIs('laporan.index') ? 'active' : '' }}">
+        <a href="{{ route('laporan.index') }}" class="menu-link">
+          <i class="menu-icon tf-icons bx bx-clipboard"></i>
+          <div>Laporan Perjadin</div>
+        </a>
+      </li>
+    @endif
+
+    @if ($role === 'verifikator2' || $role === 'super_admin')
       <li class="menu-item {{ request()->routeIs('verifikasi-laporan.index') ? 'active' : '' }}">
         <a href="{{ route('verifikasi-laporan.index') }}" class="menu-link">
           <i class="menu-icon tf-icons bx bx-clipboard"></i>
@@ -87,12 +91,20 @@
       </li>
     @endif
 
-    {{-- ================= VERIFIKATOR LEVEL 3 ================= --}}
-    @if ($role === 'verifikator3' || $role === 'super_admin')
-      <li class="menu-item {{ request()->routeIs('persetujuan-atasan.index') ? 'active' : '' }}">
-        <a href="{{ route('persetujuan-atasan.index') }}" class="menu-link">
-          <i class="menu-icon tf-icons bx bx-badge-check"></i>
-          <div>Persetujuan Atasan</div>
+    @if ($role === 'super_admin')
+      <li class="menu-item {{ request()->routeIs('data-pegawai') ? 'active' : '' }}">
+        <a href="{{ route('data-pegawai') }}" class="menu-link">
+          <i class="menu-icon tf-icons bx bx-user"></i>
+          <div>Data Pegawai</div>
+        </a>
+      </li>
+    @endif
+
+    @if ($role === 'super_admin')
+      <li class="menu-item {{ request()->routeIs('sbu-item.index') ? 'active' : '' }}">
+        <a href="{{ route('sbu-item.index') }}" class="menu-link">
+          <i class="menu-icon tf-icons bx bx-grid"></i>
+          <div>Manajemen SBU</div>
         </a>
       </li>
     @endif

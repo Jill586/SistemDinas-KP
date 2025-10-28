@@ -10,13 +10,14 @@ use App\Http\Controllers\VerifikasiPengajuanController;
 use App\Http\Controllers\DokumenPerjalananDinasController;
 use App\Http\Controllers\LaporanPerjalananDinasController;
 use App\Http\Controllers\VerifikasiLaporanPerjalananDinasController;
+use App\Http\Controllers\DashboardController;
 
 /*
 |--------------------------------------------------------------------------
 | ROUTE LOGIN
 |--------------------------------------------------------------------------
 */
-Route::get('/login', [LoginController::class, 'index'])->name('login');
+Route::get('/', [LoginController::class, 'index'])->name('login');
 Route::post('/login', [LoginController::class, 'login'])->name('login.post');
 
 /*
@@ -36,6 +37,8 @@ Route::middleware(['auth', 'role:super_admin'])->group(function () {
 
     // SBU Item
     Route::get('/sbu-item', [SbuItemController::class, 'index'])->name('sbu-item.index');
+
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 });
 
 /*
@@ -44,12 +47,6 @@ Route::middleware(['auth', 'role:super_admin'])->group(function () {
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'role:admin_bidang'])->group(function () {
-    // Dokumen Perjalanan Dinas
-    Route::controller(DokumenPerjalananDinasController::class)->group(function () {
-        Route::get('/dokumen-perjalanan-dinas', 'index')->name('dokumen-perjalanan-dinas.index');
-        Route::get('/dokumen/download/{id}/{type}', 'download')->name('dokumen.download');
-    });
-
     // Perjalanan Dinas
     Route::controller(PerjalananDinasController::class)->group(function () {
         Route::get('/perjalanan-dinas', 'index')->name('perjalanan-dinas.index');
@@ -64,7 +61,7 @@ Route::middleware(['auth', 'role:admin_bidang'])->group(function () {
         Route::post('/laporan/{id}/update', 'update')->name('laporan.update');
 
         Route::get('/verifikasi-pengajuan', 'index')->name('verifikasi-pengajuan.index');
-        Route::put('/verifikasi-pengajuan', 'index')->name('verifikasi-pengajuan.update');
+        Route::put('/verifikasi-pengajuan/{id}', 'update')->name('verifikasi-pengajuan.update');
     });
 });
 
@@ -73,7 +70,7 @@ Route::middleware(['auth', 'role:admin_bidang'])->group(function () {
 | ROUTE VERIFIKATOR LEVEL 1
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'role:verifikator1'])->group(function () {
+Route::middleware(['auth', 'role:verifikator1|admin_bidang'])->group(function () {
     Route::controller(PerjalananDinasController::class)->group(function () {
         Route::get('/perjalanan-dinas', 'index')->name('perjalanan-dinas.index');
         Route::get('/perjalanan-dinas/{id}/edit', 'edit')->name('perjalanan-dinas.edit');
@@ -91,7 +88,9 @@ Route::middleware(['auth', 'role:verifikator1'])->group(function () {
 Route::middleware(['auth', 'role:verifikator2'])->group(function () {
     Route::controller(VerifikasiPengajuanController::class)->group(function () {
         Route::get('/verifikasi-pengajuan', 'index')->name('verifikasi-pengajuan.index');
-
+        Route::get('/verifikasi-pengajuan/{id}', 'show')->name('verifikasi-pengajuan.show');
+        Route::put('/verifikasi-pengajuan/{id}', 'update')->name('verifikasi-pengajuan.update');
+        Route::post('/verifikasi-pengajuan/{id}/upload-undangan', 'uploadUndangan')->name('verifikasi.uploadUndangan');
     });
 
     Route::controller(VerifikasiLaporanPerjalananDinasController::class)->group(function () {
@@ -114,3 +113,16 @@ Route::middleware(['auth', 'role:verifikator3'])->group(function () {
         Route::put('/persetujuan-atasan/{id}', 'update')->name('persetujuan-atasan.update');
     });
 });
+
+/*
+|--------------------------------------------------------------------------
+| ROUTE DOKUMEN PERJALANAN DINAS (multi role)
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'role:super_admin|admin_bidang|verifikator2|verifikator2|verifikator3'])->group(function () {
+        Route::controller(DokumenPerjalananDinasController::class)->group(function () {
+            Route::get('/dokumen-perjalanan-dinas', 'index')->name('dokumen-perjalanan-dinas.index');
+            Route::get('/dokumen/download/{id}/{type}', 'download')->name('dokumen.download');
+        });
+    });
+

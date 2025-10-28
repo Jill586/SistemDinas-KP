@@ -10,6 +10,9 @@ class PerjalananDinas extends Model
     protected $table = 'perjalanan_dinas';
 
     protected $fillable = [
+        'operator_id',
+        'verifikator_id',
+        'atasan_id',
         'nomor_spt',
         'tanggal_spt',
         'jenis_spt',
@@ -25,7 +28,7 @@ class PerjalananDinas extends Model
         'tanggal_mulai',
         'tanggal_selesai',
         'status',
-        'status_laporan', // ✅ tambahkan ini karena kolom ini memang ada di tabel perjalanan_dinas
+        'status_laporan', 
         'catatan_verifikator',
         'catatan_atasan',
     ];
@@ -69,4 +72,21 @@ class PerjalananDinas extends Model
     {
         return $this->hasOne(LaporanPerjalananDinas::class, 'perjalanan_dinas_id', 'id');
     }
+
+    public function operator()
+    {
+        return $this->belongsTo(User::class, 'operator_id', 'id');
+    }
+
+    public function verifikator()
+    {
+        return $this->belongsTo(User::class, 'verifikator_id');
+    }
+
+    public function atasan()
+    {
+        return $this->belongsTo(User::class, 'atasan_id');
+    }
+
+
 }

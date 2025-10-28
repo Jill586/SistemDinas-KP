@@ -15,7 +15,7 @@
     <title>Login - ESPT</title>
 
     <!-- login -->
-    <link rel="stylesheet" href="{{ asset('assets3/css/login.css') }}"
+    <link rel="stylesheet" href="{{ asset('assets3/css/login.css') }}"/>
 
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="{{ asset('assets3/img/favicon/favicon.ico') }}" />
@@ -73,7 +73,7 @@
               @endif
 
               {{-- FORM LOGIN --}}
-              <form id="formAuthentication" class="mb-3" method="POST" action="{{ route('login') }}">
+              <form id="formAuthentication" class="mb-3" method="POST" action="{{ route('login.post') }}">
                 @csrf
                 <div class="mb-3">
                   <label for="email" class="form-label">Email</label>

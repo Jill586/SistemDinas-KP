@@ -7,7 +7,6 @@
     {{-- Header --}}
     <div class="card-header d-flex justify-content-between align-items-center bg-white">
         <h5 class="mb-0 fw-bold">Daftar SBU Items</h5>
-        <a href="#" class="btn btn-primary">+ Tambah Item</a>
     </div>
 
     <div class="card-body">

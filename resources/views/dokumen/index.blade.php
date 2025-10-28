@@ -63,91 +63,6 @@
                                 </button>
                             </td>
                         </tr>
-
-                        {{-- Modal Detail --}}
-                        <div class="modal fade" id="modalDetail{{ $row->id }}" tabindex="-1" aria-hidden="true">
-                            <div class="modal-dialog modal-dialog-centered">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title fw-bold">Dokumen SPT/SPPD</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                    </div>
-                                    <div class="modal-body text-center">
-
-                                        {{-- Baris 1: Download SPT --}}
-                                        <div class="row mb-3">
-                                            <div class="col-md-6 mb-2 mb-md-0">
-                                                <a href="{{ route('dokumen.download', ['id' => $row->id, 'type' => 'spt_pdf']) }}"
-                                                class="btn btn-danger w-100">
-                                                    <i class="bx bxs-file-pdf me-1"></i> SPT PDF
-                                                </a>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <a href="{{ route('dokumen.download', ['id' => $row->id, 'type' => 'spt_word']) }}"
-                                                class="btn btn-primary w-100">
-                                                    <i class="bx bxs-file-doc me-1"></i> SPT DOCX
-                                                </a>
-                                            </div>
-                                        </div>
-
-                                        {{-- Baris 2: Download SPPD --}}
-                                        <div class="row">
-                                            {{-- Tombol Download SPPD PDF --}}
-                                            <div class="col-md-6 mb-2 mb-md-0">
-                                                <a href="{{ route('dokumen.download', ['id' => $row->id, 'type' => 'sppd_pdf']) }}"
-                                                class="btn btn-danger w-100">
-                                                    <i class="bx bxs-file-pdf me-1"></i> SPPD PDF
-                                                </a>
-                                            </div>
-
-                                        {{-- Dropdown / Tombol Download SPPD Word --}}
-                                        <div class="col-md-6">
-                                            @if ($row->pegawai->count() > 1)
-                                                {{-- Jika lebih dari satu personil, tampilkan dropdown --}}
-                                                <div class="dropdown w-100">
-                                                    <button class="btn btn-primary dropdown-toggle w-100" type="button"
-                                                            id="dropdownSPPD{{ $row->id }}" data-bs-toggle="dropdown" aria-expanded="false">
-                                                        <i class="bx bxs-file-doc me-1"></i> SPPD DOCX
-                                                    </button>
-                                                    <ul class="dropdown-menu w-100" aria-labelledby="dropdownSPPD{{ $row->id }}">
-                                                        @foreach ($row->pegawai as $pg)
-                                                            <li>
-                                                                <a class="dropdown-item"
-                                                                href="{{ route('dokumen.download', [
-                                                                            'id' => $row->id,
-                                                                            'type' => 'sppd_word',
-                                                                            'pegawai_id' => $pg->id
-                                                                ]) }}">
-                                                                    Untuk : {{ $pg->nama }}
-                                                                </a>
-                                                            </li>
-                                                        @endforeach
-                                                    </ul>
-                                                </div>
-                                            @elseif ($row->pegawai->count() == 1)
-                                                {{-- Jika hanya satu personil, tampilkan tombol langsung --}}
-                                                @php $pg = $row->pegawai->first(); @endphp
-                                                <a class="btn btn-primary w-100"
-                                                href="{{ route('dokumen.download', [
-                                                            'id' => $row->id,
-                                                            'type' => 'sppd_word',
-                                                            'pegawai_id' => $pg->id
-                                                ]) }}">
-                                                    <i class="bx bxs-file-doc me-1"></i> SPPD DOCX
-                                                </a>
-                                            @else
-                                                {{-- Jika tidak ada personil --}}
-                                                <button class="btn btn-secondary w-100" disabled>
-                                                    <i class="bx bxs-file-doc me-1"></i> Tidak ada personil
-                                                </button>
-                                            @endif
-                                        </div>
-
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                     @empty
                         <tr>
                             <td colspan="8" class="text-center">Belum ada data dokumen SPT/SPPD</td>
@@ -158,4 +73,87 @@
         </div>
     </div>
 </div>
+
+{{-- === Modal Diletakkan di Luar Table === --}}
+@foreach($dokumens as $row)
+<div class="modal fade" id="modalDetail{{ $row->id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Dokumen SPT/SPPD</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body text-center">
+
+                {{-- Baris 1: Download SPT --}}
+                <div class="row mb-3">
+                    <div class="col-md-6 mb-2 mb-md-0">
+                        <a href="{{ route('dokumen.download', ['id' => $row->id, 'type' => 'spt_pdf']) }}"
+                           class="btn btn-danger w-100">
+                            <i class="bx bxs-file-pdf me-1"></i> SPT PDF
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <a href="{{ route('dokumen.download', ['id' => $row->id, 'type' => 'spt_word']) }}"
+                           class="btn btn-primary w-100">
+                            <i class="bx bxs-file-doc me-1"></i> SPT DOCX
+                        </a>
+                    </div>
+                </div>
+
+                {{-- Baris 2: Download SPPD --}}
+                <div class="row">
+                    <div class="col-md-6 mb-2 mb-md-0">
+                        <a href="{{ route('dokumen.download', ['id' => $row->id, 'type' => 'sppd_pdf']) }}"
+                           class="btn btn-danger w-100">
+                            <i class="bx bxs-file-pdf me-1"></i> SPPD PDF
+                        </a>
+                    </div>
+
+                    <div class="col-md-6">
+                        @if ($row->pegawai->count() > 1)
+                            {{-- Jika lebih dari satu personil --}}
+                            <div class="dropdown w-100">
+                                <button class="btn btn-primary dropdown-toggle w-100" type="button"
+                                        id="dropdownSPPD{{ $row->id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bx bxs-file-doc me-1"></i> SPPD DOCX
+                                </button>
+                                <ul class="dropdown-menu w-100" aria-labelledby="dropdownSPPD{{ $row->id }}">
+                                    @foreach ($row->pegawai as $pg)
+                                        <li>
+                                            <a class="dropdown-item"
+                                               href="{{ route('dokumen.download', [
+                                                   'id' => $row->id,
+                                                   'type' => 'sppd_word',
+                                                   'pegawai_id' => $pg->id
+                                               ]) }}">
+                                                Untuk : {{ $pg->nama }}
+                                            </a>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @elseif ($row->pegawai->count() == 1)
+                            @php $pg = $row->pegawai->first(); @endphp
+                            <a class="btn btn-primary w-100"
+                               href="{{ route('dokumen.download', [
+                                   'id' => $row->id,
+                                   'type' => 'sppd_word',
+                                   'pegawai_id' => $pg->id
+                               ]) }}">
+                                <i class="bx bxs-file-doc me-1"></i> SPPD DOCX
+                            </a>
+                        @else
+                            <button class="btn btn-secondary w-100" disabled>
+                                <i class="bx bxs-file-doc me-1"></i> Tidak ada personil
+                            </button>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endforeach
 @endsection

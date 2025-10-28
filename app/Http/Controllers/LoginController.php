@@ -20,13 +20,13 @@ public function login(Request $request)
 
             switch (trim($user->role)) {
             case 'super_admin':
-                return redirect()->route('data-pegawai');
+                return redirect()->route('dashboard');
             case 'admin_bidang':
                 return redirect()->route('perjalanan-dinas.create');
             case 'verifikator1':
                 return redirect()->route('perjalanan-dinas.index');
             case 'verifikator2':
-                return redirect()->route('verifikasi-laporan.index');
+                return redirect()->route('verifikasi-pengajuan.index');
             case 'verifikator3':
                 return redirect()->route('persetujuan-atasan.index');
             default:

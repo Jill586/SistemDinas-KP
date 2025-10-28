@@ -37,6 +37,7 @@ class PersetujuanAtasanController extends Controller
             // === Setujui & terbitkan surat ===
             $perjalanan->status = 'disetujui';
             $perjalanan->catatan_atasan = 'Disetujui dan diterbitkan surat';
+            $perjalanan->atasan_id = auth()->id(); // ✅ simpan atasan yang menyetujui
 
         // === Buat No SPT otomatis dengan format 000.1.2.3/SPT/XXX ===
         $prefix = '000.1.2.3/SPT';
