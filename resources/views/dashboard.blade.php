@@ -81,7 +81,7 @@
               + Rp {{ number_format($totalBaru, 0, ',', '.') }}
               <span class="text-muted">dari pengajuan terakhir</span>
             </small>
-          @endif        
+          @endif
         </div>
       </div>
     </div>
@@ -103,24 +103,25 @@
 
   {{-- ====== KANAN: TABEL TOP 5 PELAPOR AKTIF ====== --}}
   <div class="col-md-7 col-lg-7">
-    <div class="card shadow h-100">
-      <div class="card-header bg-white">
-        <h5 class="mb-0 fw-bold">Top 5 Pelapor Aktif</h5>
-      </div>
+  <div class="card shadow h-100">
+    <div class="card-header bg-white">
+      <h5 class="mb-0 fw-bold">Daftar Pelapor Aktif</h5>
+    </div>
 
-      <div class="card-body">
-        <div class="table-responsive text-nowrap">
-          <table class="table table-striped table-bordered align-middle mb-0">
-            <thead class="table-light text-center">
-              <tr>
-                <th style="width: 5%">NO</th>
-                <th style="width: 30%">NAMA PEGAWAI</th>
-                <th style="width: 15%">JABATAN</th>
-                <th style="width: 25%">TOTAL PERJALANAN</th>
-              </tr>
-            </thead>
-            <tbody>
-              @forelse($topPelapor as $index => $pegawai)
+    <div class="card-body">
+      {{-- Tambahkan batas tinggi dan scroll --}}
+      <div class="table-responsive text-nowrap" style="max-height: 400px; overflow-y: auto;">
+        <table class="table table-striped table-bordered align-middle mb-0">
+          <thead class="table-light text-center sticky-top">
+            <tr>
+              <th style="width: 5%">NO</th>
+              <th style="width: 30%">NAMA PEGAWAI</th>
+              <th style="width: 15%">JABATAN</th>
+              <th style="width: 25%">TOTAL PERJALANAN</th>
+            </tr>
+          </thead>
+          <tbody>
+            @forelse($topPelapor as $index => $pegawai)
               @if($pegawai->total_perjalanan > 0)
                 <tr>
                   <td class="text-center">{{ $index + 1 }}</td>
@@ -143,20 +144,20 @@
                   </td>
                 </tr>
               @endif
-              @empty
-                <tr>
-                  <td colspan="5" class="text-center text-muted py-3">
-                    <i class="bx bx-info-circle me-1"></i> Belum ada data perjalanan
-                  </td>
-                </tr>
-              @endforelse
-            </tbody>
-          </table>
-        </div>
+            @empty
+              <tr>
+                <td colspan="5" class="text-center text-muted py-3">
+                  <i class="bx bx-info-circle me-1"></i> Belum ada data perjalanan
+                </td>
+              </tr>
+            @endforelse
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
 </div>
+
 
 <div class="row g-4 mb-4">
   {{-- ====== KIRI: CHART JENIS SPT ====== --}}

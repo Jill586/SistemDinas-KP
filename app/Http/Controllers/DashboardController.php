@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Pegawai;
-use App\Models\PerjalananDinas; 
+use App\Models\PerjalananDinas;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -24,14 +24,14 @@ class DashboardController extends Controller
 
         // Jumlah perjalanan hari ini
         $perjalananHariIni = PerjalananDinas::whereDate('tanggal_mulai', Carbon::today())->count();
+        
+       // Ambil semua pegawai dengan jumlah perjalanan masing-masing
+       $topPelapor = Pegawai::select('pegawai.*', DB::raw('COUNT(perjalanan_dinas_user.perjalanan_dinas_id) as total_perjalanan'))
+        ->leftJoin('perjalanan_dinas_user', 'perjalanan_dinas_user.pegawai_id', '=', 'pegawai.id')
+        ->groupBy('pegawai.id')
+        ->orderByDesc('total_perjalanan')
+        ->get();
 
-         // Ambil 5 pegawai dengan jumlah perjalanan terbanyak
-        $topPelapor = Pegawai::select('pegawai.*', DB::raw('COUNT(perjalanan_dinas_user.perjalanan_dinas_id) as total_perjalanan'))
-            ->leftJoin('perjalanan_dinas_user', 'perjalanan_dinas_user.pegawai_id', '=', 'pegawai.id')
-            ->groupBy('pegawai.id')
-            ->orderByDesc('total_perjalanan')
-            ->take(5)
-            ->get();
 
         # Hitung total biaya dari semua perjalanan dinas
         $totalBiaya = DB::table('perjalanan_dinas_biaya')->sum('subtotal_biaya');
