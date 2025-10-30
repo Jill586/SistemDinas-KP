@@ -292,8 +292,7 @@
 
 <script>
   const destinasiCtx = document.getElementById('destinasiPieChart').getContext('2d');
-
-  const destinasiLabels = {!! json_encode($topDestinasi->pluck('tujuan_spt')) !!};
+  const destinasiLabels = {!! json_encode($topDestinasi->pluck('kota_tujuan_id')) !!};
   const destinasiData = {!! json_encode($topDestinasi->pluck('total')) !!};
 
   new Chart(destinasiCtx, {

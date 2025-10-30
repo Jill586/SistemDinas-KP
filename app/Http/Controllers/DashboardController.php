@@ -62,8 +62,8 @@ class DashboardController extends Controller
             ->pluck('total', 'jenis_spt');
 
         // Hitung jumlah tujuan terbanyak (PIECHART)
-        $topDestinasi = PerjalananDinas::select('tujuan_spt', DB::raw('COUNT(*) as total'))
-            ->groupBy('tujuan_spt')
+        $topDestinasi = PerjalananDinas::select('kota_tujuan_id', DB::raw('COUNT(*) as total'))
+            ->groupBy('kota_tujuan_id')
             ->orderByDesc('total')
             ->take(5)
             ->get();
