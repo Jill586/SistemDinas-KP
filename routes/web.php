@@ -35,7 +35,8 @@ Route::middleware(['auth', 'role:super_admin'])->group(function () {
         Route::delete('/pegawai/delete/{id}', 'destroy')->name('pegawai.destroy');
     });
 
-    // SBU Item
+    Route::post('/pegawai/import', [PegawaiController::class, 'import'])->name('pegawai.import');
+
     Route::get('/sbu-item', [SbuItemController::class, 'index'])->name('sbu-item.index');
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
