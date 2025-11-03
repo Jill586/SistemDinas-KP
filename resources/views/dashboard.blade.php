@@ -249,7 +249,7 @@
       datasets: [{
         label: 'Jumlah SPT',
         data: jenisData,
-        backgroundColor: ['#4e73df', '#36b9cc', '#f6c23e'],
+        backgroundColor: ['#4e73df', '#36b9cc', '#e74a3b'],
         borderRadius: 2,
         borderSkipped: false
       }]

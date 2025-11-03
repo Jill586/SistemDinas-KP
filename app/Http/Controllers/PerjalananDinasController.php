@@ -27,58 +27,66 @@ class PerjalananDinasController extends Controller
         return view('admin.perjalanan-dinas', compact('perjalanans', 'pegawai'));
     }
 
-    public function create()
-    {
-        $pegawai = Pegawai::all();
+   public function create()
+{
+    $pegawai = Pegawai::all();
 
-         // Ambil semua perjalanan dinas yang masih aktif hari ini
-        $perjalananAktif = PerjalananDinas::whereDate('tanggal_mulai', '<=', now())
-            ->whereDate('tanggal_selesai', '>=', now())
-            ->get();
+    // Ambil hanya perjalanan dinas yang masih aktif DAN statusnya bukan ditolak / selesai
+    $perjalananAktif = PerjalananDinas::whereIn('status', ['Disetujui', 'Berjalan'])
+        ->whereDate('tanggal_mulai', '<=', now())
+        ->whereDate('tanggal_selesai', '>=', now())
+        ->get();
 
-        // Ambil semua pegawai yang sedang dinas
-        $pegawaiSedangDinas = [];
-        foreach ($perjalananAktif as $p) {
-            foreach ($p->pegawai as $pg) {
-                $pegawaiSedangDinas[] = $pg->id;
-            }
-        }
-
-        return view('admin.form-pengajuan', compact('pegawai', 'pegawaiSedangDinas'));
-    }
-
-    public function store(Request $request)
-    {
-        $this->validasiForm($request);
-
-        try {
-            $data = $request->except(['pegawai_ids', 'bukti_undangan']);
-
-             // 👉 Tambahkan operator_id, verifikator_id, atasan_id otomatis
-            $data['operator_id'] = auth()->id();
-
-            // Upload file bukti undangan
-            if ($request->hasFile('bukti_undangan')) {
-                $data['bukti_undangan'] = $request->file('bukti_undangan')->store('undangan', 'public');
-            }
-
-            // Simpan perjalanan dinas
-            $perjalanan = PerjalananDinas::create($data);
-
-            // Relasi pegawai
-            $perjalanan->pegawai()->sync($request->pegawai_ids);
-
-            // Hitung biaya
-            $this->hitungEstimasiBiaya($perjalanan, $request);
-
-            return redirect()->route('perjalanan-dinas.create')
-                             ->with('success', '✅ Pengajuan berhasil disimpan dengan estimasi biaya!');
-        } catch (\Throwable $e) {
-            return back()
-                ->withInput()
-                ->with('error', '❌ Data gagal dikirim: ' . $e->getMessage());
+    // Ambil semua pegawai yang sedang dinas aktif
+    $pegawaiSedangDinas = [];
+    foreach ($perjalananAktif as $p) {
+        foreach ($p->pegawai as $pg) {
+            $pegawaiSedangDinas[] = $pg->id;
         }
     }
+
+    return view('admin.form-pengajuan', compact('pegawai', 'pegawaiSedangDinas'));
+}
+
+
+   public function store(Request $request)
+{
+    $this->validasiForm($request);
+
+    try {
+        $data = $request->except(['pegawai_ids', 'bukti_undangan']);
+
+        // Jika jenis SPT dalam daerah, otomatis isi provinsi dan kota
+        if ($request->jenis_spt === 'dalam_daerah') {
+            $data['provinsi_tujuan_id'] = 'RIAU';
+            $data['kota_tujuan_id'] = 'Siak';
+        }
+
+        // Tambahkan operator_id, verifikator_id, atasan_id otomatis
+        $data['operator_id'] = auth()->id();
+
+        // Upload file bukti undangan
+        if ($request->hasFile('bukti_undangan')) {
+            $data['bukti_undangan'] = $request->file('bukti_undangan')->store('undangan', 'public');
+        }
+
+        // Simpan perjalanan dinas
+        $perjalanan = PerjalananDinas::create($data);
+
+        // Relasi pegawai
+        $perjalanan->pegawai()->sync($request->pegawai_ids);
+
+        // Hitung biaya
+        $this->hitungEstimasiBiaya($perjalanan, $request);
+
+        return redirect()->route('perjalanan-dinas.create')
+                         ->with('success', '✅ Pengajuan berhasil disimpan dengan estimasi biaya!');
+    } catch (\Throwable $e) {
+        return back()
+            ->withInput()
+            ->with('error', '❌ Data gagal dikirim: ' . $e->getMessage());
+    }
+}
 
     public function show($id)
     {
