@@ -266,184 +266,191 @@
     @endif
 @endforeach
 
-{{-- Modal Detail: diletakkan DI LUAR tabel --}}
-@foreach($perjalanans as $row)
-<div class="modal fade" id="modalShow{{ $row->id }}" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-xl">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Detail Pengajuan Perjalanan Dinas</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                {{-- Info SPT --}}
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <strong>Nomor SPT:</strong><br>
-                        {{ $row->nomor_spt ?? '-' }}
+        {{-- Modal Detail: diletakkan DI LUAR tabel --}}
+        @foreach($perjalanans as $row)
+        <div class="modal fade" id="modalShow{{ $row->id }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-xl modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header bg-light">
+                        <h5 class="modal-title fw-bold">Detail Pengajuan Perjalanan Dinas</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
-                    <div class="col-md-6">
-                        <strong>Tanggal SPT:</strong><br>
-                        {{ \Carbon\Carbon::parse($row->tanggal_spt)->translatedFormat('d F Y') }}
+
+                    <div class="modal-body px-4 py-3">
+
+                        {{-- === INFO SPT === --}}
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <strong>Nomor SPT:</strong><br>
+                                {{ $row->nomor_spt ?? '-' }}
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Tanggal SPT:</strong><br>
+                                {{ \Carbon\Carbon::parse($row->tanggal_spt)->translatedFormat('d F Y') }}
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <strong>Jenis Perjalanan Dinas:</strong><br>
+                                {{ ucfirst(str_replace('_',' ',$row->jenis_spt)) }}
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Jenis Kegiatan:</strong><br>
+                                {{ $row->jenis_kegiatan }}
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <strong>Tujuan Utama:</strong><br>
+                                {{ $row->tujuan_spt }}
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Lokasi Tujuan (SBU):</strong><br>
+                                Provinsi: {{ $row->provinsi_tujuan_id }},
+                                Kota/Kab:
+                                @if ($row->jenis_spt === 'dalam_daerah')
+                                    Siak
+                                @else
+                                    {{ $row->kota_tujuan_id ?? '-' }}
+                                @endif
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-12">
+                                <strong>Detail Lokasi:</strong><br>
+                                Kecamatan: {{ $row->kecamatan_spt ?? '-' }},
+                                Desa/Kampung: {{ $row->desa_spt ?? '-' }},
+                                Jarak: {{ $row->jarak_km ? $row->jarak_km . ' KM' : '-' }}
+                            </div>
+                        </div>
+
+                        {{-- === DASAR DAN URAIAN === --}}
+                        <div class="mb-3">
+                            <strong>Dasar SPT:</strong>
+                            <div class="form-control bg-light">{{ $row->dasar_spt }}</div>
+                        </div>
+
+                        <div class="mb-4">
+                            <strong>Uraian Maksud:</strong>
+                            <div class="form-control bg-light">{{ $row->uraian_spt }}</div>
+                        </div>
+
+                        {{-- === PERSONIL === --}}
+                        <hr>
+                        <h6 class="fw-bold mb-2">Informasi Pelaksana</h6>
+                        @foreach($row->pegawai as $i => $u)
+                            <div class="mb-2 ps-2">
+                                <strong>{{ $i+1 }}. {{ $u->nama }}</strong>
+                                (NIP: {{ $u->nip ?? '-' }})<br>
+                                Gol: {{ $u->golongan ?? '-' }} -
+                                Jabatan: {{ $u->jabatan ?? '-' }}
+                            </div>
+                        @endforeach
+
+                        {{-- === PELAKSANAAN === --}}
+                        <hr>
+                        <h6 class="fw-bold mb-2">Pelaksanaan</h6>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <strong>Tanggal Mulai:</strong><br>
+                                {{ \Carbon\Carbon::parse($row->tanggal_mulai)->translatedFormat('d F Y') }}
+                            </div>
+                            <div class="col-md-4">
+                                <strong>Tanggal Selesai:</strong><br>
+                                {{ \Carbon\Carbon::parse($row->tanggal_selesai)->translatedFormat('d F Y') }}
+                            </div>
+                            <div class="col-md-4">
+                                <strong>Lama Hari:</strong><br>
+                                @php
+                                    $lama = \Carbon\Carbon::parse($row->tanggal_mulai)
+                                        ->diffInDays(\Carbon\Carbon::parse($row->tanggal_selesai)) + 1;
+                                @endphp
+                                {{ $lama }} hari
+                            </div>
+                        </div>
+
+                        {{-- === ESTIMASI BIAYA === --}}
+                        <hr>
+                        <h6 class="fw-bold mb-2">Estimasi Biaya</h6>
+                        @if($row->biaya->isNotEmpty())
+                            <div class="table-responsive mt-2">
+                                <table class="table table-bordered table-striped align-middle">
+                                    <thead class="table-dark text-center">
+                                        <tr>
+                                            <th>Deskripsi Biaya</th>
+                                            <th>Personil Terkait</th>
+                                            <th>Harga Satuan</th>
+                                            <th>Jml. Unit/Hari</th>
+                                            <th>Subtotal</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($row->biaya as $biaya)
+                                            <tr>
+                                                <td>{{ $biaya->deskripsi_biaya }}</td>
+                                                <td>{{ $biaya->personil_name ?? 'Semua' }}</td>
+                                                <td class="text-end">
+                                                    Rp {{ number_format($biaya->harga_satuan, 0, ',', '.') }}
+                                                </td>
+                                                <td class="text-center">
+                                                    {{ $biaya->jumlah_unit > 0
+                                                        ? $biaya->jumlah_unit . ' ' . ($biaya->sbuItem->satuan ?? '')
+                                                        : '-' }}
+                                                </td>
+                                                <td class="text-end">
+                                                    Rp {{ number_format($biaya->subtotal_biaya, 0, ',', '.') }}
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                    <tfoot>
+                                        <tr class="table-light">
+                                            <td colspan="4" class="text-end fw-bold">Total Estimasi Biaya</td>
+                                            <td class="text-end fw-bold">
+                                                Rp {{ number_format($row->total_estimasi_biaya, 0, ',', '.') }}
+                                            </td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        @else
+                            <div class="alert alert-info text-center">
+                                <i class="fas fa-info-circle me-2"></i> Detail estimasi biaya belum tersedia.
+                            </div>
+                        @endif
+
+                        {{-- === STATUS === --}}
+                        <hr>
+                        <h6 class="fw-bold mb-2">Status & Catatan</h6>
+                        <p>Status Saat Ini:
+                            @if($row->status == 'disetujui')
+                                <span class="badge bg-label-success">SELESAI</span>
+                            @elseif($row->status == 'ditolak')
+                                <span class="badge bg-label-danger">DITOLAK</span>
+                            @elseif($row->status == 'revisi_operator')
+                                <span class="badge bg-label-warning">REVISI OPERATOR</span>
+                            @elseif($row->status == 'verifikasi')
+                                <span class="badge bg-label-warning">VERIFIKASI</span>
+                            @else
+                                <span class="badge bg-label-primary">PROSES</span>
+                            @endif
+                        </p>
+                        <p><strong>Catatan:</strong><br>{{ $row->catatan_verifikator ?? '-' }}</p>
+
+                        {{-- === BUTTON === --}}
+                        <div class="text-end mt-4">
+                            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Tutup</button>
+                        </div>
+
                     </div>
                 </div>
-
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <strong>Jenis Perjalanan Dinas:</strong><br>
-                        {{ ucfirst(str_replace('_',' ',$row->jenis_spt)) }}
-                    </div>
-                    <div class="col-md-6">
-                        <strong>Jenis Kegiatan:</strong><br>
-                        {{ $row->jenis_kegiatan }}
-                    </div>
-                </div>
-
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <strong>Tujuan Utama:</strong><br>
-                        {{ $row->tujuan_spt }}
-                    </div>
-                    <div class="col-md-6">
-                        <strong>Lokasi Tujuan (SBU):</strong><br>
-                        Provinsi: {{ $row->provinsi_tujuan_id }},
-                        Kota/Kab: {{ $row->kota_tujuan_id }}
-                    </div>
-                </div>
-
-                <div class="mb-3">
-                    <strong>Dasar SPT:</strong>
-                    <div class="form-control bg-light">{{ $row->dasar_spt }}</div>
-                </div>
-
-                <div class="mb-3">
-                    <strong>Uraian Maksud:</strong>
-                    <div class="form-control bg-light">{{ $row->uraian_spt }}</div>
-                </div>
-
-                {{-- Personil --}}
-                <hr>
-                <h6 class="fw-bold">Informasi Pelaksana</h6>
-                @foreach($row->pegawai as $i => $u)
-                    <div class="mb-2">
-                        <strong>{{ $i+1 }}. {{ $u->nama }}</strong>
-                        (NIP: {{ $u->nip ?? '-' }})<br>
-                        Gol: {{ $u->golongan ?? '-' }} -
-                        Jabatan: {{ $u->jabatan ?? '-' }}
-                    </div>
-                @endforeach
-
-                {{-- Pelaksanaan --}}
-                <hr>
-                <div class="row">
-                    <div class="col-md-4">
-                        <strong>Tanggal Mulai:</strong><br>
-                        {{ \Carbon\Carbon::parse($row->tanggal_mulai)->translatedFormat('d F Y') }}
-                    </div>
-                    <div class="col-md-4">
-                        <strong>Tanggal Selesai:</strong><br>
-                        {{ \Carbon\Carbon::parse($row->tanggal_selesai)->translatedFormat('d F Y') }}
-                    </div>
-                    <div class="col-md-4">
-                        <strong>Lama Hari:</strong><br>
-                        @php
-                            $lama = \Carbon\Carbon::parse($row->tanggal_mulai)
-                                ->diffInDays(\Carbon\Carbon::parse($row->tanggal_selesai)) + 1;
-                        @endphp
-                        {{ $lama }} hari
-                    </div>
-                </div>
-
-                {{-- Estimasi Biaya --}}
-                <hr>
-                <h6 class="fw-bold">Estimasi Biaya</h6>
-                @if($row->biaya->isNotEmpty())
-                    <div class="table-responsive">
-                        <table class="table table-bordered table-striped align-middle">
-                            <thead class="table-dark">
-                                <tr class="text-center">
-                                    <th>Deskripsi Biaya</th>
-                                    <th>Personil Terkait</th>
-                                    <th>Harga Satuan</th>
-                                    <th>Jml. Unit/Hari</th>
-                                    <th>Subtotal</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($row->biaya as $biaya)
-                                    <tr>
-                                        <td>{{ $biaya->deskripsi_biaya }}</td>
-                                        <td>{{ $biaya->personil_name ?? 'Semua' }}</td>
-                                        <td class="text-end">
-                                            Rp {{ number_format($biaya->harga_satuan, 0, ',', '.') }}
-                                        </td>
-                                        <td class="text-center">
-                                            {{ $biaya->jumlah_unit > 0
-                                                ? $biaya->jumlah_unit . ' ' . ($biaya->sbuItem->satuan ?? '')
-                                                : '-' }}
-                                        </td>
-                                        <td class="text-end">
-                                            Rp {{ number_format($biaya->subtotal_biaya, 0, ',', '.') }}
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                            <tfoot>
-                                <tr class="table-light">
-                                    <td colspan="4" class="text-end fw-bold">Total Estimasi Biaya</td>
-                                    <td class="text-end fw-bold">
-                                        Rp {{ number_format($row->total_estimasi_biaya, 0, ',', '.') }}
-                                    </td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
-                @else
-                    <div class="alert alert-info text-center">
-                        <i class="fas fa-info-circle me-2"></i>
-                        Detail estimasi biaya belum tersedia.
-                    </div>
-                @endif
-
-                {{-- Status --}}
-                <h6 class="fw-bold">Status & Catatan</h6>
-                <hr class="horizontal dark mt-1 mb-2">
-                <p>Status Saat Ini:
-                    @if($row->status == 'disetujui')
-                        <span class="badge bg-label-success">SELESAI</span>
-                    @elseif($row->status == 'ditolak')
-                        <span class="badge bg-label-danger">DITOLAK</span>
-                    @elseif($row->status == 'revisi_operator')
-                        <span class="badge bg-label-warning">REVISI OPERATOR</span>
-                    @elseif($row->status == 'verifikasi')
-                        <span class="badge bg-label-warning">VERIFIKASI</span>
-                    @else
-                        <span class="badge bg-label-primary">PROSES</span>
-                    @endif
-                </p>
-
-                <strong>Catatan: </strong>
-                <p>
-                    @if(!empty($row->catatan_verifikator))
-                        {{ $row->catatan_verifikator }}
-                    @else
-                        -
-                    @endif
-                </p>
-
-                {{-- Tombol --}}
-                <div class="text-end">
-                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
-                    Kembali
-                </button>
-                </div>
-
             </div>
         </div>
-    </div>
-</div>
-@endforeach
-@endsection
+        @endforeach
+        @endsection
 
 @push('scripts')
 <script>
@@ -451,20 +458,44 @@ $(document).ready(function() {
     function renderFormEdit(jenis, target, data = {}) {
         let html = '';
 
-        if (jenis === 'dalam_daerah') {
-            html = `
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Tempat/Instansi Tujuan Utama</label>
-                        <input type="text" name="tujuan_spt" class="form-control"
-                            value="${data.tujuan_spt ?? ''}" required>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Provinsi Tujuan (SBU)</label>
-                        <input type="text" class="form-control" value="RIAU" readonly>
-                        <input type="hidden" name="provinsi_tujuan_id" value="RIAU">
-                    </div>
-                </div>`;
+       if (jenis === 'dalam_daerah') {
+    html = `
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Tempat/Instansi Tujuan Utama</label>
+                <input type="text" name="tujuan_spt" class="form-control"
+                    value="${data.tujuan_spt ?? ''}" required>
+            </div>
+            <div class="col-md-3 mb-3">
+                <label class="form-label">Provinsi Tujuan (SBU)</label>
+                <input type="text" class="form-control" value="RIAU" readonly>
+                <input type="hidden" name="provinsi_tujuan_id" value="RIAU">
+            </div>
+            <div class="col-md-3 mb-3">
+                <label class="form-label">Kota/Kabupaten Tujuan (SBU)</label>
+                <input type="text" class="form-control" value="SIAK" readonly>
+                <input type="hidden" name="kota_tujuan_id" value="SIAK">
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Kecamatan Tujuan</label>
+                <input type="text" name="kecamatan_tujuan" class="form-control"
+                    value="${data.kecamatan_tujuan ?? ''}" required>
+            </div>
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Desa/Kampung Tujuan</label>
+                <input type="text" name="desa_tujuan" class="form-control"
+                    value="${data.desa_tujuan ?? ''}" required>
+            </div>
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Jarak (KM)</label>
+                <input type="number" name="jarak_km" class="form-control"
+                    value="${data.jarak_km ?? ''}" step="0.1" min="0">
+            </div>
+        </div>`;
+      }
         }
         else if (jenis === 'luar_daerah_dalam_provinsi') {
             html = `

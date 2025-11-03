@@ -85,11 +85,11 @@
                         <tr>
                             <td class="text-center">{{ $loop->iteration }}</td>
                             <td>
-                            @if ($row->nomor_spt)
-                                {{ $row->nomor_spt }}
-                            @else
-                                <span class="fst-italic text-muted">Belum ada</span>
-                            @endif
+                                @if ($row->nomor_spt)
+                                    {{ $row->nomor_spt }}
+                                @else
+                                    <span class="fst-italic text-muted">Belum ada</span>
+                                @endif
                             </td>
                             <td>{{ \Carbon\Carbon::parse($row->tanggal_spt)->format('d M Y') }}</td>
                             <td>{{ $row->operator->name ?? '-' }}</td>
@@ -179,17 +179,43 @@
                     </div>
                 </div>
 
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <strong>Tujuan Utama:</strong><br>
-                        {{ $row->tujuan_spt }}
+                {{-- Jika dalam daerah (Siak) --}}
+                @if($row->jenis_spt === 'dalam_daerah')
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Tujuan Utama:</strong><br>
+                            {{ $row->tujuan_spt }}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Lokasi Tujuan (SBU):</strong><br>
+                            Provinsi: Riau, Kota/Kab: Siak 
+                        </div>
                     </div>
-                    <div class="col-md-6">
-                        <strong>Lokasi Tujuan (SBU):</strong><br>
-                        Provinsi: {{ $row->provinsi_tujuan_id ?? '-' }},
-                        Kota/Kab: {{ $row->kota_tujuan_id ?? '-' }}
+
+                   <div class="row mb-3">
+                        <div class="col-md-4">
+                            <strong>Kecamatan Tujuan:</strong><br>
+                            {{ $row->kecamatan_spt ?? '-' }}<br>
+                               <strong>Jarak (km):</strong><br>
+                            {{ $row->jarak_km ?? '-' }} km<br>
+                             <strong>Desa Tujuan:</strong><br>
+                            {{ $row->desa_spt ?? '-' }}
+                        </div>
                     </div>
-                </div>
+                @else
+                    {{-- Default jika luar daerah --}}
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Tujuan Utama:</strong><br>
+                            {{ $row->tujuan_spt }}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Lokasi Tujuan (SBU):</strong><br>
+                            Provinsi: {{ $row->provinsi_tujuan_id ?? '-' }},
+                            Kota/Kab: {{ $row->kota_tujuan_id ?? '-' }}
+                        </div>
+                    </div>
+                @endif
 
                 <div class="row mb-3">
                     <div class="col-md-6">
@@ -240,41 +266,33 @@
                     </div>
                 </div>
 
-                    {{-- Bagian Bukti Undangan --}}
-                    <hr>
-                    <h6 class="fw-bold">Bukti Undangan</h6>
-                    @if($row->bukti_undangan)
-                        <div class="alert alert-light p-3" role="alert">
-                            <div class="d-flex align-items-center">
-                                <i class="fas fa-file-alt text-info me-2"></i>
-                                <div class="flex-grow-1">
-                                    <strong>File Bukti Undangan:</strong>
-                                    <span class="text-muted">{{ basename($row->bukti_undangan) }}</span>
-                                </div>
-                                <div class="ms-2">
-                                    <a href="{{ asset('storage/' . $row->bukti_undangan) }}"
-                                       target="_blank"
-                                       class="btn btn-info me-1"
-                                       title="Lihat Bukti Undangan">
-                                        <i class="bx bx-show"></i> Lihat
-                                    </a>
-                                    <a href="{{ asset('storage/' . $row->bukti_undangan) }}"
-                                       download
-                                       class="btn btn-primary"
-                                       title="Download Bukti Undangan">
-                                        <i class="bx bx-download"></i> Download
-                                    </a>
-                                </div>
+                {{-- Bukti Undangan --}}
+                <hr>
+                <h6 class="fw-bold">Bukti Undangan</h6>
+                @if($row->bukti_undangan)
+                    <div class="alert alert-light p-3">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-file-alt text-info me-2"></i>
+                            <div class="flex-grow-1">
+                                <strong>File Bukti Undangan:</strong>
+                                <span class="text-muted">{{ basename($row->bukti_undangan) }}</span>
+                            </div>
+                            <div class="ms-2">
+                                <a href="{{ asset('storage/' . $row->bukti_undangan) }}" target="_blank" class="btn btn-info me-1">
+                                    <i class="bx bx-show"></i> Lihat
+                                </a>
+                                <a href="{{ asset('storage/' . $row->bukti_undangan) }}" download class="btn btn-primary">
+                                    <i class="bx bx-download"></i> Download
+                                </a>
                             </div>
                         </div>
-                    @else
-                        <div class="alert alert-warning p-3" role="alert">
-                            <i class="bx bx-alarm-exclamation text-warning me-2"></i>
-                            <strong>Bukti undangan tidak tersedia.</strong>
-                            <span class="text-muted">Operator belum mengunggah bukti undangan untuk pengajuan ini.</span>
-                        </div>
-                    @endif
-
+                    </div>
+                @else
+                    <div class="alert alert-warning p-3">
+                        <i class="bx bx-alarm-exclamation text-warning me-2"></i>
+                        <strong>Bukti undangan tidak tersedia.</strong>
+                    </div>
+                @endif
 
                 {{-- Estimasi Biaya --}}
                 <hr>
@@ -297,9 +315,7 @@
                                         <td>{{ $biaya->deskripsi_biaya }}</td>
                                         <td>{{ $biaya->personil_name ?? ($biaya->pegawaiTerkait->nama ?? 'Semua') }}</td>
                                         <td class="text-end">Rp {{ number_format($biaya->harga_satuan, 0, ',', '.') }}</td>
-                                        <td class="text-center">
-                                            {{ $biaya->jumlah_unit > 0 ? $biaya->jumlah_unit . ' ' . ($biaya->sbuItem->satuan ?? '') : '-' }}
-                                        </td>
+                                        <td class="text-center">{{ $biaya->jumlah_unit > 0 ? $biaya->jumlah_unit . ' ' . ($biaya->sbuItem->satuan ?? '') : '-' }}</td>
                                         <td class="text-end">Rp {{ number_format($biaya->subtotal_biaya, 0, ',', '.') }}</td>
                                     </tr>
                                 @endforeach
@@ -316,42 +332,34 @@
                     <div class="alert alert-info text-center">Detail estimasi biaya belum tersedia.</div>
                 @endif
 
-                @if($row->status !== 'disetujui')
                 {{-- Form Verifikasi --}}
-                <hr>
-                <h6 class="fw-bold mb-3">Form Verifikasi</h6>
-                <form action="{{ route('verifikasi-pengajuan.update', $row->id) }}" method="POST">
-                    @csrf
-                    @method('PUT')
+                @if($row->status !== 'disetujui')
+                    <hr>
+                    <h6 class="fw-bold mb-3">Form Verifikasi</h6>
+                    <form action="{{ route('verifikasi-pengajuan.update', $row->id) }}" method="POST">
+                        @csrf
+                        @method('PUT')
 
-                    <div class="mb-3">
-                        <label for="catatan_verifikator{{ $row->id }}" class="form-label fw-bold">
-                            Catatan Verifikator
-                            <small class="text-muted">(Wajib diisi jika Revisi atau Tolak)</small>
-                        </label>
-                        <textarea
-                            class="form-control @error('catatan_verifikator') is-invalid @enderror"
-                            id="catatan_verifikator{{ $row->id }}"
-                            name="catatan_verifikator"
-                            rows="3"
-                            placeholder="Tuliskan catatan verifikasi di sini...">{{ old('catatan_verifikator') }}</textarea>
-                        @error('catatan_verifikator')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">
+                                Catatan Verifikator
+                                <small class="text-muted">(Wajib diisi jika Revisi atau Tolak)</small>
+                            </label>
+                            <textarea class="form-control" name="catatan_verifikator" rows="3">{{ old('catatan_verifikator') }}</textarea>
+                        </div>
 
-                    <div class="d-flex justify-content-end gap-2">
-                        <button type="submit" name="aksi_verifikasi" value="revisi_operator" class="btn btn-warning text-white fw-bold">
-                            <i class="bx bx-edit"></i> Revisi ke Operator
-                        </button>
-                        <button type="submit" name="aksi_verifikasi" value="tolak" class="btn btn-danger fw-bold">
-                            <i class="bx bx-x-circle"></i> Tolak Pengajuan
-                        </button>
-                        <button type="submit" name="aksi_verifikasi" value="verifikasi" class="btn btn-success fw-bold">
-                            <i class="bx bx-check-circle"></i> Setujui & Teruskan ke Atasan
-                        </button>
-                    </div>
-                </form>
+                        <div class="d-flex justify-content-end gap-2">
+                            <button type="submit" name="aksi_verifikasi" value="revisi_operator" class="btn btn-warning text-white fw-bold">
+                                <i class="bx bx-edit"></i> Revisi ke Operator
+                            </button>
+                            <button type="submit" name="aksi_verifikasi" value="tolak" class="btn btn-danger fw-bold">
+                                <i class="bx bx-x-circle"></i> Tolak Pengajuan
+                            </button>
+                            <button type="submit" name="aksi_verifikasi" value="verifikasi" class="btn btn-success fw-bold">
+                                <i class="bx bx-check-circle"></i> Setujui & Teruskan ke Atasan
+                            </button>
+                        </div>
+                    </form>
                 @else
                     <p class="text-muted fst-italic">Surat ini sudah <strong>selesai</strong>. Tidak dapat diverifikasi lagi.</p>
                 @endif

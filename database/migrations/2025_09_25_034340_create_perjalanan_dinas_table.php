@@ -17,6 +17,9 @@ return new class extends Migration
             $table->string('tujuan_spt')->nullable(); // tujuan_spt
             $table->string('provinsi_tujuan_id')->nullable(); // provinsi_tujuan_id
             $table->string('kota_tujuan_id')->nullable(); // kota_tujuan_id
+            $table->decimal('jarak_km', 8, 2)->nullable(); // jarak_km
+            $table->string('kecamatan_spt')->nullable(); // kecamatan_spt
+            $table->string('desa_spt')->nullable(); // desa_spt
             $table->text('dasar_spt'); // dasar_spt
             $table->text('uraian_spt'); // uraian_spt
             $table->string('bukti_undangan')->nullable(); // bukti_undangan
@@ -34,7 +37,7 @@ return new class extends Migration
         Schema::create('perjalanan_dinas_user', function (Blueprint $table) {
             $table->id();
             $table->foreignId('perjalanan_dinas_id')->constrained()->onDelete('cascade');
-            $table->foreignId('pegawai_id')->constrained()->onDelete('cascade'); 
+            $table->foreignId('pegawai_id')->constrained()->onDelete('cascade');
             $table->timestamps();
         });
     }

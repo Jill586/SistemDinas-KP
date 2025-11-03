@@ -20,6 +20,9 @@ class PerjalananDinas extends Model
         'tujuan_spt',
         'provinsi_tujuan_id',
         'kota_tujuan_id',
+        'kecamatan_spt',
+        'desa_spt',
+        'jarak_km',
         'dasar_spt',
         'uraian_spt',
         'bukti_undangan',
@@ -28,7 +31,7 @@ class PerjalananDinas extends Model
         'tanggal_mulai',
         'tanggal_selesai',
         'status',
-        'status_laporan', 
+        'status_laporan',
         'catatan_verifikator',
         'catatan_atasan',
     ];

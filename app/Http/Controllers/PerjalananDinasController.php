@@ -12,192 +12,81 @@ use Carbon\Carbon;
 
 class PerjalananDinasController extends Controller
 {
-public function index(Request $request)
-{
-    $perPage = $request->get('per_page', 10);
-
-    $query = PerjalananDinas::with(['pegawai', 'biaya'])
-        ->orderByDesc('tanggal_spt');
-
-    // 🔍 Search global
-    if ($request->filled('search')) {
-        $search = $request->search;
-        $query->where(function ($q) use ($search) {
-            $q->where('nomor_spt', 'like', "%{$search}%")
-              ->orWhere('tujuan_spt', 'like', "%{$search}%")
-              ->orWhere('jenis_kegiatan', 'like', "%{$search}%")
-              ->orWhere('status', 'like', "%{$search}%")
-              ->orWhereHas('pegawai', function ($sub) use ($search) {
-                  $sub->where('nama', 'like', "%{$search}%");
-              });
-        });
-    }
-
-    // 🔍 Filter bulan & tahun
-    if ($request->filled('bulan')) {
-        $query->whereMonth('tanggal_spt', $request->bulan);
-    }
-    if ($request->filled('tahun')) {
-        $query->whereYear('tanggal_spt', $request->tahun);
-    }
-
-    $perjalanans = $query->paginate($perPage)->withQueryString();
-    $pegawai = Pegawai::all();
-
-    // 🔄 Jika AJAX (untuk real-time search)
-    if ($request->ajax()) {
-        $html = '';
-        $start = ($perjalanans->currentPage() - 1) * $perjalanans->perPage();
-
-        foreach ($perjalanans as $i => $row) {
-            $html .= '
-                <tr>
-                    <td class="text-center">'.($start + $i + 1).'</td>
-                    <td>'.e($row->nomor_spt).'</td>
-                    <td>'.e(\Carbon\Carbon::parse($row->tanggal_spt)->format('d M Y')).'</td>
-                    <td>'.e($row->tujuan_spt).'</td>
-                    <td>'.e($row->pegawai->pluck('nama')->join(', ')).'</td>
-                    <td>'.e(\Carbon\Carbon::parse($row->tanggal_mulai)->format('d M Y').' s/d '.\Carbon\Carbon::parse($row->tanggal_selesai)->format('d M Y')).'</td>
-                    <td class="text-center">'.
-                        ($row->status == "disetujui" ? '<span class="badge bg-label-success">SELESAI</span>' :
-                        ($row->status == "ditolak" ? '<span class="badge bg-label-danger">DITOLAK</span>' :
-                        ($row->status == "revisi_operator" ? '<span class="badge bg-label-warning">REVISI OPERATOR</span>' :
-                        ($row->status == "verifikasi" ? '<span class="badge bg-label-warning">VERIFIKASI</span>' :
-                        '<span class="badge bg-label-primary">PROSES</span>')))).'
-                    </td>
-                    <td class="d-flex gap-2">
-                        '.
-                        // Tombol Edit (jika revisi_operator)
-                        ($row->status == "revisi_operator" ? '
-                        <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEdit'.$row->id.'">
-                            <i class="bx bx-edit"></i>
-                        </button>' : '')
-                        .'
-                        <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#modalShow'.$row->id.'">
-                            <i class="bx bx-show"></i>
-                        </button>
-
-                        <form action="'.route('perjalanan-dinas.destroy', $row->id).'" method="POST" onsubmit="return confirm(\'Yakin ingin menghapus data ini?\')" style="display:inline;">
-                            '.csrf_field().method_field('DELETE').'
-                            <button type="submit" class="btn btn-danger btn-sm">
-                                <i class="bx bx-trash"></i>
-                            </button>
-                        </form>
-                    </td>
-                </tr>
-
-                <!-- Modal Show -->
-                <div class="modal fade" id="modalShow'.$row->id.'" tabindex="-1" aria-hidden="true">
-                    <div class="modal-dialog modal-lg">
-                        <div class="modal-content">
-                            <div class="modal-header bg-primary text-white">
-                                <h5 class="modal-title">Detail Perjalanan Dinas</h5>
-                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                            </div>
-                            <div class="modal-body">
-                                <p><strong>No SPT:</strong> '.e($row->nomor_spt).'</p>
-                                <p><strong>Tujuan:</strong> '.e($row->tujuan_spt).'</p>
-                                <p><strong>Personil:</strong> '.e($row->pegawai->pluck("nama")->join(", ")).'</p>
-                                <p><strong>Tanggal:</strong> '.e($row->tanggal_mulai).' s/d '.e($row->tanggal_selesai).'</p>
-                                <p><strong>Status:</strong> '.e(strtoupper($row->status)).'</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Modal Edit -->
-                '.($row->status == "revisi_operator" ? '
-                <div class="modal fade" id="modalEdit'.$row->id.'" tabindex="-1" aria-hidden="true">
-                    <div class="modal-dialog modal-lg">
-                        <div class="modal-content">
-                            <div class="modal-header bg-warning text-dark">
-                                <h5 class="modal-title">Edit Perjalanan Dinas</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                            </div>
-                            <div class="modal-body">
-                                <form action="'.route('perjalanan-dinas.update', $row->id).'" method="POST">
-                                    '.csrf_field().method_field('PUT').'
-                                    <div class="mb-3">
-                                        <label>Tujuan</label>
-                                        <input type="text" name="tujuan_spt" class="form-control" value="'.e($row->tujuan_spt).'">
-                                    </div>
-                                    <div class="mb-3 text-end">
-                                        <button type="submit" class="btn btn-primary">Simpan</button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>' : '')
-            ;
-        }
-
-        if ($perjalanans->isEmpty()) {
-            $html = '<tr><td colspan="8" class="text-center">Data tidak ditemukan</td></tr>';
-        }
-
-        return response()->json(['html' => $html]);
-    }
-
-    return view('admin.perjalanan-dinas', compact('perjalanans', 'pegawai', 'perPage'))
-        ->with([
-            'bulan' => $request->bulan,
-            'tahun' => $request->tahun,
-        ]);
-}
-
-public function create()
+    public function index()
     {
+        $perjalanans = PerjalananDinas::with([
+            'pegawai.golongan',
+            'pegawai.jabatan',
+            'biaya.sbuItem',
+            'biaya.pegawaiTerkait',
+            'biaya.userTerkait',
+        ])->latest()->get();
+
         $pegawai = Pegawai::all();
 
-         // Ambil semua perjalanan dinas yang masih aktif hari ini
-        $perjalananAktif = PerjalananDinas::whereDate('tanggal_mulai', '<=', now())
-            ->whereDate('tanggal_selesai', '>=', now())
-            ->get();
-
-        // Ambil semua pegawai yang sedang dinas
-        $pegawaiSedangDinas = [];
-        foreach ($perjalananAktif as $p) {
-            foreach ($p->pegawai as $pg) {
-                $pegawaiSedangDinas[] = $pg->id;
-            }
-        }
-
-        return view('admin.form-pengajuan', compact('pegawai', 'pegawaiSedangDinas'));
+        return view('admin.perjalanan-dinas', compact('perjalanans', 'pegawai'));
     }
 
-    public function store(Request $request)
-    {
-        $this->validasiForm($request);
+   public function create()
+{
+    $pegawai = Pegawai::all();
 
-        try {
-            $data = $request->except(['pegawai_ids', 'bukti_undangan']);
+    // Ambil hanya perjalanan dinas yang masih aktif DAN statusnya bukan ditolak / selesai
+    $perjalananAktif = PerjalananDinas::whereIn('status', ['Disetujui', 'Berjalan'])
+        ->whereDate('tanggal_mulai', '<=', now())
+        ->whereDate('tanggal_selesai', '>=', now())
+        ->get();
 
-             // 👉 Tambahkan operator_id, verifikator_id, atasan_id otomatis
-            $data['operator_id'] = auth()->id();
-
-            // Upload file bukti undangan
-            if ($request->hasFile('bukti_undangan')) {
-                $data['bukti_undangan'] = $request->file('bukti_undangan')->store('undangan', 'public');
-            }
-
-            // Simpan perjalanan dinas
-            $perjalanan = PerjalananDinas::create($data);
-
-            // Relasi pegawai
-            $perjalanan->pegawai()->sync($request->pegawai_ids);
-
-            // Hitung biaya
-            $this->hitungEstimasiBiaya($perjalanan, $request);
-
-            return redirect()->route('perjalanan-dinas.create')
-                             ->with('success', '✅ Pengajuan berhasil disimpan dengan estimasi biaya!');
-        } catch (\Throwable $e) {
-            return back()
-                ->withInput()
-                ->with('error', '❌ Data gagal dikirim: ' . $e->getMessage());
+    // Ambil semua pegawai yang sedang dinas aktif
+    $pegawaiSedangDinas = [];
+    foreach ($perjalananAktif as $p) {
+        foreach ($p->pegawai as $pg) {
+            $pegawaiSedangDinas[] = $pg->id;
         }
     }
+
+    return view('admin.form-pengajuan', compact('pegawai', 'pegawaiSedangDinas'));
+}
+
+
+   public function store(Request $request)
+{
+    $this->validasiForm($request);
+
+    try {
+        $data = $request->except(['pegawai_ids', 'bukti_undangan']);
+
+        // Jika jenis SPT dalam daerah, otomatis isi provinsi dan kota
+        if ($request->jenis_spt === 'dalam_daerah') {
+            $data['provinsi_tujuan_id'] = 'RIAU';
+            $data['kota_tujuan_id'] = 'Siak';
+        }
+
+        // Tambahkan operator_id, verifikator_id, atasan_id otomatis
+        $data['operator_id'] = auth()->id();
+
+        // Upload file bukti undangan
+        if ($request->hasFile('bukti_undangan')) {
+            $data['bukti_undangan'] = $request->file('bukti_undangan')->store('undangan', 'public');
+        }
+
+        // Simpan perjalanan dinas
+        $perjalanan = PerjalananDinas::create($data);
+
+        // Relasi pegawai
+        $perjalanan->pegawai()->sync($request->pegawai_ids);
+
+        // Hitung biaya
+        $this->hitungEstimasiBiaya($perjalanan, $request);
+
+        return redirect()->route('perjalanan-dinas.create')
+                         ->with('success', '✅ Pengajuan berhasil disimpan dengan estimasi biaya!');
+    } catch (\Throwable $e) {
+        return back()
+            ->withInput()
+            ->with('error', '❌ Data gagal dikirim: ' . $e->getMessage());
+    }
+}
 
     public function show($id)
     {

@@ -167,6 +167,8 @@ public function index(Request $request)
             $template->setValue('alat_angkut', $dokumen->alat_angkut ?? '-');
             $template->setValue('tujuan_spt', $dokumen->tujuan_spt ?? '-');
             $template->setValue('provinsi_tujuan_id', $dokumen->provinsi_tujuan_id ?? '-');
+            $template->setValue('kecamatan_spt', $dokumen->kecamatan_spt ?? '-');
+            $template->setValue('desa_spt', $dokumen->desa_spt ?? '-');
             $template->setValue('kota_tujuan_id', $dokumen->kota_tujuan_id ?? '-');
             $template->setValue('lama_hari', $lamaHari);
             $template->setValue('tanggal_mulai', Carbon::parse($dokumen->tanggal_mulai)->translatedFormat('d F Y'));
