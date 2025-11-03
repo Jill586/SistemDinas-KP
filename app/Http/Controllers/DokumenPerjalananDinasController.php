@@ -10,24 +10,41 @@ use Carbon\Carbon;
 
 class DokumenPerjalananDinasController extends Controller
 {
-    public function index()
-    {
-        // Ambil semua perjalanan dinas dengan status "disetujui"
-        $dokumens = PerjalananDinas::with('pegawai')
-            ->where('status', 'disetujui')
-            ->latest()
-            ->get();
+public function index(Request $request)
+{    
+    // Ambil semua perjalanan dinas dengan status "disetujui"
+    $query = PerjalananDinas::with('pegawai')
+        ->where('status', 'disetujui');
 
-        // Ubah otomatis status 'selesai' menjadi 'disetujui' jika ditemukan
-        foreach ($dokumens as $dokumen) {
-            if ($dokumen->status === 'selesai') {
-                $dokumen->status = 'disetujui';
-                $dokumen->save();
-            }
-        }
-
-        return view('dokumen.index', compact('dokumens'));
+    // 🔍 Filter berdasarkan bulan dan tahun (dari tanggal_spt)
+    if ($request->filled('bulan') && $request->filled('tahun')) {
+        $query->whereYear('tanggal_spt', $request->tahun)
+              ->whereMonth('tanggal_spt', $request->bulan);
+    } 
+    elseif ($request->filled('tahun')) {
+        $query->whereYear('tanggal_spt', $request->tahun);
     }
+
+    $perPage = $request->get('per_page', 10);
+
+    // Urutkan data terbaru berdasarkan tanggal_spt
+    $dokumens = $query->orderByDesc('tanggal_spt')->paginate($perPage);
+    
+    // Update otomatis status 'selesai' jadi 'disetujui'
+    foreach ($dokumens as $dokumen) {
+        if ($dokumen->status === 'selesai') {
+            $dokumen->status = 'disetujui';
+            $dokumen->save();
+        }
+    }
+
+    // Kirim data ke view + tetap bawa parameter bulan & tahun
+    return view('dokumen.index', compact('dokumens', 'perPage'))
+        ->with([
+            'bulan' => $request->bulan,
+            'tahun' => $request->tahun,
+        ]);
+}
 
     public function update(Request $request, $id)
     {

@@ -45,7 +45,7 @@
       <table class="table table-bordered align-middle">
         <thead class="table-light">
           <tr>
-            <th>No</th>
+            <th class="text-center">No</th>
             <th>Nama</th>
             <th>Email</th>
             <th>Nomor HP</th>
@@ -58,7 +58,7 @@
         <tbody id="pegawaiTable">
           @forelse ($pegawai as $index => $row)
           <tr>
-            <td>{{ ($pegawai->currentPage() - 1) * $pegawai->perPage() + $loop->iteration }}</td>
+            <td class="text-center">{{ ($pegawai->currentPage() - 1) * $pegawai->perPage() + $loop->iteration }}</td>
             <td>{{ $row->nama }}</td>
             <td>{{ $row->email }}</td>
             <td>{{ $row->nomor_hp }}</td>
@@ -95,7 +95,6 @@
         </tbody>
       </table>
     </div>
-
         {{-- Pagination --}}
         <div class="d-flex justify-content-center mt-3">
             {{ $pegawai->onEachSide(2)->links('pagination::bootstrap-5') }}
@@ -265,6 +264,9 @@
           per_page: perPage, 
           page: $('.pagination .active span').text() || 1, // tambahkan ini
           ajax: true 
+        },
+        beforeSend: function () {
+          $('tbody').html('<tr><td colspan="10" class="text-center text-muted">Memuat data...</td></tr>');
         },
         success: function (response) {
           $('#pegawaiTable').html(response.html);

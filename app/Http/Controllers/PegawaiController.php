@@ -39,7 +39,7 @@ class PegawaiController extends Controller
             foreach ($pegawai as $index => $row) {
                 $html .= '
                     <tr>
-                        <td>' . ($startNumber + $index + 1) . '</td>
+                        <td class="text-center">' . ($startNumber + $index + 1) . '</td>
                         <td>' . e($row->nama) . '</td>
                         <td>' . e($row->email) . '</td>
                         <td>' . e($row->nomor_hp) . '</td>

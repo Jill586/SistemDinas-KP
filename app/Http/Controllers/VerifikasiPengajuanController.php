@@ -10,19 +10,51 @@ class VerifikasiPengajuanController extends Controller
     /**
      * Menampilkan daftar pengajuan untuk diverifikasi
      */
-    public function index()
-    {
-        $perjalanans = PerjalananDinas::with([
-            'pegawai',
-            'biaya.sbuItem',
-            'biaya.pegawaiTerkait'
-        ])
-        ->whereNotIn('status', ['ditolak', 'revisi_operator'])
-        ->latest()
-        ->get();
+public function index(Request $request)
+{
+    // ambil jumlah data per halaman dari input (default 10)
+    $perPage = $request->get('per_page', 10);
 
-        return view('admin.verifikasi-pengajuan', compact('perjalanans'));
+    $query = PerjalananDinas::with([
+        'pegawai',
+        'biaya.sbuItem',
+        'biaya.pegawaiTerkait'
+    ])
+    ->whereNotIn('status', ['ditolak', 'revisi_operator']);
+
+    // 🔍 Filter bulan dan tahun dari tanggal_spt
+    if ($request->filled('bulan')) {
+        $query->whereMonth('tanggal_spt', $request->bulan);
     }
+
+    if ($request->filled('tahun')) {
+        $query->whereYear('tanggal_spt', $request->tahun);
+    }
+
+    // 🔍 Jika ada pencarian
+    if ($request->filled('search')) {
+        $search = $request->search;
+        $query->where(function($q) use ($search) {
+            $q->where('nomor_spt', 'like', "%{$search}%")
+              ->orWhere('tujuan_spt', 'like', "%{$search}%")
+              ->orWhereHas('pegawai', function ($q2) use ($search) {
+                  $q2->where('nama', 'like', "%{$search}%");
+              });
+        });
+    }
+
+    // urutkan dan paginasi
+    $perjalanans = $query->orderByDesc('tanggal_spt')
+        ->paginate($perPage)
+        ->withQueryString(); // biar filter tetap nyangkut di URL
+
+    return view('admin.verifikasi-pengajuan', compact('perjalanans'))
+        ->with([
+            'bulan' => $request->bulan,
+            'tahun' => $request->tahun,
+            'perPage' => $perPage
+        ]);
+}
 
     /**
      * Menampilkan detail pengajuan tertentu

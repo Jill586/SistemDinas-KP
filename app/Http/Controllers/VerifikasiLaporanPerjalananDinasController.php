@@ -8,16 +8,34 @@ use Illuminate\Http\Request;
 
 class VerifikasiLaporanPerjalananDinasController extends Controller
 {
-    public function index()
-    {
-        // Ambil perjalanan dinas yang status_laporan = 'diproses'
-        $laporans = PerjalananDinas::with(['pegawai', 'biayaRiil', 'laporan'])
-            ->whereIn('status_laporan', ['diproses', 'selesai'])
-            ->orderBy('created_at', 'desc')
-            ->get();
+public function index(Request $request)
+{
+    // Ambil semua perjalanan dinas dengan status_laporan 'diproses' atau 'selesai'
+    $query = PerjalananDinas::with(['pegawai', 'biayaRiil', 'laporan'])
+        ->whereIn('status_laporan', ['diproses', 'selesai']);
 
-        return view('laporan.verifikasi-laporan-perjalanan-dinas', compact('laporans'));
+    // 🔍 Filter berdasarkan bulan dari tanggal_spt (jika ada di request)
+    if ($request->filled('bulan')) {
+        $query->whereMonth('tanggal_spt', $request->bulan);
     }
+
+    // 🔍 Filter berdasarkan tahun dari tanggal_spt (jika ada di request)
+    if ($request->filled('tahun')) {
+        $query->whereYear('tanggal_spt', $request->tahun);
+    }
+
+    $perPage = $request->get('per_page', 10);
+
+    // Urutkan data terbaru berdasarkan tanggal_spt
+    $laporans = $query->orderByDesc('tanggal_spt')->paginate($perPage);
+
+    // Kirim data dan nilai filter ke view
+    return view('laporan.verifikasi-laporan-perjalanan-dinas', compact('laporans', 'perPage'))
+        ->with([
+            'bulan' => $request->bulan,
+            'tahun' => $request->tahun,
+        ]);
+}
 
 public function update(Request $request, $id)
 {

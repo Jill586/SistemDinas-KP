@@ -11,22 +11,32 @@ use Illuminate\Support\Facades\DB;
 
 class LaporanPerjalananDinasController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        // Ambil data dari perjalanan dinas yang sudah disetujui (dari persetujuan atasan)
-        $perjalanans = PerjalananDinas::with(['pegawai', 'biaya', 'laporan',])
-            ->whereIn('status', ['disetujui', 'selesai'])
-            ->orderBy('tanggal_spt', 'desc')
-            ->get();
+        // Ambil semua perjalanan dinas dengan status disetujui atau selesai
+        $query = PerjalananDinas::with(['pegawai', 'biaya', 'laporan'])
+            ->whereIn('status', ['disetujui', 'selesai']);
 
-        return view('laporan.laporan-perjalanan-dinas', compact('perjalanans'));
-    }
+        // 🔍 Filter berdasarkan bulan (pakai tanggal_spt)
+        if ($request->filled('bulan')) {
+            $query->whereMonth('tanggal_spt', $request->bulan);
+        }
 
-    public function edit($id)
-    {
-        $perjalanan = PerjalananDinas::with(['pegawai', 'biaya'])->findOrFail($id);
+        // 🔍 Filter berdasarkan tahun (pakai tanggal_spt)
+        if ($request->filled('tahun')) {
+            $query->whereYear('tanggal_spt', $request->tahun);
+        }
 
-        return view('laporan.laporan-perjalanan-dinas', compact('perjalanan'));
+        $perPage = $request->get('per_page', 10);
+
+        // Urutkan data terbaru berdasarkan tanggal_spt
+        $perjalanans = $query->orderByDesc('tanggal_spt')->paginate($perPage);
+
+        return view('laporan.laporan-perjalanan-dinas', compact('perjalanans', 'perPage'))
+            ->with([
+                'bulan' => $request->bulan,
+                'tahun' => $request->tahun,
+            ]);
     }
 
  public function update(Request $request, $id)

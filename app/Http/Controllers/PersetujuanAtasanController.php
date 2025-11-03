@@ -7,16 +7,41 @@ use Illuminate\Http\Request;
 
 class PersetujuanAtasanController extends Controller
 {
-    public function index()
-    {
-        $perjalanans = PerjalananDinas::whereIn('status', ['verifikasi', 'disetujui'])
-            ->with(['pegawai','biaya'])
-            ->latest()
-            ->get();
+public function index(Request $request)
+{
+    $perPage  = $request->input('per_page', 10); // default 10
 
+    $query = PerjalananDinas::with(['pegawai', 'biaya'])
+        ->whereIn('status', ['verifikasi', 'disetujui']);
 
-        return view('admin.persetujuan-atasan', compact('perjalanans'));
+    // 🔍 Filter berdasarkan bulan dari tanggal_spt
+    if ($request->filled('bulan')) {
+        $query->whereMonth('tanggal_spt', $request->bulan);
     }
+
+    // 🔍 Filter berdasarkan tahun dari tanggal_spt
+    if ($request->filled('tahun')) {
+        $query->whereYear('tanggal_spt', $request->tahun);
+    }
+
+    // Urutkan dari tanggal SPT terbaru
+    $perjalanans = $query->orderByDesc('tanggal_spt')->get();
+
+    // 🔽 Pagination berdasarkan perPage
+    $perjalanans = $query->orderByDesc('tanggal_spt')->paginate($perPage);
+
+    // Pastikan parameter ikut dalam pagination link
+    $perjalanans->appends([
+        'per_page' => $perPage,
+    ]);
+
+    // Kirim juga nilai bulan & tahun agar tetap tampil di dropdown
+    return view('admin.persetujuan-atasan', compact('perjalanans', 'perPage'))
+        ->with([
+            'bulan' => $request->bulan,
+            'tahun' => $request->tahun,
+        ]);
+}
 
     public function update(Request $request, $id)
     {

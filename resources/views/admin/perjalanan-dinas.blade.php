@@ -4,12 +4,62 @@
 
 @section('content')
 <div class="card">
-    {{-- Header --}}
-    <div class="card-header d-flex justify-content-between align-items-center bg-white">
-        <h5 class="mb-0 fw-bold">Daftar Pengajuan Perjalanan Dinas Saya</h5>
+    <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap">
+        <h5 class="mb-0 fw-bold">Daftar Perjalanan Dinas</h5>
+
+        {{-- 🔍 Form Filter Bulan & Tahun --}}
+        <form method="GET" action="{{ route('perjalanan-dinas.index') }}" class="d-flex flex-wrap gap-2 mt-2 mt-md-0">
+            <select name="bulan" class="form-select" style="width: 150px;">
+                <option value="">-- Bulan --</option>
+                @foreach(range(1,12) as $b)
+                    <option value="{{ $b }}" {{ (isset($bulan) && $bulan == $b) ? 'selected' : '' }}>
+                        {{ \Carbon\Carbon::create()->month($b)->translatedFormat('F') }}
+                    </option>
+                @endforeach
+            </select>
+
+            <select name="tahun" class="form-select" style="width: 130px;">
+                <option value="">-- Tahun --</option>
+                    @foreach([2024, 2025, 2026] as $t)
+                        <option value="{{ $t }}" {{ (isset($tahun) && $tahun == $t) ? 'selected' : '' }}>
+                            {{ $t }}
+                        </option>
+                    @endforeach
+            </select>
+
+            <button type="submit" class="btn btn-primary">
+                <i class="bx bx-search"></i> Filter
+            </button>
+
+            <a href="{{ route('perjalanan-dinas.index') }}" class="btn btn-secondary">
+                <i class="bx bx-reset"></i> Reset
+            </a>
+        </form>
     </div>
 
     <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+            {{-- 🔽 Show Entries --}}
+            <div class="d-flex align-items-center mb-2 mb-sm-0">
+            <label for="showEntries" class="me-2 text-secondary">Show</label>
+            <select id="showEntries" class="form-select w-auto me-2">
+                <option value="10" {{ $perPage == 10 ? 'selected' : '' }}>10</option>
+                <option value="25" {{ $perPage == 25 ? 'selected' : '' }}>25</option>
+                <option value="50" {{ $perPage == 50 ? 'selected' : '' }}>50</option>
+                <option value="100" {{ $perPage == 100 ? 'selected' : '' }}>100</option>
+            </select>
+            <span class="text-secondary">entries</span>
+            </div>
+
+            {{-- 🔍 Search --}}
+            <div class="d-flex align-items-center">
+            <label for="search" class="me-2 text-secondary">Search:</label>
+            <input type="text" id="search" name="search"
+                    class="form-control"
+                    style="width: 260px; font-size: 0.95rem; padding: 8px 12px;">
+            </div>
+        </div>
+
         <div class="table-responsive">
             <table class="table table-striped table-bordered align-middle">
                 <thead class="table-light">
@@ -90,6 +140,10 @@
                     @endforelse
                 </tbody>
             </table>
+        </div>
+        {{-- Pagination --}}
+        <div class="d-flex justify-content-center mt-3">
+            {{ $perjalanans->onEachSide(2)->links('pagination::bootstrap-5') }}
         </div>
     </div>
 </div>
@@ -490,6 +544,60 @@ $(document).ready(function() {
     $('.pegawai-edit').select2({
         dropdownParent: $('.modal.show'),
         width: '100%'
+    });
+});
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const showEntries = document.getElementById('showEntries');
+    if (showEntries) {
+        showEntries.addEventListener('change', function() {
+            const url = new URL(window.location.href);
+            url.searchParams.set('per_page', this.value);
+            window.location.href = url.toString();
+        });
+    }
+});
+</script>
+
+<script>
+$(document).ready(function () {
+    // 🔍 Real-time search
+    $('#search').on('keyup', function () {
+        let search = $(this).val();
+        let perPage = $('#showEntries').val();
+        let bulan = $('select[name="bulan"]').val();
+        let tahun = $('select[name="tahun"]').val();
+
+        $.ajax({
+            url: "{{ route('perjalanan-dinas.index') }}",
+            type: 'GET',
+            data: { search: search, per_page: perPage, bulan: bulan, tahun: tahun },
+            success: function (response) {
+                $('tbody').html(response.html);
+            }
+        });
+    });
+
+    // 🔄 Change show entries
+    $('#showEntries').on('change', function () {
+        let perPage = $(this).val();
+        let search = $('#search').val();
+        let bulan = $('select[name="bulan"]').val();
+        let tahun = $('select[name="tahun"]').val();
+
+        $.ajax({
+            url: "{{ route('perjalanan-dinas.index') }}",
+            type: 'GET',
+            data: { per_page: perPage, search: search, bulan: bulan, tahun: tahun },
+            beforeSend: function () {
+                $('tbody').html('<tr><td colspan="10" class="text-center text-muted">Memuat data...</td></tr>');
+            },
+            success: function (response) {
+                $('tbody').html(response.html);
+            }
+        });
     });
 });
 </script>
