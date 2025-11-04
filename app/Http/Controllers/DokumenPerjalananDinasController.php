@@ -76,11 +76,11 @@ public function index(Request $request)
                 $lastNumber = (int)$matches[1];
                 $newNumber = $lastNumber + 1;
             } else {
-                // Jika belum ada data sama sekali, mulai dari 400
+                // Jika belum ada data sama sekali, mulai dari 800
                 $newNumber = $startNumber;
             }
 
-            // Format nomor baru: 000.1.2.3/SPT/400, dst
+            // Format nomor baru: 000.1.2.3/SPT/800, dst
             $perjalanan->nomor_spt = "{$prefix}/{$newNumber}";
         }
 
@@ -176,6 +176,13 @@ public function index(Request $request)
             $template->setValue('tanggal_spt', Carbon::parse($dokumen->tanggal_spt)->translatedFormat('d F Y'));
             $template->setValue('nomor_spt', $dokumen->nomor_spt ?? '-');
             $template->setValue('pengikut', $pengikutText);
+
+            // === 🧠 Logika Kondisional: jika kota_tujuan_id = "Siak", hapus bagian b ===
+            if ($dokumen->kota_tujuan_id == 'Siak') {
+                $template->setValue('tujuan_spt', '');
+                $template->setValue('kota_tujuan_id', '');
+                $template->setValue('provinsi_tujuan_id', '');
+            }
         }
 
         // Simpan sementara hasil template

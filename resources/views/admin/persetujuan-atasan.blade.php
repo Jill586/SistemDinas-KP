@@ -159,7 +159,7 @@
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <strong>Nomor SPT:</strong><br>
-                        {{ $row->no_spt ?? '-' }}
+                        {{ $row->nomor_spt }}
                     </div>
                     <div class="col-md-6">
                         <strong>Tanggal SPT:</strong><br>
@@ -220,7 +220,7 @@
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <strong>Operator Pengaju:</strong><br>
-                        {{ $row->user_pengaju->nama ?? '-' }}
+                        {{ $row->operator->name ?? '-' }}
                     </div>
                 </div>
 

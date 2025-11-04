@@ -51,12 +51,6 @@ public function index(Request $request)
     $perjalanans = $query->paginate($perPage)->appends($request->query());
     $pegawai = Pegawai::all();
 
-    // Jika request dari AJAX, kirim hanya tbody (biar efisien)
-    if ($request->ajax()) {
-        $html = view('partials._table_perjalanan_dinas', compact('perjalanans'))->render();
-        return response()->json(['html' => $html]);
-    }
-
     return view('admin.perjalanan-dinas', compact('perjalanans', 'pegawai', 'perPage', 'bulan', 'tahun'));
 }
 

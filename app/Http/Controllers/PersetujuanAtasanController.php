@@ -82,7 +82,7 @@ public function index(Request $request)
             $newNumber = $startNumber;
         }
 
-        // Format nomor baru: 000.1.2.3/SPT/400, 000.1.2.3/SPT/401, dst
+        // Format nomor baru: 000.1.2.3/SPT/800, 000.1.2.3/SPT/801, dst
         $nomorSPT = "{$prefix}/{$newNumber}";
         $perjalanan->nomor_spt = $nomorSPT;
         }
