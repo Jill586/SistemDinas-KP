@@ -220,7 +220,7 @@
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <strong>Operator Pengaju:</strong><br>
-                        {{ $row->user_pengaju->nama ?? '-' }}
+                        {{ $row->operator->name ?? '-' }}
                     </div>
                 </div>
 

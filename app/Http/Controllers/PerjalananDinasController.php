@@ -12,20 +12,47 @@ use Carbon\Carbon;
 
 class PerjalananDinasController extends Controller
 {
-    public function index()
-    {
-        $perjalanans = PerjalananDinas::with([
-            'pegawai.golongan',
-            'pegawai.jabatan',
-            'biaya.sbuItem',
-            'biaya.pegawaiTerkait',
-            'biaya.userTerkait',
-        ])->latest()->get();
+public function index(Request $request)
+{
+    // Ambil parameter dari query string
+    $search = $request->input('search');
+    $bulan = $request->input('bulan');
+    $tahun = $request->input('tahun');
+    $perPage = $request->input('per_page', 10); // default 10
 
-        $pegawai = Pegawai::all();
+    $query = PerjalananDinas::with([
+        'pegawai.golongan',
+        'pegawai.jabatan',
+        'biaya.sbuItem',
+        'biaya.pegawaiTerkait',
+        'biaya.userTerkait',
+    ])->latest();
 
-        return view('admin.perjalanan-dinas', compact('perjalanans', 'pegawai'));
+    // Filter pencarian (search)
+    if ($search) {
+        $query->where(function ($q) use ($search) {
+            $q->where('nomor_spt', 'like', "%{$search}%")
+              ->orWhere('tujuan_spt', 'like', "%{$search}%")
+              ->orWhereHas('pegawai', function ($sub) use ($search) {
+                  $sub->where('nama', 'like', "%{$search}%");
+              });
+        });
     }
+
+    // Filter bulan dan tahun
+    if ($bulan) {
+        $query->whereMonth('tanggal_spt', $bulan);
+    }
+    if ($tahun) {
+        $query->whereYear('tanggal_spt', $tahun);
+    }
+
+    // Gunakan paginate agar bisa dikontrol dari dropdown
+    $perjalanans = $query->paginate($perPage)->appends($request->query());
+    $pegawai = Pegawai::all();
+
+    return view('admin.perjalanan-dinas', compact('perjalanans', 'pegawai', 'perPage', 'bulan', 'tahun'));
+}
 
    public function create()
 {

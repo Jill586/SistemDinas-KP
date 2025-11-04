@@ -201,9 +201,9 @@
 
           <div class="col-md-6">
             <p><strong>Tanggal Pelaksanaan :</strong><br>
-              {{ $row->tanggal_mulai ? \Carbon\Carbon::parse($row->tanggal_mulai)->format('d F Y') : '-' }}
+              {{ \Carbon\Carbon::parse($row->tanggal_mulai)->format('d M Y') }}
               s/d
-              {{ $row->tanggal_selesai ? \Carbon\Carbon::parse($row->tanggal_selesai)->format('d F Y') : '-' }}
+              {{ \Carbon\Carbon::parse($row->tanggal_selesai)->format('d M Y') }}
             </p>
 
             <p><strong>Status Laporan :</strong><br>

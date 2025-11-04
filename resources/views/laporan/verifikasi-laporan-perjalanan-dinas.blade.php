@@ -182,7 +182,7 @@
               @endforeach
             </p>
             <p><strong>Diajukan Oleh (Operator):</strong><br>
-            {{ $row->operator?->nama ?? '-' }}</p>
+            {{ $row->operator->name ?? '-' }}</p>
           </div>
           <div class="col-md-6">
             <p><strong>Tanggal SPT:</strong><br>
