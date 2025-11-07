@@ -41,7 +41,7 @@
       <li class="menu-item {{ request()->routeIs('perjalanan-dinas.index') ? 'active' : '' }}">
         <a href="{{ route('perjalanan-dinas.index') }}" class="menu-link">
           <i class="menu-icon tf-icons bx bx-list-ul"></i>
-          <div>Perjalanan Dinas</div>
+          <div>Pengajuan Perjalanan Dinas</div>
         </a>
       </li>
     @endif

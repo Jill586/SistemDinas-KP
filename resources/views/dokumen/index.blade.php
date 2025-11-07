@@ -5,7 +5,7 @@
 @section('content')
 <div class="card">
     <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap">
-        <h5 class="mb-0 fw-bold">Daftar SPT/SPPD</h5>
+        <h5 class="mb-0 fw-bold">Dokumen SPT/SPPD</h5>
 
         {{-- 🔍 Form Filter Bulan & Tahun --}}
         <form method="GET" action="{{ route('dokumen-perjalanan-dinas.index') }}" class="d-flex flex-wrap gap-2 mt-2 mt-md-0">

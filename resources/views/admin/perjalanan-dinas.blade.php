@@ -71,7 +71,9 @@
                         <th>Personil</th>
                         <th>Pelaksanaan</th>
                         <th>Status</th>
+                        @if(Auth::user()->role == 'super_admin' || Auth::user()->role == 'verifikator1')
                         <th>Aksi</th>
+                        @endif
                     </tr>
                 </thead>
                 <tbody>
@@ -104,34 +106,36 @@
                                     <span class="badge bg-label-primary">PROSES</span>
                                 @endif
                             </td>
-                            <td class="d-flex gap-2">
+                            {{-- Tombol Aksi (hanya tampil untuk super admin) --}}
+                                @if(Auth::user()->role == 'super_admin' || Auth::user()->role == 'verifikator1')
+                                <td class="d-flex gap-2">
+                                    {{-- Tombol Edit (hanya muncul jika status revisi_operator) --}}
+                                    @if($row->status == 'revisi_operator')
+                                        <button type="button" class="btn btn-warning btn-sm"
+                                            data-bs-toggle="modal" data-bs-target="#modalEdit{{ $row->id }}">
+                                            <i class="bx bx-edit"></i>
+                                        </button>
+                                    @endif
 
-                                {{-- Tombol Edit (hanya muncul jika status revisi_operator) --}}
-                                @if($row->status == 'revisi_operator')
-                                    <button type="button" class="btn btn-warning btn-sm"
-                                        data-bs-toggle="modal" data-bs-target="#modalEdit{{ $row->id }}">
-                                        <i class="bx bx-edit"></i>
+                                    {{-- Tombol Show --}}
+                                    <button type="button" class="btn btn-info btn-sm"
+                                        data-bs-toggle="modal" data-bs-target="#modalShow{{ $row->id }}">
+                                        <i class="bx bx-show"></i>
                                     </button>
-                                @endif
 
-                                {{-- Tombol Show --}}
-                                <button type="button" class="btn btn-info btn-sm"
-                                    data-bs-toggle="modal" data-bs-target="#modalShow{{ $row->id }}">
-                                    <i class="bx bx-show"></i>
-                                </button>
-
-                                {{-- Tombol Hapus --}}
-                                <form action="{{ route('perjalanan-dinas.destroy', $row->id) }}"
-                                      method="POST"
-                                      class="d-inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-danger btn-sm"
-                                        onclick="return confirm('Yakin ingin menghapus data ini?')">
-                                        <i class="bx bx-trash"></i>
-                                    </button>
-                                </form>
-                            </td>
+                                    {{-- Tombol Hapus --}}
+                                    <form action="{{ route('perjalanan-dinas.destroy', $row->id) }}"
+                                        method="POST"
+                                        class="d-inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-danger btn-sm"
+                                            onclick="return confirm('Yakin ingin menghapus data ini?')">
+                                            <i class="bx bx-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            @endif
                         </tr>
                     @empty
                         <tr>

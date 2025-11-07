@@ -159,7 +159,6 @@
 </div>
 
 
-<div class="row g-4 mb-4">
   {{-- ====== KIRI: CHART JENIS SPT ====== --}}
   <div class="col-md-6 col-lg-6">
     <div class="card shadow h-100">
@@ -183,7 +182,6 @@
       </div>
     </div>
   </div>
-</div>
 
 {{-- CDN Chart.js --}}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

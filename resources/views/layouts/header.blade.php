@@ -6,14 +6,44 @@
     </a>
   </div>
 
-  <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
+  {{-- Wrapper kiri-kanan --}}
+  <div class="d-flex justify-content-between align-items-center flex-grow-1" id="navbar-collapse">
 
+    {{-- Breadcrumb kiri --}}
+    <div class="d-none d-md-block">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+          <li class="breadcrumb-item">
+            <a href="{{ route('dashboard') }}">Dashboard</a>
+          </li>
+
+          @php
+            $segments = request()->segments();
+            $url = '';
+          @endphp
+
+          @foreach($segments as $key => $segment)
+            @php $url .= '/' . $segment; @endphp
+            @if($key + 1 < count($segments))
+              <li class="breadcrumb-item">
+                <a href="{{ url($url) }}">{{ ucwords(str_replace('-', ' ', $segment)) }}</a>
+              </li>
+            @else
+              <li class="breadcrumb-item active fw-bold" aria-current="page">
+                {{ ucwords(str_replace('-', ' ', $segment)) }}
+              </li>
+            @endif
+          @endforeach
+        </ol>
+      </nav>
+    </div>
+
+    {{-- User info kanan --}}
     <ul class="navbar-nav flex-row align-items-center ms-auto">
-      <!-- User Dropdown -->
       <li class="nav-item navbar-dropdown dropdown-user dropdown">
-        <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
-          <i class="bx bxs-user"></i>
-              Halo, {{ auth()->user()->name }}
+        <a class="nav-link dropdown-toggle hide-arrow d-flex align-items-center" href="javascript:void(0);" data-bs-toggle="dropdown">
+          <i class="bx bxs-user me-1"></i>
+          Halo, {{ auth()->user()->name }}
           <i class="fas fa-chevron-down ms-1"></i>
         </a>
         <ul class="dropdown-menu dropdown-menu-end">
@@ -26,9 +56,33 @@
               </div>
             </a>
           </li>
-          <li><a class="dropdown-item" href="{{ route('login') }}"><i class="bx bx-power-off me-2"></i> Logout</a></li>
+          <li>
+            <a class="dropdown-item" href="{{ route('login') }}">
+              <i class="bx bx-power-off me-2"></i> Logout
+            </a>
+          </li>
         </ul>
       </li>
     </ul>
+
   </div>
 </nav>
+
+{{-- Sedikit styling tambahan biar lebih rapi --}}
+<style>
+  .breadcrumb {
+    background: transparent;
+    font-size: 0.9rem;
+  }
+  .breadcrumb-item + .breadcrumb-item::before {
+    content: "›";
+  }
+  .navbar .breadcrumb a {
+    color: #6c757d;
+    text-decoration: none;
+  }
+  .navbar .breadcrumb .active {
+    color: #696cff;
+    font-weight: 500;
+  }
+</style>
