@@ -7,44 +7,85 @@ use Illuminate\Http\Request;
 use PhpOffice\PhpWord\TemplateProcessor;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
+use App\Models\User;
 
 class DokumenPerjalananDinasController extends Controller
 {
-public function index(Request $request)
-{    
-    // Ambil semua perjalanan dinas dengan status "disetujui"
-    $query = PerjalananDinas::with('pegawai')
-        ->where('status', 'disetujui');
+    public function index(Request $request)
+    {
+        $user = auth()->user(); // ✅ ambil user login
 
-    // 🔍 Filter berdasarkan bulan dan tahun (dari tanggal_spt)
-    if ($request->filled('bulan') && $request->filled('tahun')) {
-        $query->whereYear('tanggal_spt', $request->tahun)
-              ->whereMonth('tanggal_spt', $request->bulan);
-    } 
-    elseif ($request->filled('tahun')) {
-        $query->whereYear('tanggal_spt', $request->tahun);
-    }
+        // Ambil semua perjalanan dinas dengan status "disetujui"
+        $query = PerjalananDinas::with('pegawai')
+            ->where('status', 'disetujui');
 
-    $perPage = $request->get('per_page', 10);
-
-    // Urutkan data terbaru berdasarkan tanggal_spt
-    $dokumens = $query->orderByDesc('tanggal_spt')->paginate($perPage);
-    
-    // Update otomatis status 'selesai' jadi 'disetujui'
-    foreach ($dokumens as $dokumen) {
-        if ($dokumen->status === 'selesai') {
-            $dokumen->status = 'disetujui';
-            $dokumen->save();
+        // 🔒 Filter berdasarkan role
+        if ($user->role === 'super_admin') {
+            // Super Admin bisa lihat semua data
         }
-    }
+        elseif ($user->role === 'admin_bidang') {
+            // Admin bidang bisa lihat semua operator bidang + dirinya + verifikator + atasan
+            $relatedRoles = [
+                'umum_kepegawaian',
+                'sekretariat',
+                'sekretariat_keuangan',
+                'sekretariat_perencanaan',
+                'bidang_ikps',
+                'bidang_tik',
+                'verifikator1',
+                'verifikator2',
+                'verifikator3',
+                'atasan'
+            ];
 
-    // Kirim data ke view + tetap bawa parameter bulan & tahun
-    return view('dokumen.index', compact('dokumens', 'perPage'))
-        ->with([
-            'bulan' => $request->bulan,
-            'tahun' => $request->tahun,
-        ]);
-}
+            $operatorIds = User::whereIn('role', $relatedRoles)->pluck('id');
+            $operatorIds->push($user->id);
+
+            $query->whereIn('operator_id', $operatorIds);
+        }
+        elseif (in_array($user->role, [
+            'umum_kepegawaian',
+            'sekretariat',
+            'sekretariat_keuangan',
+            'sekretariat_perencanaan',
+            'bidang_ikps',
+            'bidang_tik',
+            'verifikator1',
+            'verifikator2',
+            'verifikator3',
+            'atasan'
+        ])) {
+            // Role operator, verifikator, dan atasan hanya bisa lihat data sendiri
+            $query->where('operator_id', $user->id);
+        }
+
+        // 🔍 Filter berdasarkan bulan dan tahun (tanggal_spt)
+        if ($request->filled('bulan') && $request->filled('tahun')) {
+            $query->whereYear('tanggal_spt', $request->tahun)
+                  ->whereMonth('tanggal_spt', $request->bulan);
+        } elseif ($request->filled('tahun')) {
+            $query->whereYear('tanggal_spt', $request->tahun);
+        }
+
+        $perPage = $request->get('per_page', 10);
+
+        // Urutkan data terbaru berdasarkan tanggal_spt
+        $dokumens = $query->orderByDesc('tanggal_spt')->paginate($perPage);
+
+        // Update otomatis status 'selesai' jadi 'disetujui' (opsional)
+        foreach ($dokumens as $dokumen) {
+            if ($dokumen->status === 'selesai') {
+                $dokumen->status = 'disetujui';
+                $dokumen->save();
+            }
+        }
+
+        return view('dokumen.index', compact('dokumens', 'perPage'))
+            ->with([
+                'bulan' => $request->bulan,
+                'tahun' => $request->tahun,
+            ]);
+    }
 
     public function update(Request $request, $id)
     {
@@ -67,7 +108,6 @@ public function index(Request $request)
             $prefix = '000.1.2.3/SPT';
             $startNumber = 800;
 
-            // Ambil surat terakhir yang sesuai prefix
             $last = PerjalananDinas::where('nomor_spt', 'like', "$prefix/%")
                 ->orderBy('created_at', 'desc')
                 ->first();
@@ -76,11 +116,9 @@ public function index(Request $request)
                 $lastNumber = (int)$matches[1];
                 $newNumber = $lastNumber + 1;
             } else {
-                // Jika belum ada data sama sekali, mulai dari 800
                 $newNumber = $startNumber;
             }
 
-            // Format nomor baru: 000.1.2.3/SPT/800, dst
             $perjalanan->nomor_spt = "{$prefix}/{$newNumber}";
         }
 
@@ -91,11 +129,10 @@ public function index(Request $request)
 
     public function download($id, $type, Request $request)
     {
-        Carbon::setLocale('id'); // pastikan tanggal dalam bahasa Indonesia
+        Carbon::setLocale('id');
 
         $dokumen = PerjalananDinas::with('pegawai')->findOrFail($id);
 
-        // Pegawai yang dipilih dari dropdown
         $pegawaiId = $request->input('pegawai_id');
         $pegawai = $pegawaiId
             ? $dokumen->pegawai->where('id', $pegawaiId)->first()
@@ -105,7 +142,6 @@ public function index(Request $request)
             return back()->with('error', 'Data pegawai tidak ditemukan.');
         }
 
-        // Tentukan template berdasarkan jenis dokumen
         $isSPT = str_contains($type, 'spt');
         $isSPPD = str_contains($type, 'sppd');
 
@@ -117,7 +153,6 @@ public function index(Request $request)
             return back()->with('error', 'Template tidak ditemukan di: ' . $templatePath);
         }
 
-        // Folder temp
         $folderTemp = storage_path('app/temp');
         if (!file_exists($folderTemp)) {
             mkdir($folderTemp, 0775, true);
@@ -125,23 +160,19 @@ public function index(Request $request)
 
         $template = new TemplateProcessor($templatePath);
 
-        // Hitung lama hari perjalanan
         $lamaHari = Carbon::parse($dokumen->tanggal_mulai)
             ->diffInDays(Carbon::parse($dokumen->tanggal_selesai)) + 1;
 
-        // Pengikut = semua pegawai kecuali yang dipilih
         $pengikutList = $dokumen->pegawai->where('id', '!=', $pegawai->id)->pluck('nama')->toArray();
         $pengikutText = !empty($pengikutList) ? implode(', ', $pengikutList) : '-';
 
-        // === Isi Template ===
         if ($isSPT) {
-            // ==== bagian personil ====
             $pegawaiList = $dokumen->pegawai;
             $template->cloneBlock('pegawai_block', $pegawaiList->count(), true, true);
 
             $no = 1;
             foreach ($pegawaiList as $index => $pg) {
-                $i = $index + 1; // penting untuk #1, #2, dst
+                $i = $index + 1;
                 $template->setValue("no#{$i}", $no++);
                 $template->setValue("nama_pegawai#{$i}", $pg->nama ?? '-');
                 $template->setValue("nip#{$i}", $pg->nip ?? '-');
@@ -177,7 +208,7 @@ public function index(Request $request)
             $template->setValue('nomor_spt', $dokumen->nomor_spt ?? '-');
             $template->setValue('pengikut', $pengikutText);
 
-            // === 🧠 Logika Kondisional: jika kota_tujuan_id = "Siak", hapus bagian b ===
+            // Jika tujuan = Siak, hapus bagian tertentu
             if ($dokumen->kota_tujuan_id == 'Siak') {
                 $template->setValue('tujuan_spt', '');
                 $template->setValue('kota_tujuan_id', '');
@@ -185,7 +216,6 @@ public function index(Request $request)
             }
         }
 
-        // Simpan sementara hasil template
         $namaFile = strtoupper($isSPT ? 'SPT' : 'SPPD') . '_' .
             str_replace('/', '-', $dokumen->nomor_spt) . '_' .
             str_replace(' ', '_', $pegawai->nama);
@@ -193,12 +223,10 @@ public function index(Request $request)
         $tempWord = "{$folderTemp}/{$namaFile}.docx";
         $template->saveAs($tempWord);
 
-        // === Download Word ===
         if (str_contains($type, 'word')) {
             return response()->download($tempWord, "{$namaFile}.docx")->deleteFileAfterSend(true);
         }
 
-        // === Convert ke PDF ===
         $phpWord = \PhpOffice\PhpWord\IOFactory::load($tempWord);
         $htmlWriter = \PhpOffice\PhpWord\IOFactory::createWriter($phpWord, 'HTML');
         $htmlPath = "{$folderTemp}/{$namaFile}.html";
