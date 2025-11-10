@@ -71,9 +71,7 @@
                         <th>Personil</th>
                         <th>Pelaksanaan</th>
                         <th>Status</th>
-                        @if(Auth::user()->role == 'super_admin' || Auth::user()->role == 'verifikator1')
                         <th>Aksi</th>
-                        @endif
                     </tr>
                 </thead>
                 <tbody>
@@ -106,8 +104,7 @@
                                     <span class="badge bg-label-primary">PROSES</span>
                                 @endif
                             </td>
-                            {{-- Tombol Aksi (hanya tampil untuk super admin) --}}
-                                @if(Auth::user()->role == 'super_admin' || Auth::user()->role == 'verifikator1')
+
                                 <td class="d-flex gap-2">
                                     {{-- Tombol Edit (hanya muncul jika status revisi_operator) --}}
                                     @if($row->status == 'revisi_operator')
@@ -135,7 +132,6 @@
                                         </button>
                                     </form>
                                 </td>
-                            @endif
                         </tr>
                     @empty
                         <tr>
@@ -193,6 +189,13 @@
                             <input type="text" name="jenis_kegiatan" class="form-control"
                                    value="{{ old('jenis_kegiatan', $row->jenis_kegiatan) }}" required>
                         </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Tujuan SPT</label>
+                            <input type="text" name="tujuan_spt" class="form-control"
+                                value="{{ old('tujuan_spt', $row->tujuan_spt) }}" required>
+                        </div>
+
 
                         {{-- Dinamis Form Perjalanan --}}
                         <div id="form-dinamis-edit{{ $row->id }}"></div>
@@ -457,184 +460,74 @@
         @endsection
 
 @push('scripts')
-<script>
-$(document).ready(function() {
-    function renderFormEdit(jenis, target, data = {}) {
-        let html = '';
+    <!-- Select2 -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
-       if (jenis === 'dalam_daerah') {
-    html = `
-        <div class="row">
-            <div class="col-md-6 mb-3">
-                <label class="form-label">Tempat/Instansi Tujuan Utama</label>
-                <input type="text" name="tujuan_spt" class="form-control"
-                    value="${data.tujuan_spt ?? ''}" required>
-            </div>
-            <div class="col-md-3 mb-3">
-                <label class="form-label">Provinsi Tujuan (SBU)</label>
-                <input type="text" class="form-control" value="RIAU" readonly>
-                <input type="hidden" name="provinsi_tujuan_id" value="RIAU">
-            </div>
-            <div class="col-md-3 mb-3">
-                <label class="form-label">Kota/Kabupaten Tujuan (SBU)</label>
-                <input type="text" class="form-control" value="SIAK" readonly>
-                <input type="hidden" name="kota_tujuan_id" value="SIAK">
-            </div>
-        </div>
+    <script>
+        $(document).ready(function () {
 
-        <div class="row">
-            <div class="col-md-4 mb-3">
-                <label class="form-label">Kecamatan Tujuan</label>
-                <input type="text" name="kecamatan_tujuan" class="form-control"
-                    value="${data.kecamatan_tujuan ?? ''}" required>
-            </div>
-            <div class="col-md-4 mb-3">
-                <label class="form-label">Desa/Kampung Tujuan</label>
-                <input type="text" name="desa_tujuan" class="form-control"
-                    value="${data.desa_tujuan ?? ''}" required>
-            </div>
-            <div class="col-md-4 mb-3">
-                <label class="form-label">Jarak (KM)</label>
-                <input type="number" name="jarak_km" class="form-control"
-                    value="${data.jarak_km ?? ''}" step="0.1" min="0">
-            </div>
-        </div>`;
-      }
-        }
-        else if (jenis === 'luar_daerah_dalam_provinsi') {
-            html = `
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Tempat/Instansi Tujuan Utama</label>
-                        <input type="text" name="tujuan_spt" class="form-control"
-                            value="${data.tujuan_spt ?? ''}" required>
-                    </div>
-                    <div class="col-md-3 mb-3">
-                        <label class="form-label">Provinsi Tujuan (SBU)</label>
-                        <input type="text" class="form-control" value="RIAU" readonly>
-                        <input type="hidden" name="provinsi_tujuan_id" value="RIAU">
-                    </div>
-                    <div class="col-md-3 mb-3">
-                        <label class="form-label">Kota/Kabupaten Tujuan (SBU)</label>
-                        <input type="text" name="kota_tujuan_id" class="form-control"
-                            value="${data.kota_tujuan_id ?? ''}">
-                    </div>
-                </div>`;
-        }
-        else if (jenis === 'luar_daerah_luar_provinsi') {
-            let provinsi = [
-                'Aceh','Bali','Banten','Bengkulu','DI Yogyakarta','DKI Jakarta','Gorontalo',
-                'Jambi','Jawa Barat','Jawa Tengah','Jawa Timur','Kalimantan Barat',
-                'Kalimantan Selatan','Kalimantan Tengah','Kalimantan Timur','Kalimantan Utara',
-                'Kepulauan Bangka Belitung','Kepulauan Riau','Lampung','Maluku','Maluku Utara',
-                'Nusa Tenggara Barat','Nusa Tenggara Timur','Papua','Papua Barat',
-                'Papua Barat Daya','Papua Pegunungan','Papua Selatan','Papua Tengah',
-                'Riau','Sulawesi Barat','Sulawesi Selatan','Sulawesi Tengah','Sulawesi Tenggara',
-                'Sulawesi Utara','Sumatera Barat','Sumatera Selatan','Sumatera Utara'
-            ];
-            provinsi.sort();
+            // 🔹 Fungsi render form dinamis
+            function renderFormEdit(jenis, target, data = {}) {
+                let html = '';
 
-            let provOptions = provinsi.map(p =>
-                `<option value="${p}" ${(data.provinsi_tujuan_id === p) ? 'selected' : ''}>${p}</option>`
-            ).join('');
+                if (jenis === 'dalam_daerah') {
+                    html += `
+                        <div class="mb-3">
+                            <label class="form-label">Tempat Tujuan</label>
+                            <input type="text" name="tujuan" class="form-control"
+                                value="${data.tujuan || ''}" required>
+                        </div>
+                    `;
+                } else if (jenis === 'luar_daerah_dalam_provinsi' || jenis === 'luar_daerah_luar_provinsi') {
+                    html += `
+                        <div class="mb-3">
+                            <label class="form-label">Provinsi Tujuan</label>
+                            <input type="text" name="provinsi_tujuan" class="form-control"
+                                value="${data.provinsi_tujuan || ''}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Kota/Kabupaten Tujuan</label>
+                            <input type="text" name="kota_tujuan" class="form-control"
+                                value="${data.kota_tujuan || ''}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Tempat Tujuan</label>
+                            <input type="text" name="tujuan" class="form-control"
+                                value="${data.tujuan || ''}" required>
+                        </div>
+                    `;
+                }
 
-            html = `
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Tempat/Instansi Tujuan Utama</label>
-                        <input type="text" name="tujuan_spt" class="form-control"
-                            value="${data.tujuan_spt ?? ''}" required>
-                    </div>
-                    <div class="col-md-3 mb-3">
-                        <label class="form-label">Provinsi Tujuan (SBU)</label>
-                        <select name="provinsi_tujuan_id" class="form-select" required>
-                            <option value="">-- Pilih Provinsi --</option>
-                            ${provOptions}
-                        </select>
-                    </div>
-                    <div class="col-md-3 mb-3">
-                        <label class="form-label">Kota/Kabupaten Tujuan (SBU)</label>
-                        <input type="text" name="kota_tujuan_id" class="form-control"
-                            value="${data.kota_tujuan_id ?? ''}" required>
-                    </div>
-                </div>`;
-        }
-
-        $(`#form-dinamis-edit${target}`).html(html);
-    }
-
-    // Init untuk setiap modal edit
-    $('.jenis-spt-edit').each(function(){
-        let target = $(this).data('target');
-        let jenis = $(this).val();
-        let rowData = @json($perjalanans->keyBy('id')); // kirim data perjalanan
-        renderFormEdit(jenis, target, rowData[target]);
-
-        $(this).on('change', function(){
-            renderFormEdit($(this).val(), target, rowData[target]);
-        });
-    });
-
-    // init select2 untuk personil edit
-    $('.pegawai-edit').select2({
-        dropdownParent: $('.modal.show'),
-        width: '100%'
-    });
-});
-</script>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const showEntries = document.getElementById('showEntries');
-    if (showEntries) {
-        showEntries.addEventListener('change', function() {
-            const url = new URL(window.location.href);
-            url.searchParams.set('per_page', this.value);
-            window.location.href = url.toString();
-        });
-    }
-});
-</script>
-
-<script>
-$(document).ready(function () {
-    // 🔍 Real-time search
-    $('#search').on('keyup', function () {
-        let search = $(this).val();
-        let perPage = $('#showEntries').val();
-        let bulan = $('select[name="bulan"]').val();
-        let tahun = $('select[name="tahun"]').val();
-
-        $.ajax({
-            url: "{{ route('perjalanan-dinas.index') }}",
-            type: 'GET',
-            data: { search: search, per_page: perPage, bulan: bulan, tahun: tahun },
-            success: function (response) {
-                $('tbody').html(response.html);
+                $(`#form-dinamis-edit${target}`).html(html);
             }
-        });
-    });
 
-    // 🔄 Change show entries
-    $('#showEntries').on('change', function () {
-        let perPage = $(this).val();
-        let search = $('#search').val();
-        let bulan = $('select[name="bulan"]').val();
-        let tahun = $('select[name="tahun"]').val();
+            // 🔹 Render setiap modal edit sesuai jenis_spt-nya
+            const rowData = @json($perjalanans->keyBy('id'));
 
-        $.ajax({
-            url: "{{ route('perjalanan-dinas.index') }}",
-            type: 'GET',
-            data: { per_page: perPage, search: search, bulan: bulan, tahun: tahun },
-            beforeSend: function () {
-                $('tbody').html('<tr><td colspan="10" class="text-center text-muted">Memuat data...</td></tr>');
-            },
-            success: function (response) {
-                $('tbody').html(response.html);
-            }
+            $('.jenis-spt-edit').each(function () {
+                const target = $(this).data('target');
+                const jenis = $(this).val();
+                renderFormEdit(jenis, target, rowData[target]);
+
+                $(this).on('change', function () {
+                    renderFormEdit($(this).val(), target, rowData[target]);
+                });
+            });
+
+            // 🔹 Jalankan Select2 setelah modal dibuka
+            $('.modal').on('shown.bs.modal', function () {
+                $(this).find('.pegawai-edit').select2({
+                    dropdownParent: $(this),
+                    width: '100%',
+                    placeholder: "Pilih personil yang berangkat"
+                });
+            });
+
+            // 🔹 Hapus Select2 instance saat modal ditutup biar gak error kalau dibuka lagi
+                $('.modal').on('hidden.bs.modal', function () {
+            $(this).find('.pegawai-edit').val(null).trigger('change.select2');
         });
-    });
-});
-</script>
+        });
+    </script>
 @endpush
-

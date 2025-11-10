@@ -8,52 +8,91 @@ use App\Models\SbuItem;
 use App\Models\PerjalananDinasBiaya;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
+use App\Models\User;
 use Carbon\Carbon;
 
 class PerjalananDinasController extends Controller
 {
 public function index(Request $request)
+
+
 {
-    // Ambil parameter dari query string
-    $search = $request->input('search');
-    $bulan = $request->input('bulan');
-    $tahun = $request->input('tahun');
-    $perPage = $request->input('per_page', 10); // default 10
+    $user = Auth::user();
+     $data = PerjalananDinas::with('pegawai')->latest()->get();
 
-    $query = PerjalananDinas::with([
-        'pegawai.golongan',
-        'pegawai.jabatan',
-        'biaya.sbuItem',
-        'biaya.pegawaiTerkait',
-        'biaya.userTerkait',
-    ])->latest();
 
-    // Filter pencarian (search)
-    if ($search) {
-        $query->where(function ($q) use ($search) {
-            $q->where('nomor_spt', 'like', "%{$search}%")
-              ->orWhere('tujuan_spt', 'like', "%{$search}%")
-              ->orWhereHas('pegawai', function ($sub) use ($search) {
-                  $sub->where('nama', 'like', "%{$search}%");
-              });
-        });
+     $query = PerjalananDinas::with(['pegawai', 'biaya']); // <— tambahkan eager load relasi pegawai & biaya
+
+
+    // Query dasar
+    $query = PerjalananDinas::with(['pegawai', 'biaya'])
+        ->orderByDesc('tanggal_spt');
+
+    // 🔒 Filter berdasarkan role
+    if ($user->role === 'super_admin') {
+        // Super Admin bisa lihat semua data
+
+    } elseif ($user->role === 'admin_bidang') {
+        // Admin bidang bisa lihat semua operator bidang + dirinya sendiri + verifikator + atasan
+        $relatedRoles = [
+            'umum_kepegawaian',
+            'sekretariat',
+            'sekretariat_keuangan',
+            'sekretariat_perencanaan',
+            'bidang_ikps',
+            'bidang_tik',
+            'verifikator1',
+            'verifikator2',
+            'verifikator3',
+            'atasan'
+        ];
+
+        $operatorIds = User::whereIn('role', $relatedRoles)->pluck('id');
+
+        // Tambahkan ID admin bidang sendiri juga
+        $operatorIds->push($user->id);
+
+        $query->whereIn('operator_id', $operatorIds);
+
+    } elseif (in_array($user->role, [
+        'umum_kepegawaian',
+        'sekretariat',
+        'sekretariat_keuangan',
+        'sekretariat_perencanaan',
+        'bidang_ikps',
+        'bidang_tik',
+        'verifikator1',
+        'verifikator2',
+        'verifikator3',
+        'atasan'
+    ])) {
+        // Operator bidang, verifikator, dan atasan hanya bisa lihat data sendiri
+        $query->where('operator_id', $user->id);
     }
 
-    // Filter bulan dan tahun
-    if ($bulan) {
-        $query->whereMonth('tanggal_spt', $bulan);
-    }
-    if ($tahun) {
-        $query->whereYear('tanggal_spt', $tahun);
+    // 🗓️ Filter bulan & tahun (kalau ada)
+    if ($request->filled('bulan')) {
+        $query->whereMonth('tanggal_spt', $request->bulan);
     }
 
-    // Gunakan paginate agar bisa dikontrol dari dropdown
-    $perjalanans = $query->paginate($perPage)->appends($request->query());
+    if ($request->filled('tahun')) {
+        $query->whereYear('tanggal_spt', $request->tahun);
+    }
+
+    // 📄 Pagination
+    $perPage = $request->get('per_page', 10);
+    $perjalanans = $query->paginate($perPage);
+
+    // ✅ Tambahkan ini supaya $pegawai dikenali di view
     $pegawai = Pegawai::all();
 
-    return view('admin.perjalanan-dinas', compact('perjalanans', 'pegawai', 'perPage', 'bulan', 'tahun'));
+    return view('admin.perjalanan-dinas', compact('perjalanans', 'perPage', 'pegawai'))
+        ->with([
+            'bulan' => $request->bulan,
+            'tahun' => $request->tahun
+        ]);
 }
-
    public function create()
 {
     $pegawai = Pegawai::all();
@@ -164,9 +203,11 @@ public function index(Request $request)
             $perjalanan->update($data);
 
             // Update relasi pegawai
-            if ($request->filled('pegawai_ids')) {
-                $perjalanan->pegawai()->sync($request->pegawai_ids);
-            }
+           if ($request->has('pegawai_ids')) {
+           $perjalanan->pegawai()->sync($request->pegawai_ids ?? []);
+           $perjalanan->load('pegawai');
+
+           }
 
             // Hapus dan hitung ulang biaya
             $perjalanan->biaya()->delete();
