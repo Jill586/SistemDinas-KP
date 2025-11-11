@@ -325,14 +325,16 @@
                             </div>
                         </div>
 
-                        <div class="row mb-4">
-                            <div class="col-md-12">
-                                <strong>Detail Lokasi:</strong><br>
-                                Kecamatan: {{ $row->kecamatan_spt ?? '-' }},
-                                Desa/Kampung: {{ $row->desa_spt ?? '-' }},
-                                Jarak: {{ $row->jarak_km ? $row->jarak_km . ' KM' : '-' }}
+                        @if($row->jenis_spt === 'dalam_daerah')
+                            <div class="row mb-4">
+                                <div class="col-md-12">
+                                    <strong>Detail Lokasi:</strong><br>
+                                    Kecamatan: {{ $row->kecamatan_spt ?? '-' }},
+                                    Desa/Kampung: {{ $row->desa_spt ?? '-' }},
+                                    Jarak: {{ $row->jarak_km ? $row->jarak_km . ' KM' : '-' }}
+                                </div>
                             </div>
-                        </div>
+                        @endif
 
                         {{-- === DASAR DAN URAIAN === --}}
                         <div class="mb-3">

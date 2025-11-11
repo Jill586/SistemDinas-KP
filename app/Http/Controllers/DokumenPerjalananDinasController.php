@@ -20,10 +20,9 @@ class DokumenPerjalananDinasController extends Controller
             ->where('status', 'disetujui');
 
         // 🔒 Filter berdasarkan role
-        if ($user->role === 'super_admin') {
-            // Super Admin bisa lihat semua data
-        }
-        elseif ($user->role === 'admin_bidang') {
+        if (in_array($user->role, ['super_admin', 'verifikator1', 'verifikator2', 'verifikator3'])) {
+            // Super Admin, Verifikator 1, Verifikator 2, Verifikator 3 bisa lihat semua data
+        } elseif ($user->role === 'admin_bidang') {
             // Admin bidang bisa lihat semua operator bidang + dirinya + verifikator + atasan
             $relatedRoles = [
                 'umum_kepegawaian',

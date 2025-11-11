@@ -21,18 +21,15 @@ public function index(Request $request)
     $user = Auth::user();
      $data = PerjalananDinas::with('pegawai')->latest()->get();
 
-
      $query = PerjalananDinas::with(['pegawai', 'biaya']); // <— tambahkan eager load relasi pegawai & biaya
-
 
     // Query dasar
     $query = PerjalananDinas::with(['pegawai', 'biaya'])
         ->orderByDesc('tanggal_spt');
 
     // 🔒 Filter berdasarkan role
-    if ($user->role === 'super_admin') {
-        // Super Admin bisa lihat semua data
-
+    if (in_array($user->role, ['super_admin', 'verifikator1', 'verifikator2', 'verifikator3'])) {
+        // Super Admin, Verifikator 1, dan Verifikator 2, Verifikator 3 bisa lihat semua data
     } elseif ($user->role === 'admin_bidang') {
         // Admin bidang bisa lihat semua operator bidang + dirinya sendiri + verifikator + atasan
         $relatedRoles = [

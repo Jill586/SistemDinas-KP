@@ -17,14 +17,17 @@ class DashboardController extends Controller
     {
         $jumlahPegawai = Pegawai::count();
 
-        // Hitung jumlah perjalanan berdasarkan tanggal_spt bulan & tahun ini
+        // Hitung jumlah perjalanan bulan ini yang statusnya selesai
         $jumlahPerjalanan = PerjalananDinas::whereMonth('tanggal_spt', Carbon::now()->month)
             ->whereYear('tanggal_spt', Carbon::now()->year)
+            ->where('status', 'disetujui')
             ->count();
 
-        // Jumlah perjalanan hari ini
-        $perjalananHariIni = PerjalananDinas::whereDate('tanggal_mulai', Carbon::today())->count();
-        
+        // Hitung jumlah perjalanan hari ini yang statusnya selesai
+        $perjalananHariIni = PerjalananDinas::whereDate('tanggal_mulai', Carbon::today())
+            ->where('status', 'disetujui')
+            ->count();   
+
        // Ambil semua pegawai dengan jumlah perjalanan masing-masing
        $topPelapor = Pegawai::select('pegawai.*', DB::raw('COUNT(perjalanan_dinas_user.perjalanan_dinas_id) as total_perjalanan'))
         ->leftJoin('perjalanan_dinas_user', 'perjalanan_dinas_user.pegawai_id', '=', 'pegawai.id')
