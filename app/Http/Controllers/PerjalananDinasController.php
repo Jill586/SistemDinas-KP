@@ -28,8 +28,9 @@ public function index(Request $request)
         ->orderByDesc('tanggal_spt');
 
     // 🔒 Filter berdasarkan role
-    if (in_array($user->role, ['super_admin', 'verifikator1', 'verifikator2', 'verifikator3'])) {
-        // Super Admin, Verifikator 1, dan Verifikator 2, Verifikator 3 bisa lihat semua data
+    if (in_array($user->role, ['super_admin', 'verifikator1'])) {
+        // Super Admin bisa lihat semua data
+
     } elseif ($user->role === 'admin_bidang') {
         // Admin bidang bisa lihat semua operator bidang + dirinya sendiri + verifikator + atasan
         $relatedRoles = [
@@ -112,43 +113,32 @@ public function index(Request $request)
 }
 
 
-   public function store(Request $request)
+  public function store(Request $request)
 {
-    $this->validasiForm($request);
+    $validated = $request->validate([
+        'tanggal_spt' => 'required|date',
+        'jenis_spt' => 'required|string',
+        'jenis_kegiatan' => 'required|string',
+        'tujuan_spt' => 'required|string',
+        'dasar_spt' => 'required|string',
+        'uraian_spt' => 'required|string',
+        'tanggal_mulai' => 'required|date',
+        'tanggal_selesai' => 'required|date',
+        'alat_angkut' => 'required|string',
+        'pegawai_ids' => 'required|array|min:1',
+    ]);
 
-    try {
-        $data = $request->except(['pegawai_ids', 'bukti_undangan']);
+    $perjalanan = new PerjalananDinas();
+    $perjalanan->fill($validated);
+    $perjalanan->operator_id = Auth::id();
+    $perjalanan->status = 'draft'; // 🟢 status awal draft
+    $perjalanan->save();
 
-        // Jika jenis SPT dalam daerah, otomatis isi provinsi dan kota
-        if ($request->jenis_spt === 'dalam_daerah') {
-            $data['provinsi_tujuan_id'] = 'RIAU';
-            $data['kota_tujuan_id'] = 'Siak';
-        }
+    // Simpan relasi pegawai
+    $perjalanan->pegawai()->sync($request->pegawai_ids);
 
-        // Tambahkan operator_id, verifikator_id, atasan_id otomatis
-        $data['operator_id'] = auth()->id();
-
-        // Upload file bukti undangan
-        if ($request->hasFile('bukti_undangan')) {
-            $data['bukti_undangan'] = $request->file('bukti_undangan')->store('undangan', 'public');
-        }
-
-        // Simpan perjalanan dinas
-        $perjalanan = PerjalananDinas::create($data);
-
-        // Relasi pegawai
-        $perjalanan->pegawai()->sync($request->pegawai_ids);
-
-        // Hitung biaya
-        $this->hitungEstimasiBiaya($perjalanan, $request);
-
-        return redirect()->route('perjalanan-dinas.create')
-                         ->with('success', '✅ Pengajuan berhasil disimpan dengan estimasi biaya!');
-    } catch (\Throwable $e) {
-        return back()
-            ->withInput()
-            ->with('error', '❌ Data gagal dikirim: ' . $e->getMessage());
-    }
+    return redirect()->route('perjalanan-dinas.index')
+        ->with('success', 'Pengajuan berhasil dibuat dan berstatus DRAFT.');
 }
 
     public function show($id)
@@ -210,7 +200,7 @@ public function index(Request $request)
             $perjalanan->biaya()->delete();
             $this->hitungEstimasiBiaya($perjalanan, $request);
 
-            return redirect()->route('perjalanan-dinas.index')
+            return redirect()->route('perjalanan-dinas.create')
                              ->with('success', '✅ Pengajuan berhasil diperbarui! Status otomatis jadi PROSES.');
         } catch (\Throwable $e) {
             return back()

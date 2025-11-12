@@ -4,13 +4,14 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\PegawaiController;
 use App\Http\Controllers\SbuItemController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PerjalananDinasController;
+use App\Http\Controllers\VerifikasiStaffController;
 use App\Http\Controllers\PersetujuanAtasanController;
 use App\Http\Controllers\VerifikasiPengajuanController;
 use App\Http\Controllers\DokumenPerjalananDinasController;
 use App\Http\Controllers\LaporanPerjalananDinasController;
 use App\Http\Controllers\VerifikasiLaporanPerjalananDinasController;
-use App\Http\Controllers\DashboardController;
 
 /*
 |--------------------------------------------------------------------------
@@ -78,7 +79,20 @@ Route::middleware(['auth', 'role:verifikator1|admin_bidang'])->group(function ()
         Route::put('/perjalanan-dinas/{id}', 'update')->name('perjalanan-dinas.update');
         Route::get('/perjalanan-dinas/show/{id}', 'show')->name('perjalanan-dinas.show');
         Route::delete('/perjalanan-dinas/delete/{id}', 'destroy')->name('perjalanan-dinas.destroy');
+
     });
+     Route::controller(VerifikasiStaffController::class)->group(function () {
+        Route::get('/verifikasi-staff', 'index')->name('verifikasi-staff.index');
+
+    // 👁️ Lihat detail (kalau nanti mau buka halaman terpisah)
+    Route::get('/verifikasi-staff/{id}', 'show')->name('verifikasi-staff.show');
+
+    // ✅ Update status pengajuan (disetujui / tolak / revisi)
+    Route::put('/verifikasi-staff/{id}', 'update')->name('verifikasi-staff.update');
+
+    // 📎 Upload bukti undangan
+    Route::post('/verifikasi-staff/{id}/upload-undangan', 'uploadUndangan')->name('verifikasi-staff.upload-undangan');
+     });
 });
 
 /*

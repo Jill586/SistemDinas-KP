@@ -96,6 +96,8 @@
                                     <span class="badge bg-label-success">SELESAI</span>
                                 @elseif($row->status == 'ditolak')
                                     <span class="badge bg-label-danger">DITOLAK</span>
+                                 @elseif($row->status == 'draft')
+                                    <span class="badge bg-label-info">DRAFT</span>
                                 @elseif($row->status == 'revisi_operator')
                                     <span class="badge bg-label-warning">REVISI OPERATOR</span>
                                 @elseif($row->status == 'verifikasi')
@@ -276,7 +278,7 @@
         {{-- Modal Detail: diletakkan DI LUAR tabel --}}
         @foreach($perjalanans as $row)
         <div class="modal fade" id="modalShow{{ $row->id }}" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-dialog modal-xl">
                 <div class="modal-content">
                     <div class="modal-header bg-light">
                         <h5 class="modal-title fw-bold">Detail Pengajuan Perjalanan Dinas</h5>
@@ -532,4 +534,24 @@
         });
         });
     </script>
+
+    @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+$(document).ready(function() {
+
+    // Jika ada session success dari controller
+    @if (session('success'))
+        Swal.fire({
+            title: "Success!",
+            icon: "success",
+            draggable: true,
+            text: "{{ session('success') }}"
+        });
+    @endif
+
+});
+</script>
+@endpush
 @endpush

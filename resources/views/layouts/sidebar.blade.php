@@ -46,6 +46,16 @@
       </li>
     @endif
 
+     @if ($role === 'verifikator1' || $role === 'super_admin' || $role === 'admin_bidang')
+      <li class="menu-item {{ request()->routeIs('verifikasi-staff.index') ? 'active' : '' }}">
+        <a href="{{ route('verifikasi-staff.index') }}" class="menu-link">
+          <i class="menu-icon tf-icons bx bx-check-circle"></i>
+          <div>Verifikasi Staff</div>
+        </a>
+      </li>
+    @endif
+
+
     @if ($role === 'verifikator2' || $role === 'super_admin')
       <li class="menu-item {{ request()->routeIs('verifikasi-pengajuan.index') ? 'active' : '' }}">
         <a href="{{ route('verifikasi-pengajuan.index') }}" class="menu-link">
@@ -54,7 +64,7 @@
         </a>
       </li>
     @endif
-    
+
     @if ($role === 'verifikator3' || $role === 'super_admin')
       <li class="menu-item {{ request()->routeIs('persetujuan-atasan.index') ? 'active' : '' }}">
         <a href="{{ route('persetujuan-atasan.index') }}" class="menu-link">

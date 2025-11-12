@@ -1,14 +1,14 @@
 @extends('layouts.app')
 
-@section('title', 'Verifikasi Pengajuan')
+@section('title', 'Verifikasi Staff')
 
 @section('content')
 <div class="card">
     <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap">
-        <h5 class="mb-0 fw-bold">Daftar Verifikasi Pengajuan</h5>
+        <h5 class="mb-0 fw-bold">Daftar Verifikasi Staff</h5>
 
         {{-- 🔍 Form Filter Bulan & Tahun --}}
-        <form method="GET" action="{{ route('verifikasi-pengajuan.index') }}" class="d-flex flex-wrap gap-2 mt-2 mt-md-0">
+        <form method="GET" action="{{ route('verifikasi-staff.index') }}" class="d-flex flex-wrap gap-2 mt-2 mt-md-0">
             <select name="bulan" class="form-select" style="width: 150px;">
                 <option value="">-- Bulan --</option>
                 @foreach(range(1,12) as $b)
@@ -20,18 +20,16 @@
 
             <select name="tahun" class="form-select" style="width: 130px;">
                 <option value="">-- Tahun --</option>
-                    @foreach([2024, 2025, 2026] as $t)
-                        <option value="{{ $t }}" {{ (isset($tahun) && $tahun == $t) ? 'selected' : '' }}>
-                            {{ $t }}
-                        </option>
-                    @endforeach
+                @foreach([2024,2025,2026] as $t)
+                    <option value="{{ $t }}" {{ (isset($tahun) && $tahun == $t) ? 'selected' : '' }}>{{ $t }}</option>
+                @endforeach
             </select>
 
             <button type="submit" class="btn btn-primary">
                 <i class="bx bx-search"></i> Filter
             </button>
 
-            <a href="{{ route('verifikasi-pengajuan.index') }}" class="btn btn-secondary">
+            <a href="{{ route('verifikasi-staff.index') }}" class="btn btn-secondary">
                 <i class="bx bx-reset"></i> Reset
             </a>
         </form>
@@ -41,21 +39,20 @@
         <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
             {{-- 🔽 Show Entries --}}
             <div class="d-flex align-items-center mb-2 mb-sm-0">
-            <label for="showEntries" class="me-2 text-secondary">Show</label>
-            <select id="showEntries" class="form-select w-auto me-2">
-                <option value="10" {{ $perPage == 10 ? 'selected' : '' }}>10</option>
-                <option value="25" {{ $perPage == 25 ? 'selected' : '' }}>25</option>
-                <option value="50" {{ $perPage == 50 ? 'selected' : '' }}>50</option>
-                <option value="100" {{ $perPage == 100 ? 'selected' : '' }}>100</option>
-            </select>
-            <span class="text-secondary">entries</span>
+                <label for="showEntries" class="me-2 text-secondary">Show</label>
+                <select id="showEntries" class="form-select w-auto me-2">
+                    <option value="10" {{ $perPage == 10 ? 'selected' : '' }}>10</option>
+                    <option value="25" {{ $perPage == 25 ? 'selected' : '' }}>25</option>
+                    <option value="50" {{ $perPage == 50 ? 'selected' : '' }}>50</option>
+                    <option value="100" {{ $perPage == 100 ? 'selected' : '' }}>100</option>
+                </select>
+                <span class="text-secondary">entries</span>
             </div>
 
             {{-- 🔍 Search --}}
             <div class="d-flex align-items-center">
-            <label for="search" class="me-2 text-secondary">Search:</label>
-            <input type="text" id="search" name="search"
-                    class="form-control"
+                <label for="search" class="me-2 text-secondary">Search:</label>
+                <input type="text" id="search" name="search" class="form-control"
                     style="width: 260px; font-size: 0.95rem; padding: 8px 12px;">
             </div>
         </div>
@@ -133,7 +130,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="text-center">Belum ada data pengajuan</td>
+                            <td colspan="10" class="text-center">Belum ada data pengajuan</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -336,10 +333,10 @@
                 @endif
 
                 {{-- Form Verifikasi --}}
-                @if($row->status !== 'disetujui')
+                @if($row->status !== 'disetujui' && $row->status !== 'verifikasi')
                     <hr>
                     <h6 class="fw-bold mb-3">Form Verifikasi</h6>
-                    <form action="{{ route('verifikasi-pengajuan.update', $row->id) }}" method="POST">
+                    <form action="{{ route('verifikasi-staff.update', $row->id) }}" method="POST">
                         @csrf
                         @method('PUT')
 

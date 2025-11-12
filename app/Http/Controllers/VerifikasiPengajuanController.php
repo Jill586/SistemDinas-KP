@@ -15,12 +15,12 @@ public function index(Request $request)
     // ambil jumlah data per halaman dari input (default 10)
     $perPage = $request->get('per_page', 10);
 
-    $query = PerjalananDinas::with([
-        'pegawai',
-        'biaya.sbuItem',
-        'biaya.pegawaiTerkait'
+   $query = PerjalananDinas::with([
+    'pegawai',
+    'biaya.sbuItem',
+    'biaya.pegawaiTerkait'
     ])
-    ->whereNotIn('status', ['ditolak', 'revisi_operator']);
+    ->whereNotIn('status', ['ditolak', 'revisi_operator', 'draft']);
 
     // 🔍 Filter bulan dan tahun dari tanggal_spt
     if ($request->filled('bulan')) {
@@ -70,9 +70,6 @@ public function index(Request $request)
         return view('admin.verifikasi-pengajuan', compact('perjalanan'));
     }
 
-    /**
-     * Update status verifikasi (setujui, tolak, revisi)
-     */
    public function update(Request $request, $id)
 {
     $perjalanan = PerjalananDinas::findOrFail($id);
@@ -81,52 +78,28 @@ public function index(Request $request)
     $catatan = $request->input('catatan_verifikator');
     $role   = auth()->user()->role ?? null;
 
-if ($aksi === 'disetujui') {
-    if ($role === 'verifikator') {
-        $perjalanan->status = 'disetujui_verifikator';
-    } elseif ($role === 'atasan') {
-        if ($perjalanan->status === 'disetujui_verifikator') {
-            $perjalanan->status = 'disetujui_atasan';
-        } else {
-            return back()->with('error', 'Pengajuan harus disetujui verifikator dulu.');
-        }
-    }
-    } elseif ($aksi === 'tolak') {
-        $perjalanan->status = 'ditolak';
-    } elseif ($aksi === 'revisi_operator') {
-        $perjalanan->status = 'revisi_operator';
-    } elseif ($aksi === 'proses') {
-        $perjalanan->status = 'proses';
-    } elseif ($aksi === 'verifikasi')
-        $perjalanan->status = 'verifikasi';
-        $perjalanan->verifikator_id = auth()->id(); // ✅ jika status verifikasi juga simpan id
+    switch ($aksi) {
+        case 'disetujui':
+            $perjalanan->status = 'disetujui_verifikator';
+            break;
 
+        case 'tolak':
+            $perjalanan->status = 'ditolak';
+            break;
+
+        case 'revisi_operator':
+            $perjalanan->status = 'revisi_operator';
+            break;
+
+        case 'verifikasi':
+            $perjalanan->status = 'verifikasi';
+            break;
+    }
+
+    $perjalanan->verifikator_id = auth()->id();
     $perjalanan->catatan_verifikator = $catatan;
     $perjalanan->save();
 
     return redirect()->back()->with('success', 'Status laporan berhasil diperbarui.');
-}
-
-public function uploadUndangan(Request $request, $id)
-{
-    $request->validate([
-        'bukti_undangan' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
-    ]);
-
-    $perjalanan = PerjalananDinas::findOrFail($id);
-
-    if ($request->hasFile('bukti_undangan')) {
-        // Simpan file ke folder public/undangan
-        $file = $request->file('bukti_undangan');
-        $path = $file->store('undangan', 'public'); // ✅ hasil: undangan/nama_file.pdf
-
-        // Simpan ke database
-        $perjalanan->bukti_undangan = $path;
-        $perjalanan->save();
-    }
-
-    return redirect()->back()->with('success', 'Bukti undangan berhasil diunggah.');
-}
-
-
+  }
 }
