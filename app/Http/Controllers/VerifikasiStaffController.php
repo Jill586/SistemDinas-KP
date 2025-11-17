@@ -98,6 +98,14 @@ public function update(Request $request, $id)
         return redirect()->route('verifikasi-staff.index')
             ->with('success', 'Pengajuan telah disetujui dan dikirim ke verifikator pengajuan.');
     }
+    if ($request->aksi_verifikasi == 'update_nomor_spt') {
+    $pd = PerjalananDinas::findOrFail($id);
+    $pd->nomor_spt = $request->nomor_spt;
+    $pd->save();
+
+    return back()->with('success', 'Nomor SPT berhasil diperbarui!');
+}
+
 
     return redirect()->route('verifikasi-staff.index')->with('success', 'Status pengajuan berhasil diperbarui.');
 }

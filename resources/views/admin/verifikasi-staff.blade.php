@@ -170,8 +170,15 @@
                 {{-- Info SPT --}}
                 <div class="row mb-3">
                     <div class="col-md-6">
-                        <strong>Nomor SPT:</strong><br>
-                        {{ $row->nomor_spt ?? '-' }}
+                       <strong>Nomor SPT:</strong>
+                            <button class="btn btn-sm btn-outline-primary ms-2"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#modalEditSPT{{ $row->id }}">
+                                <i class="bx bx-edit"></i>
+                            </button>
+                            <br>
+                            <span id="nomorSPTDisplay{{ $row->id }}">{{ $row->nomor_spt ?? '-' }}</span>
+
                     </div>
                     <div class="col-md-6">
                         <strong>Tanggal SPT:</strong><br>
@@ -378,6 +385,38 @@
         </div>
     </div>
 </div>
+<!-- Modal Edit Nomor SPT -->
+<div class="modal fade" id="modalEditSPT{{ $row->id }}" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <form method="POST" action="{{ route('verifikasi-staff.update', $row->id) }}">
+                @csrf
+                @method('PUT')
+
+                <div class="modal-header">
+                    <h6 class="modal-title">Edit Nomor SPT</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <label class="form-label">Nomor SPT Baru</label>
+                    <input type="text" name="nomor_spt" class="form-control"
+                           value="{{ $row->nomor_spt }}">
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary"
+                        data-bs-dismiss="modal">Batal</button>
+
+                    <button type="submit" name="aksi_verifikasi" value="update_nomor_spt"
+                        class="btn btn-primary">
+                        Simpan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 @endforeach
 @endsection
 
@@ -408,6 +447,7 @@ $(document).ready(function () {
         });
     });
 });
+
 </script>
 @endpush
 

@@ -63,52 +63,56 @@ public function index(Request $request)
         ]);
 }
 
-    public function update(Request $request, $id)
-    {
-        $perjalanan = PerjalananDinas::findOrFail($id);
+   public function update(Request $request, $id)
+{
+    $perjalanan = PerjalananDinas::findOrFail($id);
 
-        $aksi = $request->input('aksi_verifikasi'); // tombol yang ditekan
-        $catatan = $request->input('catatan_verifikator');
+    $aksi = $request->input('aksi_verifikasi');
+    $catatan = $request->input('catatan_verifikator');
 
-        if ($aksi === 'revisi_operator') {
-            $perjalanan->status = 'revisi_operator';
-            $perjalanan->catatan_atasan = $catatan;
+    if ($aksi === 'revisi_operator') {
+        $perjalanan->status = 'revisi_operator';
+        $perjalanan->catatan_atasan = $catatan;
 
-        } elseif ($aksi === 'tolak') {
-            $perjalanan->status = 'ditolak';
-            $perjalanan->catatan_atasan = $catatan;
+    } elseif ($aksi === 'tolak') {
+        $perjalanan->status = 'ditolak';
+        $perjalanan->catatan_atasan = $catatan;
 
-        } elseif ($aksi === 'verifikasi') {
-            // === Setujui & terbitkan surat ===
-            $perjalanan->status = 'disetujui';
-            $perjalanan->catatan_atasan = 'Disetujui dan diterbitkan surat';
-            $perjalanan->atasan_id = auth()->id(); // ✅ simpan atasan yang menyetujui
+    } elseif ($aksi === 'verifikasi') {
 
-        // === Buat No SPT otomatis dengan format 000.1.2.3/SPT/XXX ===
-        $prefix = '000.1.2.3/SPT';
-        $startNumber = 800;
+        $perjalanan->status = 'disetujui';
+        $perjalanan->catatan_atasan = 'Disetujui dan diterbitkan surat';
+        $perjalanan->atasan_id = auth()->id();
 
-        // Ambil surat terakhir yang sesuai prefix
-        $last = \App\Models\PerjalananDinas::where('nomor_spt', 'like', "$prefix/%")
-            ->orderBy('created_at', 'desc')
-            ->first();
+        // ============================================================
+        // 🔥 CEK DULU: Jika nomor_spt SUDAH ADA → Jangan generate lagi
+        // ============================================================
+        if (empty($perjalanan->nomor_spt)) {
 
-        if ($last && preg_match('/(\d+)$/', $last->nomor_spt, $matches)) {
-            // Ambil angka terakhir dari nomor_spt
-            $lastNumber = (int)$matches[1];
-            $newNumber = $lastNumber + 1;
-        } else {
-            // Kalau belum ada data sama sekali, mulai dari 400
-            $newNumber = $startNumber;
+            $prefix = '000.1.2.3/SPT';
+            $startNumber = 800;
+
+            // Ambil surat terakhir
+            $last = PerjalananDinas::where('nomor_spt', 'like', "$prefix/%")
+                ->orderBy('created_at', 'desc')
+                ->first();
+
+            if ($last && preg_match('/(\d+)$/', $last->nomor_spt, $matches)) {
+                $lastNumber = (int)$matches[1];
+                $newNumber = $lastNumber + 1;
+            } else {
+                $newNumber = $startNumber;
+            }
+
+            // Set nomor baru
+            $perjalanan->nomor_spt = "{$prefix}/{$newNumber}";
         }
-
-        // Format nomor baru: 000.1.2.3/SPT/800, 000.1.2.3/SPT/801, dst
-        $nomorSPT = "{$prefix}/{$newNumber}";
-        $perjalanan->nomor_spt = $nomorSPT;
-        }
-
-        $perjalanan->save();
-
-        return back()->with('success', 'Pengajuan berhasil diperbarui.');
+        // ============================================================
     }
+
+    $perjalanan->save();
+
+    return back()->with('success', 'Pengajuan berhasil diperbarui.');
+}
+
 }
