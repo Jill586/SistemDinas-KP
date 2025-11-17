@@ -28,7 +28,7 @@
             </select>
 
             <button type="submit" class="btn btn-primary">
-                <i class="bx bx-search"></i> Filter
+                <i class="bx bx-filter"></i> Filter
             </button>
 
             <a href="{{ route('dokumen-perjalanan-dinas.index') }}" class="btn btn-secondary">
@@ -51,13 +51,23 @@
             <span class="text-secondary">entries</span>
             </div>
 
-            {{-- 🔍 Search --}}
-            <div class="d-flex align-items-center">
-            <label for="search" class="me-2 text-secondary">Search:</label>
-            <input type="text" id="search" name="search"
-                    class="form-control"
+             {{-- 🔍 Manual Search --}}
+            <form action="{{ route('dokumen-perjalanan-dinas.index') }}" method="GET" class="d-flex align-items-center">
+                {{-- tetap kirim parameter perPage biar tidak reset --}}
+                <input type="hidden" name="perPage" value="{{ request('perPage', $perPage) }}">
+
+                <label for="search" class="me-2 text-secondary">Search:</label>
+                <input type="text"
+                    id="search"
+                    name="search"
+                    value="{{ request('search') }}"
+                    class="form-control me-2"
                     style="width: 260px; font-size: 0.95rem; padding: 8px 12px;">
-            </div>
+
+                <button type="submit" class="btn btn-primary">
+                    <i class="bx bx-search"></i>
+                </button>
+            </form>
         </div>
 
 

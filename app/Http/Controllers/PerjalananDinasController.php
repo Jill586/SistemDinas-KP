@@ -14,26 +14,45 @@ use Carbon\Carbon;
 
 class PerjalananDinasController extends Controller
 {
-public function index(Request $request)
+    public function index(Request $request)
+    {
+        $user = Auth::user();
 
+         // 🔍 Ambil input filter
+        $search = $request->input('search');
+        $perPage = $request->get('per_page', 10);
+        $data = PerjalananDinas::with('pegawai')->latest()->get();
 
-{
-    $user = Auth::user();
-     $data = PerjalananDinas::with('pegawai')->latest()->get();
+        $query = PerjalananDinas::with(['pegawai', 'biaya']) // <— tambahkan eager load relasi pegawai & biaya
+            ->orderBy('id', 'asc'); // urutan default berdasarkan ID
 
-     $query = PerjalananDinas::with(['pegawai', 'biaya']); // <— tambahkan eager load relasi pegawai & biaya
+        // 🔒 Filter berdasarkan role
+        if (in_array($user->role, ['super_admin', 'verifikator1'])) {
+            // Super Admin bisa lihat semua data
 
-    // Query dasar
-    $query = PerjalananDinas::with(['pegawai', 'biaya'])
-        ->orderByDesc('tanggal_spt');
+        } elseif ($user->role === 'admin_bidang') {
+            // Admin bidang bisa lihat semua operator bidang + dirinya sendiri + verifikator + atasan
+            $relatedRoles = [
+                'umum_kepegawaian',
+                'sekretariat',
+                'sekretariat_keuangan',
+                'sekretariat_perencanaan',
+                'bidang_ikps',
+                'bidang_tik',
+                'verifikator1',
+                'verifikator2',
+                'verifikator3',
+                'atasan'
+            ];
 
-    // 🔒 Filter berdasarkan role
-    if (in_array($user->role, ['super_admin', 'verifikator1'])) {
-        // Super Admin bisa lihat semua data
+            $operatorIds = User::whereIn('role', $relatedRoles)->pluck('id');
 
-    } elseif ($user->role === 'admin_bidang') {
-        // Admin bidang bisa lihat semua operator bidang + dirinya sendiri + verifikator + atasan
-        $relatedRoles = [
+            // Tambahkan ID admin bidang sendiri juga
+            $operatorIds->push($user->id);
+
+            $query->whereIn('operator_id', $operatorIds);
+
+        } elseif (in_array($user->role, [
             'umum_kepegawaian',
             'sekretariat',
             'sekretariat_keuangan',
@@ -44,53 +63,46 @@ public function index(Request $request)
             'verifikator2',
             'verifikator3',
             'atasan'
-        ];
+        ])) {
+            // Operator bidang, verifikator, dan atasan hanya bisa lihat data sendiri
+            $query->where('operator_id', $user->id);
+        }
 
-        $operatorIds = User::whereIn('role', $relatedRoles)->pluck('id');
+        // 🗓️ Filter bulan & tahun (kalau ada)
+        if ($request->filled('bulan')) {
+            $query->whereMonth('tanggal_spt', $request->bulan);
+        }
 
-        // Tambahkan ID admin bidang sendiri juga
-        $operatorIds->push($user->id);
+        if ($request->filled('tahun')) {
+            $query->whereYear('tanggal_spt', $request->tahun);
+        }
 
-        $query->whereIn('operator_id', $operatorIds);
+        // 🔍 Filter pencarian manual
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('tujuan_spt', 'like', "%{$search}%")
+                ->orWhere('jenis_spt', 'like', "%{$search}%")
+                ->orWhere('jenis_kegiatan', 'like', "%{$search}%")
+                ->orWhereHas('pegawai', function ($pegawaiQuery) use ($search) {
+                    $pegawaiQuery->where('nama', 'like', "%{$search}%");
+                });
+            });
+        }
 
-    } elseif (in_array($user->role, [
-        'umum_kepegawaian',
-        'sekretariat',
-        'sekretariat_keuangan',
-        'sekretariat_perencanaan',
-        'bidang_ikps',
-        'bidang_tik',
-        'verifikator1',
-        'verifikator2',
-        'verifikator3',
-        'atasan'
-    ])) {
-        // Operator bidang, verifikator, dan atasan hanya bisa lihat data sendiri
-        $query->where('operator_id', $user->id);
+        // 📄 Pagination
+        $perPage = $request->get('per_page', 10);
+        $perjalanans = $query->paginate($perPage);
+
+        // ✅ Tambahkan ini supaya $pegawai dikenali di view
+        $pegawai = Pegawai::all();
+
+        return view('admin.perjalanan-dinas', compact('perjalanans', 'perPage', 'pegawai'))
+            ->with([
+                'bulan' => $request->bulan,
+                'tahun' => $request->tahun,
+                'search' => $search,
+            ]);
     }
-
-    // 🗓️ Filter bulan & tahun (kalau ada)
-    if ($request->filled('bulan')) {
-        $query->whereMonth('tanggal_spt', $request->bulan);
-    }
-
-    if ($request->filled('tahun')) {
-        $query->whereYear('tanggal_spt', $request->tahun);
-    }
-
-    // 📄 Pagination
-    $perPage = $request->get('per_page', 10);
-    $perjalanans = $query->paginate($perPage);
-
-    // ✅ Tambahkan ini supaya $pegawai dikenali di view
-    $pegawai = Pegawai::all();
-
-    return view('admin.perjalanan-dinas', compact('perjalanans', 'perPage', 'pegawai'))
-        ->with([
-            'bulan' => $request->bulan,
-            'tahun' => $request->tahun
-        ]);
-}
    public function create()
 {
     $pegawai = Pegawai::all();
@@ -113,32 +125,46 @@ public function index(Request $request)
 }
 
 
-  public function store(Request $request)
+public function store(Request $request)
 {
-    $validated = $request->validate([
-        'tanggal_spt' => 'required|date',
-        'jenis_spt' => 'required|string',
-        'jenis_kegiatan' => 'required|string',
-        'tujuan_spt' => 'required|string',
-        'dasar_spt' => 'required|string',
-        'uraian_spt' => 'required|string',
-        'tanggal_mulai' => 'required|date',
-        'tanggal_selesai' => 'required|date',
-        'alat_angkut' => 'required|string',
-        'pegawai_ids' => 'required|array|min:1',
-    ]);
+$this->validasiForm($request);
 
-    $perjalanan = new PerjalananDinas();
-    $perjalanan->fill($validated);
-    $perjalanan->operator_id = Auth::id();
-    $perjalanan->status = 'draft'; // 🟢 status awal draft
-    $perjalanan->save();
+    try {
+        $data = $request->except(['pegawai_ids', 'bukti_undangan']);
 
-    // Simpan relasi pegawai
-    $perjalanan->pegawai()->sync($request->pegawai_ids);
+        // Jika jenis SPT dalam daerah, otomatis isi provinsi dan kota
+        if ($request->jenis_spt === 'dalam_daerah') {
+            $data['provinsi_tujuan_id'] = 'RIAU';
+            $data['kota_tujuan_id'] = 'Siak';
+        }
 
-    return redirect()->route('perjalanan-dinas.index')
-        ->with('success', 'Pengajuan berhasil dibuat dan berstatus DRAFT.');
+        // Tambahkan operator_id, verifikator_id, atasan_id otomatis
+        $data['operator_id'] = auth()->id();
+
+        // Set status default menjadi "draft"
+        $data['status'] = 'draft';
+
+        // Upload file bukti undangan
+        if ($request->hasFile('bukti_undangan')) {
+            $data['bukti_undangan'] = $request->file('bukti_undangan')->store('undangan', 'public');
+        }
+
+        // Simpan perjalanan dinas
+        $perjalanan = PerjalananDinas::create($data);
+
+        // Relasi pegawai
+        $perjalanan->pegawai()->sync($request->pegawai_ids);
+
+        // Hitung biaya
+        $this->hitungEstimasiBiaya($perjalanan, $request);
+
+        return redirect()->route('perjalanan-dinas.create')
+                         ->with('success', '✅ Pengajuan berhasil disimpan dengan estimasi biaya!');
+    } catch (\Throwable $e) {
+        return back()
+            ->withInput()
+            ->with('error', '❌ Data gagal dikirim: ' . $e->getMessage());
+    }
 }
 
     public function show($id)
@@ -251,93 +277,85 @@ public function index(Request $request)
     /**
      * Hitung estimasi biaya perjalanan dinas
      */
-    private function hitungEstimasiBiaya(PerjalananDinas $perjalanan, Request $request)
+    private function hitungEstimasiBiaya($perjalanan, $request)
     {
+        $pegawaiIds = $request->pegawai_ids ?? [];
         $totalEstimasiKeseluruhan = 0;
-        $detailBiayaUntukSimpan   = [];
 
-        $lama_hari = Carbon::parse($request->tanggal_mulai)
-                        ->diffInDays(Carbon::parse($request->tanggal_selesai)) + 1;
+        // Hitung lama hari
+        $jumlahHari = Carbon::parse($request->tanggal_mulai)
+            ->diffInDays(Carbon::parse($request->tanggal_selesai)) + 1;
 
-        $provinsiTujuanUntukSimpan = strtoupper($request->provinsi_tujuan_id ?? 'RIAU');
+        // Tentukan kategori biaya berdasarkan jenis SPT
+        if (strtolower($perjalanan->jenis_spt) === 'dalam_daerah') {
+            // Jika dalam daerah → hanya uang harian
+            $kategoriList = ['UANG_HARIAN'];
+        } else {
+            // Selain itu → uang harian + transportasi
+            $kategoriList = ['UANG_HARIAN', 'TRANSPORTASI_DARAT', 'TRANSPORTASI_UDARA'];
+        }
 
-        $personils = Pegawai::with(['jabatan', 'golongan'])
-            ->whereIn('id', $request->pegawai_ids)
-            ->get();
-
-        foreach ($personils as $personil) {
-            $tingkatSbu = $this->getSbuTingkatUntukPersonil($personil);
-            $isDiklat   = strtolower($request->jenis_kegiatan) == 'diklat';
-
-            $kategoriList = ['UANG_HARIAN', 'TRANSPORT', 'PENGINAPAN', 'REPRESENTASI'];
+        // Loop setiap pegawai
+        foreach ($pegawaiIds as $pegawaiId) {
+            $pegawai = Pegawai::find($pegawaiId);
+            if (!$pegawai) continue;
 
             foreach ($kategoriList as $kategori) {
-                $query = SbuItem::where('kategori_biaya', $kategori)
-                    ->where('provinsi_tujuan', $provinsiTujuanUntukSimpan);
 
-                if ($isDiklat) {
-                    $query->where('uraian_biaya', 'like', '%Diklat%');
-                } else {
-                    $query->where('uraian_biaya', 'not like', '%Diklat%');
+                // Ambil item SBU yang cocok
+                $sbuItemQuery = SbuItem::where('kategori_biaya', $kategori)
+                    ->where('provinsi_tujuan', $perjalanan->provinsi_tujuan_id);
+
+                if ($kategori !== 'UANG_HARIAN') {
+                    // Untuk transportasi, sesuaikan kota
+                    $sbuItemQuery->where(function ($q) use ($perjalanan) {
+                        $q->where('kota_tujuan', $perjalanan->kota_tujuan_id)
+                        ->orWhereNull('kota_tujuan');
+                    });
                 }
 
-                if ($request->jenis_spt == 'dalam_daerah') {
-                    $query->where('tipe_perjalanan', 'DALAM_KABUPATEN_LEBIH_8_JAM');
-                } else {
-                    $query->where('tipe_perjalanan', 'LUAR_DAERAH_LUAR_KABUPATEN');
+                $sbuItem = $sbuItemQuery->first();
+
+                // Jika dalam daerah → pakai uraian khusus
+                if (strtolower($perjalanan->jenis_spt) === 'dalam_daerah' && $kategori === 'UANG_HARIAN') {
+                    $sbuItem = SbuItem::where('kategori_biaya', 'UANG_HARIAN')
+                        ->where('uraian_biaya', 'like', '%Dalam Kabupaten Riau > 8 Jam%')
+                        ->first();
                 }
 
-                $sbuItems = $query->where(function ($q) use ($tingkatSbu) {
-                    $q->where('tingkat_pejabat_atau_golongan', $tingkatSbu)
-                      ->orWhere('tingkat_pejabat_atau_golongan', 'Semua');
-                })->get();
+                if (!$sbuItem) continue;
 
-                foreach ($sbuItems as $sbuItem) {
-                    if ($kategori == 'UANG_HARIAN') {
-                        $jumlahUnit = $lama_hari;
-                    } elseif ($kategori == 'PENGINAPAN') {
-                        $jumlahUnit = max($lama_hari - 1, 1);
-                    } else {
-                        $jumlahUnit = 1;
-                    }
+                // Hitung jumlah unit dan subtotal
+                $jumlahUnit = ($kategori === 'UANG_HARIAN') ? $jumlahHari : 1;
+                $hargaSatuan = $sbuItem->besaran_biaya ?? 0;
+                $subtotal = $hargaSatuan * $jumlahUnit;
 
-                    $subtotal = $sbuItem->besaran_biaya * $jumlahUnit;
+                // Simpan ke tabel perjalanan_dinas_biaya
+                PerjalananDinasBiaya::create([
+                    'perjalanan_dinas_id'      => $perjalanan->id,
+                    'sbu_item_id'              => $sbuItem->id,
+                    'pegawai_id_terkait'       => $pegawai->id,
+                    'deskripsi_biaya'          => $sbuItem->uraian_biaya,
+                    'jumlah_personil_terkait'  => 1,
+                    'jumlah_hari_terkait'      => $jumlahHari,
+                    'jumlah_unit'              => $jumlahUnit,
+                    'harga_satuan'             => $hargaSatuan,
+                    'subtotal_biaya'           => $subtotal,
+                    'keterangan_tambahan'      => 'Estimasi otomatis kategori ' . $kategori,
+                ]);
 
-                    $detailBiayaUntukSimpan[] = new PerjalananDinasBiaya([
-                        'sbu_item_id'             => $sbuItem->id,
-                        'pegawai_id_terkait'      => $personil->id,
-                        'deskripsi_biaya'         => $sbuItem->uraian_biaya,
-                        'jumlah_personil_terkait' => 1,
-                        'jumlah_hari_terkait'     => $lama_hari,
-                        'jumlah_unit'             => $jumlahUnit,
-                        'harga_satuan'            => $sbuItem->besaran_biaya,
-                        'subtotal_biaya'          => $subtotal,
-                    ]);
-
-                    $totalEstimasiKeseluruhan += $subtotal;
-                }
+                $totalEstimasiKeseluruhan += $subtotal;
             }
         }
 
-        if (!empty($detailBiayaUntukSimpan)) {
-            foreach ($detailBiayaUntukSimpan as $biaya) {
-                $biaya->perjalanan_dinas_id = $perjalanan->id;
-            }
-            $perjalanan->biaya()->saveMany($detailBiayaUntukSimpan);
-        }
-
-        $perjalanan->total_estimasi_biaya = $totalEstimasiKeseluruhan;
-        $perjalanan->save();
+        // Update total estimasi biaya di tabel perjalanan dinas
+        $perjalanan->update(['total_estimasi_biaya' => $totalEstimasiKeseluruhan]);
     }
 
     private function getSbuTingkatUntukPersonil(Pegawai $pegawai)
     {
-        if ($pegawai->golongan) {
-            return $pegawai->golongan;
-        }
-        if ($pegawai->jabatan) {
-            return $pegawai->jabatan;
-        }
+        if ($pegawai->golongan) return $pegawai->golongan;
+        if ($pegawai->jabatan) return $pegawai->jabatan;
         return 'Semua';
     }
 }

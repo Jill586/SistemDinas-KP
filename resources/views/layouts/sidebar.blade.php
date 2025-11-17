@@ -46,7 +46,7 @@
       </li>
     @endif
 
-     @if ($role === 'verifikator1' || $role === 'super_admin' || $role === 'admin_bidang')
+     @if ($role === 'verifikator1' || $role === 'super_admin')
       <li class="menu-item {{ request()->routeIs('verifikasi-staff.index') ? 'active' : '' }}">
         <a href="{{ route('verifikasi-staff.index') }}" class="menu-link">
           <i class="menu-icon tf-icons bx bx-check-circle"></i>

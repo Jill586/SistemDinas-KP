@@ -14,6 +14,7 @@ public function index(Request $request)
 {
     // ambil jumlah data per halaman dari input (default 10)
     $perPage = $request->get('per_page', 10);
+    $search = $request->input('search');
 
    $query = PerjalananDinas::with([
     'pegawai',
@@ -39,7 +40,10 @@ public function index(Request $request)
               ->orWhere('tujuan_spt', 'like', "%{$search}%")
               ->orWhereHas('pegawai', function ($q2) use ($search) {
                   $q2->where('nama', 'like', "%{$search}%");
-              });
+              })
+              ->orWhereHas('operator', function ($q3) use ($search) {
+                  $q3->where('name', 'like', "%{$search}%");
+            });
         });
     }
 
@@ -52,7 +56,8 @@ public function index(Request $request)
         ->with([
             'bulan' => $request->bulan,
             'tahun' => $request->tahun,
-            'perPage' => $perPage
+            'perPage' => $perPage,
+            'search' => $search,
         ]);
 }
 

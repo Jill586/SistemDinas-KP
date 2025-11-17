@@ -34,6 +34,7 @@ class PerjalananDinas extends Model
         'status_laporan',
         'catatan_verifikator',
         'catatan_atasan',
+        'total_estimasi_biaya',
     ];
 
     protected static function boot()

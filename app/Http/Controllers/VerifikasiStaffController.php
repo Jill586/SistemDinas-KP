@@ -14,6 +14,7 @@ class VerifikasiStaffController extends Controller
     {
         // ambil jumlah data per halaman (default 10)
         $perPage = $request->get('per_page', 10);
+        $search = $request->input('search');
 
         $query = PerjalananDinas::with([
             'pegawai',
@@ -39,7 +40,10 @@ class VerifikasiStaffController extends Controller
                   ->orWhere('tujuan_spt', 'like', "%{$search}%")
                   ->orWhereHas('pegawai', function ($q2) use ($search) {
                       $q2->where('nama', 'like', "%{$search}%");
-                  });
+                  })
+                  ->orWhereHas('operator', function ($q3) use ($search) {
+                      $q3->where('name', 'like', "%{$search}%");
+                });
             });
         }
 
@@ -52,7 +56,8 @@ class VerifikasiStaffController extends Controller
             ->with([
                 'bulan' => $request->bulan,
                 'tahun' => $request->tahun,
-                'perPage' => $perPage
+                'perPage' => $perPage,
+                'search' => $search,
             ]);
     }
 
@@ -85,7 +90,6 @@ public function update(Request $request, $id)
         $perjalanan->status = 'revisi_operator';
     }
 
-    $perjalanan->verifikator_id = auth()->id();
     $perjalanan->catatan_verifikator = $catatan;
     $perjalanan->save();
 

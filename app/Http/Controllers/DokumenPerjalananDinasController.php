@@ -14,6 +14,7 @@ class DokumenPerjalananDinasController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user(); // ✅ ambil user login
+        $search = $request->input('search');
 
         // Ambil semua perjalanan dinas dengan status "disetujui"
         $query = PerjalananDinas::with('pegawai')
@@ -66,6 +67,18 @@ class DokumenPerjalananDinasController extends Controller
             $query->whereYear('tanggal_spt', $request->tahun);
         }
 
+        // 🔍 Jika ada pencarian
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('nomor_spt', 'like', "%{$search}%")
+                  ->orWhere('tujuan_spt', 'like', "%{$search}%")
+                  ->orWhereHas('pegawai', function ($q2) use ($search) {
+                      $q2->where('nama', 'like', "%{$search}%");
+                });
+            });
+        }
+
         $perPage = $request->get('per_page', 10);
 
         // Urutkan data terbaru berdasarkan tanggal_spt
@@ -83,6 +96,7 @@ class DokumenPerjalananDinasController extends Controller
             ->with([
                 'bulan' => $request->bulan,
                 'tahun' => $request->tahun,
+                'search' => $search,
             ]);
     }
 
@@ -161,6 +175,8 @@ class DokumenPerjalananDinasController extends Controller
 
         $lamaHari = Carbon::parse($dokumen->tanggal_mulai)
             ->diffInDays(Carbon::parse($dokumen->tanggal_selesai)) + 1;
+        
+        $lamaHariText = $lamaHari . ' (' . $this->terbilang($lamaHari) . ')';
 
         $pengikutList = $dokumen->pegawai->where('id', '!=', $pegawai->id)->pluck('nama')->toArray();
         $pengikutText = !empty($pengikutList) ? implode(', ', $pengikutList) : '-';
@@ -181,7 +197,7 @@ class DokumenPerjalananDinasController extends Controller
             $template->setValue('dasar_spt', $dokumen->dasar_spt ?? '-');
             $template->setValue('uraian_spt', $dokumen->uraian_spt ?? '-');
             $template->setValue('surat_tujuan', $dokumen->tujuan_spt ?? '-');
-            $template->setValue('lama_hari', $lamaHari);
+            $template->setValue('lama_hari', $lamaHariText);
             $template->setValue('tanggal_mulai', Carbon::parse($dokumen->tanggal_mulai)->translatedFormat('d F Y'));
             $template->setValue('tanggal_selesai', Carbon::parse($dokumen->tanggal_selesai)->translatedFormat('d F Y'));
             $template->setValue('tanggal_spt', Carbon::parse($dokumen->tanggal_spt)->translatedFormat('d F Y'));
@@ -200,7 +216,7 @@ class DokumenPerjalananDinasController extends Controller
             $template->setValue('kecamatan_spt', $dokumen->kecamatan_spt ?? '-');
             $template->setValue('desa_spt', $dokumen->desa_spt ?? '-');
             $template->setValue('kota_tujuan_id', $dokumen->kota_tujuan_id ?? '-');
-            $template->setValue('lama_hari', $lamaHari);
+            $template->setValue('lama_hari', $lamaHariText);
             $template->setValue('tanggal_mulai', Carbon::parse($dokumen->tanggal_mulai)->translatedFormat('d F Y'));
             $template->setValue('tanggal_selesai', Carbon::parse($dokumen->tanggal_selesai)->translatedFormat('d F Y'));
             $template->setValue('tanggal_spt', Carbon::parse($dokumen->tanggal_spt)->translatedFormat('d F Y'));
@@ -233,5 +249,25 @@ class DokumenPerjalananDinasController extends Controller
 
         $pdf = Pdf::loadHTML(file_get_contents($htmlPath))->setPaper('A4');
         return $pdf->download("{$namaFile}.pdf");
+    }
+
+    private function terbilang($angka)
+    {
+        $angka = abs($angka);
+        $baca = ["", "satu", "dua", "tiga", "empat", "lima", "enam", "tujuh", "delapan", "sembilan", "sepuluh", "sebelas"];
+
+        if ($angka < 12) {
+            return $baca[$angka];
+        } elseif ($angka < 20) {
+            return $this->terbilang($angka - 10) . " belas";
+        } elseif ($angka < 100) {
+            return $this->terbilang($angka / 10) . " puluh " . $this->terbilang($angka % 10);
+        } elseif ($angka < 200) {
+            return "seratus " . $this->terbilang($angka - 100);
+        } elseif ($angka < 1000) {
+            return $this->terbilang($angka / 100) . " ratus " . $this->terbilang($angka % 100);
+        }
+
+        return $angka; // fallback
     }
 }

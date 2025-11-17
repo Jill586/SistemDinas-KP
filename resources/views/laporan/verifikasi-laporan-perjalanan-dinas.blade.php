@@ -28,7 +28,7 @@
             </select>
 
             <button type="submit" class="btn btn-primary">
-                <i class="bx bx-search"></i> Filter
+                <i class="bx bx-filter"></i> Filter
             </button>
 
             <a href="{{ route('verifikasi-laporan.index') }}" class="btn btn-secondary">
@@ -51,13 +51,23 @@
             <span class="text-secondary">entries</span>
             </div>
 
-            {{-- 🔍 Search --}}
-            <div class="d-flex align-items-center">
-            <label for="search" class="me-2 text-secondary">Search:</label>
-            <input type="text" id="search" name="search"
-                    class="form-control"
+             {{-- 🔍 Manual Search --}}
+            <form action="{{ route('verifikasi-laporan.index') }}" method="GET" class="d-flex align-items-center">
+                {{-- tetap kirim parameter perPage biar tidak reset --}}
+                <input type="hidden" name="perPage" value="{{ request('perPage', $perPage) }}">
+
+                <label for="search" class="me-2 text-secondary">Search:</label>
+                <input type="text"
+                    id="search"
+                    name="search"
+                    value="{{ request('search') }}"
+                    class="form-control me-2"
                     style="width: 260px; font-size: 0.95rem; padding: 8px 12px;">
-            </div>
+
+                <button type="submit" class="btn btn-primary">
+                    <i class="bx bx-search"></i>
+                </button>
+            </form>
         </div>
 
         {{-- Notifikasi Sukses --}}
@@ -68,7 +78,7 @@
         @endif
 
         {{-- Tabel Verifikasi --}}
-        <div class="table-responsive text-nowrap">
+        <div class="table-responsive">
             <table class="table table-bordered align-middle">
                 <thead class="table-light text-center">
                     <tr>
@@ -207,13 +217,16 @@
           </div>
           <div class="col-md-6">
             <p><strong>Tanggal Laporan:</strong><br>
-            {{ \Carbon\Carbon::parse($row->tanggal_laporan)->format('d F Y') }}</p>
+            {{ optional($row->laporan)->tanggal_laporan
+                    ? \Carbon\Carbon::parse($row->laporan->tanggal_laporan)->translatedFormat('d F Y')
+                    : '-' }}
           </div>
         </div>
 
-        <p><strong>Ringkasan Hasil Kegiatan:</strong></p>
-        <div class="p-2 bg-light border rounded mb-3">
-        {{ $row->laporan->ringkasan_hasil_kegiatan ?? '-' }}        
+        <p class="mb-1 fw-bold">Hasil Kegiatan:</p>
+        <div class="p-2 bg-light border rounded mb-3"
+            style="white-space: pre-line; text-align: justify; line-height: 1.6;">
+            {{ ltrim(optional($row->laporan)->ringkasan_hasil_kegiatan ?? '-') }}
         </div>
 
         <hr>

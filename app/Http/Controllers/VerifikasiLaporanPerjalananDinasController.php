@@ -10,6 +10,8 @@ class VerifikasiLaporanPerjalananDinasController extends Controller
 {
 public function index(Request $request)
 {
+    $search = $request->input('search');
+
     // Ambil semua perjalanan dinas dengan status_laporan 'diproses' atau 'selesai'
     $query = PerjalananDinas::with(['pegawai', 'biayaRiil', 'laporan'])
         ->whereIn('status_laporan', ['diproses', 'selesai']);
@@ -24,6 +26,21 @@ public function index(Request $request)
         $query->whereYear('tanggal_spt', $request->tahun);
     }
 
+    // 🔍 Jika ada pencarian
+    if ($request->filled('search')) {
+        $search = $request->search;
+        $query->where(function($q) use ($search) {
+            $q->where('nomor_spt', 'like', "%{$search}%")
+              ->orWhere('tujuan_spt', 'like', "%{$search}%")
+              ->orWhereHas('pegawai', function ($q2) use ($search) {
+                  $q2->where('nama', 'like', "%{$search}%");
+            })
+              ->orWhereHas('operator', function ($q3) use ($search) {
+                  $q3->where('name', 'like', "%{$search}%");
+            });
+        });
+    }
+
     $perPage = $request->get('per_page', 10);
 
     // Urutkan data terbaru berdasarkan tanggal_spt
@@ -34,6 +51,7 @@ public function index(Request $request)
         ->with([
             'bulan' => $request->bulan,
             'tahun' => $request->tahun,
+            'search' => $search,
         ]);
 }
 

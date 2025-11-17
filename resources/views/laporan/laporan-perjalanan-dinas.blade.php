@@ -28,7 +28,7 @@
             </select>
 
             <button type="submit" class="btn btn-primary">
-                <i class="bx bx-search"></i> Filter
+                <i class="bx bx-filter"></i> Filter
             </button>
 
             <a href="{{ route('laporan.index') }}" class="btn btn-secondary">
@@ -52,13 +52,23 @@
             <span class="text-secondary">entries</span>
             </div>
 
-            {{-- 🔍 Search --}}
-            <div class="d-flex align-items-center">
-            <label for="search" class="me-2 text-secondary">Search:</label>
-            <input type="text" id="search" name="search"
-                    class="form-control"
+             {{-- 🔍 Manual Search --}}
+            <form action="{{ route('laporan.index') }}" method="GET" class="d-flex align-items-center">
+                {{-- tetap kirim parameter perPage biar tidak reset --}}
+                <input type="hidden" name="perPage" value="{{ request('perPage', $perPage) }}">
+
+                <label for="search" class="me-2 text-secondary">Search:</label>
+                <input type="text"
+                    id="search"
+                    name="search"
+                    value="{{ request('search') }}"
+                    class="form-control me-2"
                     style="width: 260px; font-size: 0.95rem; padding: 8px 12px;">
-            </div>
+
+                <button type="submit" class="btn btn-primary">
+                    <i class="bx bx-search"></i>
+                </button>
+            </form>
         </div>
 
         @if(session('success'))
@@ -76,6 +86,7 @@
                         <th>PELAKSANAAN</th>
                         <th>STATUS SPT</th>
                         <th>STATUS LAPORAN</th>
+                        <th>DOKUMEN LAPORAN</th>
                         <th>AKSI LAPORAN</th>
                     </tr>
                 </thead>
@@ -111,6 +122,22 @@
                                     <span class="badge bg-label-warning">REVISI OPERATOR</span>
                                 @else
                                     <span class="badge bg-label-warning">{{ strtoupper($row->status_laporan) }}</span>
+                                @endif
+                            </td>
+                            <td class="text-center mb-3">
+                                @if($row->status_laporan === 'selesai')
+                                    <div class="d-flex flex-column align-items-center gap-2">
+                                        <a href="{{ route('laporan.download', [$row->id, 'doc']) }}" 
+                                          class="btn btn-primary btn-sm">
+                                            <i class="bx bxs-file-doc me-1"></i> DOC
+                                        </a>
+                                        <a href="{{ route('laporan.download', [$row->id, 'pdf']) }}" 
+                                          class="btn btn-danger btn-sm">
+                                            <i class="bx bxs-file-pdf me-1"></i> PDF
+                                        </a>
+                                    </div>
+                                @else
+                                    <span class="text-muted">-</span>
                                 @endif
                             </td>
                             <td class="text-center">
@@ -229,14 +256,17 @@
         <div class="row mb-3">
           <div class="col-md-6">
             <p><strong>Tanggal Laporan:</strong><br>
-              {{ $row->tanggal_laporan ? \Carbon\Carbon::parse($row->tanggal_laporan)->format('d F Y') : '-' }}
+            {{ optional($row->laporan)->tanggal_laporan
+                    ? \Carbon\Carbon::parse($row->laporan->tanggal_laporan)->translatedFormat('d F Y')
+                    : '-' }}
             </p>
           </div>
         </div>
 
-        <p class="mb-1 fw-bold">Ringkasan Hasil Kegiatan:</p>
-        <div class="p-2 bg-light border rounded mb-3">
-            {{ optional($row->laporan)->ringkasan_hasil_kegiatan ?? '-' }}
+        <p class="mb-1 fw-bold">Hasil Kegiatan:</p>
+        <div class="p-2 bg-light border rounded mb-3"
+            style="white-space: pre-line; text-align: justify; line-height: 1.6;">
+            {{ preg_replace('/^\s+/', '', optional($row->laporan)->ringkasan_hasil_kegiatan ?? '-') }}
         </div>
 
         <p class="mb-1 fw-bold">Kendala yang Dihadapi:</p>
@@ -485,8 +515,10 @@
             <i class="bx bx-left-arrow-alt"></i> Kembali
           </button>
 
-          <button type="submit" name="aksi" value="verifikasi" class="btn btn-success fw-bold">
-            <i class="bx bx-check-circle"></i> Serahkan untuk Verifikasi
+          <button type="button" 
+                  class="btn btn-success fw-bold btnVerifikasi"
+                  name="aksi" value="verifikasi">
+              <i class="bx bx-check-circle"></i> Serahkan untuk Verifikasi
           </button>
         </div>
       </form>
@@ -497,6 +529,31 @@
 @endsection
 
 @push('scripts')
+
+<script>
+document.addEventListener('click', function(e) {
+    const btn = e.target.closest('.btnVerifikasi');
+    if (!btn) return;  // bukan tombol, abaikan
+    
+    const form = btn.closest('form'); // ambil form terdekat
+    if (!form) return;
+
+    Swal.fire({
+        title: 'Kirim untuk Verifikasi?',
+        text: "Apakah kamu yakin ingin mensubmit laporan ini?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Ya, kirim!',
+        cancelButtonText: 'Batal',
+        reverseButtons: true,
+    }).then((result) => {
+        if (result.isConfirmed) {
+            form.submit(); // submit form
+        }
+    });
+});
+</script>
+
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     // modal edit

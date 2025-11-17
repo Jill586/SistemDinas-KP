@@ -61,6 +61,7 @@ Route::middleware(['auth', 'role:admin_bidang'])->group(function () {
         Route::get('/laporan-perjalanan-dinas', 'index')->name('laporan.index');
         Route::get('/laporan-perjalanan-dinas/{id}/edit', 'edit')->name('laporan.edit');
         Route::post('/laporan/{id}/update', 'update')->name('laporan.update');
+        Route::get('/laporan/download/{id}/{type}', 'downloadLaporan')->name('laporan.download');
 
         Route::get('/verifikasi-pengajuan', 'index')->name('verifikasi-pengajuan.index');
         Route::put('/verifikasi-pengajuan/{id}', 'update')->name('verifikasi-pengajuan.update');

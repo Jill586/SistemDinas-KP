@@ -3,63 +3,79 @@
 @section('title', 'Daftar Pengajuan Perjalanan Dinas Saya')
 
 @section('content')
-<div class="card">
-    <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap">
-        <h5 class="mb-0 fw-bold">Daftar Perjalanan Dinas</h5>
-
-        {{-- 🔍 Form Filter Bulan & Tahun --}}
-        <form method="GET" action="{{ route('perjalanan-dinas.index') }}" class="d-flex flex-wrap gap-2 mt-2 mt-md-0">
-            <select name="bulan" class="form-select" style="width: 150px;">
-                <option value="">-- Bulan --</option>
-                @foreach(range(1,12) as $b)
-                    <option value="{{ $b }}" {{ (isset($bulan) && $bulan == $b) ? 'selected' : '' }}>
-                        {{ \Carbon\Carbon::create()->month($b)->translatedFormat('F') }}
-                    </option>
-                @endforeach
-            </select>
-
-            <select name="tahun" class="form-select" style="width: 130px;">
-                <option value="">-- Tahun --</option>
+{{-- 🔹 AREA FILTER DI LUAR CARD --}}
+<div class="card mb-3 shadow rounded-2">
+    <div class="card-body">
+        <form method="GET" action="{{ route('perjalanan-dinas.index') }}" class="row g-2 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label mb-1">Pilih Bulan</label>
+                <select name="bulan" class="form-select">
+                    <option value="">-- Bulan --</option>
+                    @foreach(range(1,12) as $b)
+                        <option value="{{ $b }}" {{ (isset($bulan) && $bulan == $b) ? 'selected' : '' }}>
+                            {{ \Carbon\Carbon::create()->month($b)->translatedFormat('F') }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label mb-1">Pilih Tahun</label>
+                <select name="tahun" class="form-select">
+                    <option value="">-- Tahun --</option>
                     @foreach([2024, 2025, 2026] as $t)
                         <option value="{{ $t }}" {{ (isset($tahun) && $tahun == $t) ? 'selected' : '' }}>
                             {{ $t }}
                         </option>
                     @endforeach
-            </select>
-
-            <button type="submit" class="btn btn-primary">
-                <i class="bx bx-search"></i> Filter
-            </button>
-
-            <a href="{{ route('perjalanan-dinas.index') }}" class="btn btn-secondary">
-                <i class="bx bx-reset"></i> Reset
-            </a>
+                </select>
+            </div>
+            <div class="col-md-6 d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bx bx-filter"></i> Filter
+                </button>
+                <a href="{{ route('perjalanan-dinas.index') }}" class="btn btn-secondary">
+                    <i class="bx bx-reset"></i> Reset
+                </a>
+            </div>
         </form>
+    </div>
+</div>
+
+{{-- 🔹 CARD TABEL --}}
+<div class="card shadow rounded-2">
+    <div class="card-header bg-white">
+        <h5 class="mb-0 fw-bold">Daftar Perjalanan Dinas</h5>
     </div>
 
     <div class="card-body">
+
+        {{-- 🔽 Show Entries & Search --}}
         <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
-            {{-- 🔽 Show Entries --}}
             <div class="d-flex align-items-center mb-2 mb-sm-0">
-            <label for="showEntries" class="me-2 text-secondary">Show</label>
-            <select id="showEntries" class="form-select w-auto me-2">
-                <option value="10" {{ $perPage == 10 ? 'selected' : '' }}>10</option>
-                <option value="25" {{ $perPage == 25 ? 'selected' : '' }}>25</option>
-                <option value="50" {{ $perPage == 50 ? 'selected' : '' }}>50</option>
-                <option value="100" {{ $perPage == 100 ? 'selected' : '' }}>100</option>
-            </select>
-            <span class="text-secondary">entries</span>
+                <label for="showEntries" class="me-2 text-secondary">Show</label>
+                <select id="showEntries" class="form-select w-auto me-2">
+                    <option value="10" {{ $perPage == 10 ? 'selected' : '' }}>10</option>
+                    <option value="25" {{ $perPage == 25 ? 'selected' : '' }}>25</option>
+                    <option value="50" {{ $perPage == 50 ? 'selected' : '' }}>50</option>
+                    <option value="100" {{ $perPage == 100 ? 'selected' : '' }}>100</option>
+                </select>
+                <span class="text-secondary">entries</span>
             </div>
 
-            {{-- 🔍 Search --}}
-            <div class="d-flex align-items-center">
-            <label for="search" class="me-2 text-secondary">Search:</label>
-            <input type="text" id="search" name="search"
-                    class="form-control"
+            <form action="{{ route('perjalanan-dinas.index') }}" method="GET" class="d-flex align-items-center">
+                <input type="hidden" name="perPage" value="{{ request('perPage', $perPage) }}">
+                <label for="search" class="me-2 text-secondary">Search:</label>
+                <input type="text"
+                    id="search"
+                    name="search"
+                    value="{{ request('search') }}"
+                    class="form-control me-2"
                     style="width: 260px; font-size: 0.95rem; padding: 8px 12px;">
-            </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bx bx-search"></i>
+                </button>
+            </form>
         </div>
-
         <div class="table-responsive">
             <table class="table table-striped table-bordered align-middle">
                 <thead class="table-light">
@@ -441,6 +457,8 @@
                                 <span class="badge bg-label-success">SELESAI</span>
                             @elseif($row->status == 'ditolak')
                                 <span class="badge bg-label-danger">DITOLAK</span>
+                            @elseif($row->status == 'draft')
+                                <span class="badge bg-label-info">DRAFT</span>
                             @elseif($row->status == 'revisi_operator')
                                 <span class="badge bg-label-warning">REVISI OPERATOR</span>
                             @elseif($row->status == 'verifikasi')
@@ -553,5 +571,34 @@ $(document).ready(function() {
 
 });
 </script>
+
+<script>
+$(document).ready(function () {
+    $('#showEntries').on('change', function () {
+        let perPage = $(this).val(); // ambil jumlah per page dari dropdown
+
+        $.ajax({
+            url: "{{ route('perjalanan-dinas.index') }}",
+            type: "GET",
+            data: { per_page: perPage },
+            beforeSend: function () {
+                $('tbody').html('<tr><td colspan="10" class="text-center text-muted">Memuat data...</td></tr>');
+            },
+            success: function (response) {
+                // Ambil isi tabel & pagination dari response HTML
+                let newTableBody = $(response).find('tbody').html();
+                let newPagination = $(response).find('.pagination').html();
+
+                $('tbody').html(newTableBody);
+                $('.pagination').html(newPagination);
+            },
+            error: function () {
+                $('tbody').html('<tr><td colspan="10" class="text-center text-danger">Gagal memuat data</td></tr>');
+            }
+        });
+    });
+});
+</script>
+
 @endpush
 @endpush

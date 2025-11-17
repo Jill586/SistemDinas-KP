@@ -10,6 +10,7 @@ class PersetujuanAtasanController extends Controller
 public function index(Request $request)
 {
     $perPage  = $request->input('per_page', 10); // default 10
+    $search = $request->input('search');
 
     $query = PerjalananDinas::with(['pegawai', 'biaya'])
         ->whereIn('status', ['verifikasi', 'disetujui']);
@@ -22,6 +23,24 @@ public function index(Request $request)
     // 🔍 Filter berdasarkan tahun dari tanggal_spt
     if ($request->filled('tahun')) {
         $query->whereYear('tanggal_spt', $request->tahun);
+    }
+
+    // 🔍 Jika ada pencarian
+    if ($request->filled('search')) {
+        $search = $request->search;
+        $query->where(function($q) use ($search) {
+            $q->where('nomor_spt', 'like', "%{$search}%")
+              ->orWhere('tujuan_spt', 'like', "%{$search}%")
+              ->orWhereHas('pegawai', function ($q2) use ($search) {
+                $q2->where('nama', 'like', "%{$search}%");
+               })
+              ->orWhereHas('operator', function ($q3) use ($search) {
+                $q3->where('name', 'like', "%{$search}%");
+               })
+              ->orWhereHas('verifikator', function ($q3) use ($search) {
+                $q3->where('name', 'like', "%{$search}%");
+            });
+        });
     }
 
     // Urutkan dari tanggal SPT terbaru
@@ -40,6 +59,7 @@ public function index(Request $request)
         ->with([
             'bulan' => $request->bulan,
             'tahun' => $request->tahun,
+            'search' => $search,
         ]);
 }
 
