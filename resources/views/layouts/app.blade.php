@@ -10,6 +10,12 @@
 
     <title>@yield('title', 'Aplikasi Pegawai')</title>
 
+    <style>
+      .swal2-container {
+          z-index: 99999 !important;
+      }
+    </style>
+
     {{-- === CSS Library Tambahan === --}}
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
   </head>

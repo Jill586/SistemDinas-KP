@@ -382,6 +382,7 @@
     <div class="modal-content">
       <form id="formEdit" method="POST" action="" enctype="multipart/form-data">
         @csrf
+        <input type="hidden" name="aksi" id="aksiInput" value="">
         <div class="modal-header bg-white">
           <h5 class="modal-title fw-bold">Form Laporan Perjalanan Dinas</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -525,11 +526,10 @@
     </div>
   </div>
 </div>
-
 @endsection
 
 @push('scripts')
-
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 document.addEventListener('click', function(e) {
     const btn = e.target.closest('.btnVerifikasi');
@@ -548,7 +548,8 @@ document.addEventListener('click', function(e) {
         reverseButtons: true,
     }).then((result) => {
         if (result.isConfirmed) {
-            form.submit(); // submit form
+          document.getElementById('aksiInput').value = 'verifikasi';
+          form.submit(); // submit form
         }
     });
 });
@@ -563,7 +564,8 @@ document.addEventListener("DOMContentLoaded", function() {
 
     btnsEdit.forEach(btn => {
         btn.addEventListener('click', function() {
-            // set action url (sesuaikan route jika berbeda)
+
+            form.reset(); // 
             form.action = `/laporan/${this.dataset.id}/update`;
 
             // isi detail header
