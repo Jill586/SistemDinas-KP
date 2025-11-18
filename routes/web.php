@@ -49,25 +49,30 @@ Route::middleware(['auth', 'role:super_admin'])->group(function () {
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'role:admin_bidang'])->group(function () {
-    // Perjalanan Dinas
+
+    // --- Perjalanan Dinas ---
     Route::controller(PerjalananDinasController::class)->group(function () {
         Route::get('/perjalanan-dinas', 'index')->name('perjalanan-dinas.index');
         Route::get('/perjalanan-dinas/create', 'create')->name('perjalanan-dinas.create');
         Route::post('/perjalanan-dinas/store', 'store')->name('perjalanan-dinas.store');
     });
 
-    // Laporan Perjalanan Dinas
+    // --- Laporan Perjalanan Dinas ---
     Route::controller(LaporanPerjalananDinasController::class)->group(function () {
+
         Route::get('/laporan-perjalanan-dinas', 'index')->name('laporan.index');
         Route::get('/laporan-perjalanan-dinas/{id}/edit', 'edit')->name('laporan.edit');
-        Route::post('/laporan/{id}/update', 'update')->name('laporan.update');
-        Route::get('/laporan/download/{id}/{type}', 'downloadLaporan')->name('laporan.download');
 
-        Route::get('/verifikasi-pengajuan', 'index')->name('verifikasi-pengajuan.index');
-        Route::put('/verifikasi-pengajuan/{id}', 'update')->name('verifikasi-pengajuan.update');
+        // SIMPAN LAPORAN BARU
+        Route::post('/laporan/{id}/update', 'update')->name('laporan.update');
+
+        // UPDATE LAPORAN (EDIT)
+        Route::put('/laporan-perjadin/{id}/edit','updateLaporan')->name('laporan.updateLaporan');
+
+
+        Route::get('/laporan/download/{id}/{type}', 'downloadLaporan')->name('laporan.download');
     });
 });
-
 /*
 |--------------------------------------------------------------------------
 | ROUTE VERIFIKATOR LEVEL 1
@@ -92,8 +97,12 @@ Route::middleware(['auth', 'role:verifikator1|admin_bidang'])->group(function ()
     Route::put('/verifikasi-staff/{id}', 'update')->name('verifikasi-staff.update');
 
     // 📎 Upload bukti undangan
-    Route::post('/verifikasi-staff/{id}/upload-undangan', 'uploadUndangan')->name('verifikasi-staff.upload-undangan');
+   Route::put('/laporan-perjadin/{id}/edit',
+    [LaporanPerjalananDinasController::class, 'updateLaporan']
+)->name('laporan.updateLaporan');
      });
+
+
 });
 
 /*

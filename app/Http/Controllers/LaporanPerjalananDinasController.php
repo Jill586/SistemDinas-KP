@@ -228,4 +228,17 @@ class LaporanPerjalananDinasController extends Controller
 
         return back()->with('error', 'Format dokumen tidak dikenali.');
     }
+    public function updateLaporan(Request $request, $id)
+{
+    $laporan = LaporanPerjalananDinas::where('perjalanan_dinas_id', $id)->firstOrFail();
+
+    $laporan->update([
+        'tanggal_laporan' => $request->tanggal_laporan,
+        'ringkasan_hasil_kegiatan' => $request->ringkasan_hasil_kegiatan,
+        'kendala_dihadapi' => $request->kendala_dihadapi,
+        'saran_tindak_lanjut' => $request->saran_tindak_lanjut,
+    ]);
+
+    return redirect()->back()->with('success', 'Laporan berhasil diperbarui.');
+}
 }

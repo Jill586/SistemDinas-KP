@@ -127,11 +127,11 @@
                             <td class="text-center mb-3">
                                 @if($row->status_laporan === 'selesai')
                                     <div class="d-flex flex-column align-items-center gap-2">
-                                        <a href="{{ route('laporan.download', [$row->id, 'doc']) }}" 
+                                        <a href="{{ route('laporan.download', [$row->id, 'doc']) }}"
                                           class="btn btn-primary btn-sm">
                                             <i class="bx bxs-file-doc me-1"></i> DOC
                                         </a>
-                                        <a href="{{ route('laporan.download', [$row->id, 'pdf']) }}" 
+                                        <a href="{{ route('laporan.download', [$row->id, 'pdf']) }}"
                                           class="btn btn-danger btn-sm">
                                             <i class="bx bxs-file-pdf me-1"></i> PDF
                                         </a>
@@ -141,7 +141,7 @@
                                 @endif
                             </td>
                             <td class="text-center">
-                                @if($row->status_laporan !== 'selesai')
+                                @if($row->status_laporan === 'belum_dibuat')
                                 <button class="btn btn-primary btn-edit"
                                     data-id="{{ $row->id }}"
                                     data-nomor="{{ $row->nomor_spt }}"
@@ -157,14 +157,31 @@
                                 @endif
 
                                  @if($row->status_laporan === 'selesai')
-                                <button 
-                                    type="button" 
+                                <button
+                                    type="button"
                                     class="btn btn-info"
                                     data-bs-toggle="modal"
                                     data-bs-target="#modalDetail{{ $row->id }}">
                                     <i class="bx bx-check-circle"></i>
                                 </button>
                                 @endif
+                                  @if($row->status_laporan === 'diproses')
+                                <button class="btn btn-warning btn-edit2"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#modalEditLaporan"
+                                    data-id="{{ $row->id }}"
+                                    data-nomor="{{ $row->nomor_spt }}"
+                                    data-tujuan="{{ $row->tujuan_spt }}"
+                                    data-tglmulai="{{ $row->tanggal_mulai }}"
+                                    data-tglselesai="{{ $row->tanggal_selesai }}"
+                                    data-tanggal_laporan="{{ optional($row->laporan)->tanggal_laporan }}"
+                                    data-hasil="{{ optional($row->laporan)->ringkasan_hasil_kegiatan }}"
+                                    data-kendala="{{ optional($row->laporan)->kendala_dihadapi }}"
+                                    data-saran="{{ optional($row->laporan)->saran_tindak_lanjut }}">
+                                    <i class="bx bx-edit-alt"></i>
+                                </button>
+                            @endif
+
                             </td>
                         </tr>
                     @empty
@@ -183,6 +200,78 @@
 
     </div>
 </div>
+
+<!-- MODAL EDIT LAPORAN -->
+<div class="modal fade" id="modalEditLaporan" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Laporan Perjalanan Dinas</h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <form method="POST" id="formEditLaporan">
+                @csrf
+                @method('PUT')
+
+
+                <div class="modal-body">
+
+                    <div class="mb-3">
+                        <label class="form-label">Nomor SPT</label>
+                        <input type="text" class="form-control" id="edit_nomor_spt" readonly>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Tujuan</label>
+                        <input type="text" class="form-control" id="edit_tujuan" readonly>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Tanggal Mulai</label>
+                            <input type="text" class="form-control" id="edit_mulai" readonly>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Tanggal Selesai</label>
+                            <input type="text" class="form-control" id="edit_selesai" readonly>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Tanggal Laporan</label>
+                        <input type="date" class="form-control" id="edit_tanggal_laporan" name="tanggal_laporan">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Hasil Kegiatan</label>
+                        <textarea class="form-control" name="ringkasan_hasil_kegiatan" id="edit_hasil" rows="4"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Kendala</label>
+                        <textarea class="form-control" name="kendala_dihadapi" id="edit_kendala" rows="3"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Saran / Tindak Lanjut</label>
+                        <textarea class="form-control" name="saran_tindak_lanjut" id="edit_saran" rows="3"></textarea>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button class="btn btn-primary" type="submit">Simpan Perubahan</button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+</div>
+
 
 {{-- MODAL DETAIL untuk masing-masing row (aman karena di dalam foreach) --}}
 @foreach ($perjalanans as $row)
@@ -516,7 +605,7 @@
             <i class="bx bx-left-arrow-alt"></i> Kembali
           </button>
 
-          <button type="button" 
+          <button type="button"
                   class="btn btn-success fw-bold btnVerifikasi"
                   name="aksi" value="verifikasi">
               <i class="bx bx-check-circle"></i> Serahkan untuk Verifikasi
@@ -534,7 +623,7 @@
 document.addEventListener('click', function(e) {
     const btn = e.target.closest('.btnVerifikasi');
     if (!btn) return;  // bukan tombol, abaikan
-    
+
     const form = btn.closest('form'); // ambil form terdekat
     if (!form) return;
 
@@ -565,7 +654,7 @@ document.addEventListener("DOMContentLoaded", function() {
     btnsEdit.forEach(btn => {
         btn.addEventListener('click', function() {
 
-            form.reset(); // 
+            form.reset(); //
             form.action = `/laporan/${this.dataset.id}/update`;
 
             // isi detail header
@@ -683,4 +772,84 @@ $(document).ready(function () {
     });
 });
 </script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const editButtons = document.querySelectorAll(".btn-edit2");
+
+    editButtons.forEach(btn => {
+        btn.addEventListener("click", function () {
+
+            const id = this.dataset.id;
+
+            // Set action form otomatis
+            document.getElementById("formEditLaporan").action = "/laporan/" + id;
+
+            // Isi field
+            document.getElementById("edit_nomor_spt").value = this.dataset.nomor;
+            document.getElementById("edit_tujuan").value = this.dataset.tujuan;
+            document.getElementById("edit_mulai").value = this.dataset.tglmulai;
+            document.getElementById("edit_selesai").value = this.dataset.tglselesai;
+
+            document.getElementById("edit_tanggal_laporan").value = this.dataset.tanggal_laporan ?? "";
+            document.getElementById("edit_hasil").value = this.dataset.hasil ?? "";
+            document.getElementById("edit_kendala").value = this.dataset.kendala ?? "";
+            document.getElementById("edit_saran").value = this.dataset.saran ?? "";
+        });
+    });
+});
+</script>
+<script>
+$(document).on('click', '.btn-edit', function (e) {
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    // TUTUP modal laporan perjalanan dinas (kalau sedang terbuka)
+    $('.modal').modal('hide');
+
+    // Ambil ID
+    let id = $(this).data('id');
+
+    // Set action update
+    $('#formEditLaporan').attr('action', '/laporan-perjadin/' + id);
+
+    // Set isi form
+    $('#edit_nomor_spt').val($(this).data('nomor'));
+    $('#edit_tujuan').val($(this).data('tujuan'));
+    $('#edit_mulai').val($(this).data('mulai'));
+    $('#edit_selesai').val($(this).data('selesai'));
+
+    $('#edit_tanggal_laporan').val($(this).data('laporan'));
+    $('#edit_hasil').val($(this).data('hasil'));
+    $('#edit_kendala').val($(this).data('kendala'));
+    $('#edit_saran').val($(this).data('saran'));
+
+    // BUKA modal edit
+    setTimeout(() => {
+        $('#modalEditLaporan').modal('show');
+    }, 300);
+});
+
+
+$(document).on('click', '.btn-edit2', function () {
+
+    let id = $(this).data('id');
+
+    // SET AKSI FIX
+    $('#formEditLaporan').attr('action', '/laporan-perjadin/' + id + '/edit');
+
+    console.log("ACTION:", $('#formEditLaporan').attr('action')); // DEBUG
+
+    $('#edit_nomor_spt').val($(this).data('nomor'));
+    $('#edit_tujuan').val($(this).data('tujuan'));
+    $('#edit_mulai').val($(this).data('tglmulai'));
+    $('#edit_selesai').val($(this).data('tglselesai'));
+
+    $('#edit_tanggal_laporan').val($(this).data('tanggal_laporan'));
+    $('#edit_hasil').val($(this).data('hasil'));
+    $('#edit_kendala').val($(this).data('kendala'));
+    $('#edit_saran').val($(this).data('saran'));
+
+    $('#modalEditLaporan').modal('show');
+});</script>
 @endpush
