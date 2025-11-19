@@ -358,4 +358,41 @@ $this->validasiForm($request);
         if ($pegawai->jabatan) return $pegawai->jabatan;
         return 'Semua';
     }
+
+        public function uploadTtd(Request $request, $id)
+    {
+        $request->validate([
+            'spt_ttd' => 'required|file|mimes:pdf,jpg,jpeg,png|max:20480',
+        ]);
+
+        $perjalanan = PerjalananDinas::findOrFail($id);
+
+        if ($request->hasFile('spt_ttd')) {
+            $file = $request->file('spt_ttd');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path('uploads/spt_ttd'), $filename);
+            $perjalanan->spt_ttd = $filename;
+            $perjalanan->save();
+        }
+
+        return back()->with('success', 'SPT TTD berhasil diupload!');
+    }
+
+    public function downloadTtd($id)
+    {
+        $data = PerjalananDinas::findOrFail($id);
+
+        if (!$data->spt_ttd) {
+            abort(404, 'File tidak ditemukan.');
+        }
+
+        $filepath = public_path('uploads/spt_ttd/' . $data->spt_ttd);
+
+        if (!file_exists($filepath)) {
+            abort(404, 'File tidak ada di server.');
+        }
+
+        return response()->download($filepath);
+    }
+
 }

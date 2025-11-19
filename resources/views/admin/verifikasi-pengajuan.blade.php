@@ -352,7 +352,7 @@
                 @endif
 
                 {{-- Form Verifikasi --}}
-                @if($row->status !== 'disetujui')
+                @if($row->status !== 'disetujui' && $row->status !== 'ditolak')
                     <hr>
                     <h6 class="fw-bold mb-3">Form Verifikasi</h6>
                     <form action="{{ route('verifikasi-pengajuan.update', $row->id) }}" method="POST">
@@ -380,6 +380,7 @@
                         </div>
                     </form>
                 @else
+                    <p><strong>Catatan : </strong>{{ $row->catatan_verifikator ?? '-' }}</p>
                     <p class="text-muted fst-italic">Surat ini sudah <strong>selesai</strong>. Tidak dapat diverifikasi lagi.</p>
                 @endif
             </div>

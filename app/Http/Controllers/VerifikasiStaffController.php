@@ -21,7 +21,7 @@ class VerifikasiStaffController extends Controller
             'biaya.sbuItem',
             'biaya.pegawaiTerkait'
         ])
-        ->whereNotIn('status', ['ditolak', 'revisi_operator']);
+        ->whereNotIn('status', ['revisi_operator']);
 
         // 🔍 Filter bulan dan tahun dari tanggal_spt
         if ($request->filled('bulan')) {

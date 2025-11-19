@@ -122,26 +122,25 @@
                                     <span class="badge bg-label-primary">PROSES</span>
                                 @endif
                             </td>
-
-                                <td class="d-flex gap-2">
-                                    {{-- Tombol Edit (hanya muncul jika status revisi_operator) --}}
-                                    @if($row->status == 'revisi_operator')
-                                        <button type="button" class="btn btn-warning btn-sm"
-                                            data-bs-toggle="modal" data-bs-target="#modalEdit{{ $row->id }}">
-                                            <i class="bx bx-edit"></i>
-                                        </button>
-                                    @endif
-
-                                    {{-- Tombol Show --}}
-                                    <button type="button" class="btn btn-info btn-sm"
-                                        data-bs-toggle="modal" data-bs-target="#modalShow{{ $row->id }}">
-                                        <i class="bx bx-show"></i>
+                            <td class="text-center">
+                                {{-- Tombol Edit (hanya muncul jika status revisi_operator) --}}
+                                @if($row->status == 'revisi_operator')
+                                    <button type="button" class="btn btn-warning btn-sm"
+                                        data-bs-toggle="modal" data-bs-target="#modalEdit{{ $row->id }}">
+                                        <i class="bx bx-edit"></i>
                                     </button>
+                                @endif
 
+                                {{-- Tombol Show --}}
+                                <button type="button" class="btn btn-info btn-sm"
+                                    data-bs-toggle="modal" data-bs-target="#modalShow{{ $row->id }}">
+                                    <i class="bx bx-show"></i>
+                                </button>
+
+                                @if(auth()->user()->role === 'super_admin' || auth()->user()->role === 'verifikator1')
                                     {{-- Tombol Hapus --}}
                                     <form action="{{ route('perjalanan-dinas.destroy', $row->id) }}"
-                                        method="POST"
-                                        class="d-inline">
+                                        method="POST" class="d-inline">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-danger btn-sm"
@@ -149,7 +148,8 @@
                                             <i class="bx bx-trash"></i>
                                         </button>
                                     </form>
-                                </td>
+                                @endif
+                            </td>
                         </tr>
                     @empty
                         <tr>

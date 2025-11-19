@@ -42,10 +42,10 @@
 
     {{-- 🔢 Tabel Data --}}
     <div class="table-responsive">
-      <table class="table table-bordered align-middle">
+      <table class="table table-striped table-bordered align-middle">
         <thead class="table-light">
-          <tr>
-            <th class="text-center">No</th>
+          <tr class="text-center">
+            <th>No</th>
             <th>Nama</th>
             <th>Email</th>
             <th>Nomor HP</th>
@@ -65,7 +65,7 @@
             <td>{{ $row->nip }}</td>
             <td>{{ $row->golongan }}</td>
             <td>{{ $row->jabatan }}</td>
-            <td class="d-flex gap-2">
+            <td>
               <button type="button" class="btn btn-warning btn-sm btn-edit"
                       data-id="{{ $row->id }}"
                       data-nama="{{ $row->nama }}"

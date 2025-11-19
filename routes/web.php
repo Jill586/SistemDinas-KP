@@ -55,6 +55,8 @@ Route::middleware(['auth', 'role:admin_bidang'])->group(function () {
         Route::get('/perjalanan-dinas', 'index')->name('perjalanan-dinas.index');
         Route::get('/perjalanan-dinas/create', 'create')->name('perjalanan-dinas.create');
         Route::post('/perjalanan-dinas/store', 'store')->name('perjalanan-dinas.store');
+        Route::post('/perjalanan-dinas/upload-ttd/{id}', 'uploadTtd')->name('perjalanan-dinas.uploadTtd');
+        Route::get('/perjalanan-dinas/download-ttd/{id}', 'downloadTtd')->name('perjalanan-dinas.downloadTtd');
     });
 
     // --- Laporan Perjalanan Dinas ---

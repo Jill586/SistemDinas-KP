@@ -26,6 +26,7 @@ class PerjalananDinas extends Model
         'dasar_spt',
         'uraian_spt',
         'bukti_undangan',
+        'spt_ttd',
         'alat_angkut',
         'lama_hari',
         'tanggal_mulai',

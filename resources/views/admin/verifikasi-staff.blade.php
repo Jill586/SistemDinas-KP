@@ -350,8 +350,31 @@
                     <div class="alert alert-info text-center">Detail estimasi biaya belum tersedia.</div>
                 @endif
 
+                {{-- Upload SPT yang telah di TTD --}}
+                @if($row->status == 'disetujui')
+                <hr>
+                <div class="mb-3">
+                    <h6 class="fw-bold">Upload SPT yang telah di TTD</h6>
+                    <form action="{{ route('perjalanan-dinas.uploadTtd', $row->id) }}"
+                        method="POST"
+                        enctype="multipart/form-data">
+                        @csrf
+                        <div class="d-flex gap-2 align-items-center">
+                            <input type="file"
+                                name="spt_ttd"
+                                class="form-control flex-grow-1"
+                                accept=".pdf,.jpg,.jpeg,.png">
+
+                            <button type="submit" class="btn btn-primary">
+                                Upload
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                @endif
+
                 {{-- Form Verifikasi --}}
-                @if($row->status !== 'disetujui' && $row->status !== 'verifikasi')
+                @if($row->status !== 'disetujui' && $row->status !== 'verifikasi' && $row->status !== 'ditolak')
                     <hr>
                     <h6 class="fw-bold mb-3">Form Verifikasi</h6>
                     <form action="{{ route('verifikasi-staff.update', $row->id) }}" method="POST">
@@ -365,7 +388,6 @@
                             </label>
                             <textarea class="form-control" name="catatan_verifikator" rows="3">{{ old('catatan_verifikator') }}</textarea>
                         </div>
-
                         <div class="d-flex justify-content-end gap-2">
                             <button type="submit" name="aksi_verifikasi" value="revisi_operator" class="btn btn-warning text-white fw-bold">
                                 <i class="bx bx-edit"></i> Revisi ke Operator
@@ -379,7 +401,8 @@
                         </div>
                     </form>
                 @else
-                    <p class="text-muted fst-italic">Surat ini sudah <strong>selesai</strong>. Tidak dapat diverifikasi lagi.</p>
+                    <p><strong>Catatan : </strong>{{ $row->catatan_verifikator ?? '-' }}</p>
+                    <p class="text-muted fst-italic">Surat ini sudah <strong>selesai/ditolak</strong>. Tidak dapat diverifikasi lagi.</p>
                 @endif
             </div>
         </div>

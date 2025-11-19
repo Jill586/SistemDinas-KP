@@ -68,8 +68,7 @@
             {{-- Jenis Kegiatan --}}
             <div class="mb-3">
                 <label class="form-label">Jenis Kegiatan</label>
-                <input type="text" name="jenis_kegiatan" class="form-control"
-                       value="{{ old('jenis_kegiatan') }}" required>
+                <textarea name="jenis_kegiatan" rows="3" class="form-control" required>{{ old('jenis_kegiatan') }}</textarea>
             </div>
 
             {{-- Dinamis Form Perjalanan --}}

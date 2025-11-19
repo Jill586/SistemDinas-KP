@@ -156,16 +156,17 @@
                                 </button>
                                 @endif
 
-                                 @if($row->status_laporan === 'selesai')
+                                @if($row->status_laporan === 'selesai')
                                 <button
                                     type="button"
                                     class="btn btn-info"
                                     data-bs-toggle="modal"
                                     data-bs-target="#modalDetail{{ $row->id }}">
-                                    <i class="bx bx-check-circle"></i>
+                                    <i class="bx bx-show"></i>
                                 </button>
                                 @endif
-                                  @if($row->status_laporan === 'diproses')
+
+                                @if($row->status_laporan === 'diproses')
                                 <button class="btn btn-warning btn-edit2"
                                     data-bs-toggle="modal"
                                     data-bs-target="#modalEditLaporan"
@@ -178,9 +179,9 @@
                                     data-hasil="{{ optional($row->laporan)->ringkasan_hasil_kegiatan }}"
                                     data-kendala="{{ optional($row->laporan)->kendala_dihadapi }}"
                                     data-saran="{{ optional($row->laporan)->saran_tindak_lanjut }}">
-                                    <i class="bx bx-edit-alt"></i>
+                                    <i class="bx bx-edit"></i>
                                 </button>
-                            @endif
+                                @endif
 
                             </td>
                         </tr>
@@ -203,7 +204,7 @@
 
 <!-- MODAL EDIT LAPORAN -->
 <div class="modal fade" id="modalEditLaporan" tabindex="-1">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-xl">
         <div class="modal-content">
 
             <div class="modal-header">
@@ -214,10 +215,7 @@
             <form method="POST" id="formEditLaporan">
                 @csrf
                 @method('PUT')
-
-
                 <div class="modal-body">
-
                     <div class="mb-3">
                         <label class="form-label">Nomor SPT</label>
                         <input type="text" class="form-control" id="edit_nomor_spt" readonly>
@@ -467,7 +465,7 @@
 
 {{-- MODAL EDIT (tidak menggunakan $row di server; diisi via JS) --}}
 <div class="modal fade" id="modalEdit" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+  <div class="modal-dialog modal-xl">
     <div class="modal-content">
       <form id="formEdit" method="POST" action="" enctype="multipart/form-data">
         @csrf
@@ -799,7 +797,7 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 </script>
 <script>
-$(document).on('click', '.btn-edit', function (e) {
+$(document).on('click', '.btn-edit2', function (e) {
 
     e.preventDefault();
     e.stopPropagation();
