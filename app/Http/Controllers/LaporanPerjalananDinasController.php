@@ -156,7 +156,99 @@ class LaporanPerjalananDinasController extends Controller
 
     public function downloadLaporan($id, $type)
     {
-        $perjalanan = PerjalananDinas::with(['pegawai', 'laporan'])->findOrFail($id);
+        $perjalanan = PerjalananDinas::with(['pegawai', 'laporan', 'biaya.sbuItem'])->findOrFail($id);
+
+        if ($type === 'pernyataan') {
+
+            $pegawaiList = $perjalanan->pegawai;
+
+            $tanggalMulai = \Carbon\Carbon::parse($perjalanan->tanggal_mulai)->translatedFormat('d F Y');
+            $tanggalSelesai = \Carbon\Carbon::parse($perjalanan->tanggal_selesai)->translatedFormat('d F Y');
+
+            $templatePath = public_path('templates/template_pernyataan30%.docx');
+
+            if (!file_exists($templatePath)) {
+                return back()->with('error', 'Template pernyataan tidak ditemukan.');
+            }
+
+            $template = new \PhpOffice\PhpWord\TemplateProcessor($templatePath);
+
+            // Clone block sesuai jumlah pegawai
+            $pegawaiList = $perjalanan->pegawai;
+            $template->cloneBlock('pegawai_block', $pegawaiList->count(), true, true);
+
+            $no = 1;
+            foreach ($pegawaiList as $index => $pg) {
+                $i = $index + 1;
+
+                // Hitung biaya penginapan per pegawai
+                $biayaPenginapan = $perjalanan->biaya
+                    ->where('pegawai_id_terkait', $pg->id)
+                    ->where('sbuItem.kategori_biaya', 'PENGINAPAN')
+                    ->sum('subtotal_biaya');
+
+                $totalPenginapanFormatted = number_format($biayaPenginapan, 0, ',', '.');
+                $uang30Persen = $biayaPenginapan * 0.30;
+
+                $template->setValue("no#{$i}", $no++);
+                $template->setValue("nama_pegawai#{$i}", $pg->nama ?? '-');
+                $template->setValue("nip#{$i}", $pg->nip ?? '-');
+                $template->setValue("jabatan#{$i}", $pg->jabatan->nama_jabatan ?? '-');
+                $template->setValue("kode_golongan#{$i}", $pg->golongan->kode_golongan ?? '-');
+                $template->setValue("golongan#{$i}", $pg->golongan->nama_golongan ?? '-');
+                $template->setValue("total_penginapan#{$i}", $totalPenginapanFormatted);                $template->setValue("biaya_30#{$i}", number_format($uang30Persen, 0, ',', '.'));
+                $template->setValue("nomor_spt#{$i}", $perjalanan->nomor_spt ?? '-');
+                $template->setValue("tanggal_mulai#{$i}", $tanggalMulai ?? '-');
+                $template->setValue("tanggal_selesai#{$i}", $tanggalSelesai ?? '-');
+            }
+
+            $fileName = 'PERNYATAAN_30_' . str_replace('/', '-', $perjalanan->nomor_spt);
+            $tempPath = storage_path("app/temp_{$fileName}.docx");
+            $template->saveAs($tempPath);
+
+            return response()->download($tempPath, $fileName . '.docx')
+                ->deleteFileAfterSend(true);
+        }
+
+        if ($type === 'sp-mutlak') {
+
+            $pegawaiList = $perjalanan->pegawai;
+
+            $tanggalMulai = \Carbon\Carbon::parse($perjalanan->tanggal_mulai)->translatedFormat('d F Y');
+            $tanggalSelesai = \Carbon\Carbon::parse($perjalanan->tanggal_selesai)->translatedFormat('d F Y');
+
+            $templatePath = public_path('templates/template_sp-mutlak.docx');
+
+            if (!file_exists($templatePath)) {
+                return back()->with('error', 'Template SP Mutlak tidak ditemukan.');
+            }
+
+            $template = new \PhpOffice\PhpWord\TemplateProcessor($templatePath);
+
+            // Clone section sesuai jumlah pegawai
+            $template->cloneBlock('pegawai_block', $pegawaiList->count(), true, true);
+
+            foreach ($pegawaiList as $index => $pg) {
+                $i = $index + 1;
+
+                $template->setValue("nama_pegawai#{$i}", $pg->nama ?? '-');
+                $template->setValue("nip#{$i}", $pg->nip ?? '-');
+                $template->setValue("golongan#{$i}", $pg->golongan->nama_golongan ?? '-');
+                $template->setValue("kode_golongan#{$i}", $pg->golongan->kode_golongan ?? '-');
+                $template->setValue("jabatan#{$i}", $pg->jabatan->nama_jabatan ?? '-');
+                $template->setValue("nomor_spt#{$i}", $perjalanan->nomor_spt ?? '-');
+                $template->setValue("tanggal_mulai#{$i}", $tanggalMulai ?? '-');
+                $template->setValue("tanggal_selesai#{$i}", $tanggalSelesai ?? '-');
+            }
+
+            $fileName = 'SURAT_SP_MUTLAK_' . str_replace('/', '-', $perjalanan->nomor_spt);
+            $tempPath = storage_path("app/temp_{$fileName}.docx");
+            $template->saveAs($tempPath);
+
+            return response()->download($tempPath, $fileName . '.docx')
+                ->deleteFileAfterSend(true);
+        }
+
 
         // Ambil data dasar, maksud & tujuan dari perjalanan dinas
         $dasar_spt = $perjalanan->dasar_spt ?? '-';
@@ -166,7 +258,7 @@ class LaporanPerjalananDinasController extends Controller
         $hasil = $perjalanan->laporan->ringkasan_hasil_kegiatan ?? '-';
 
         // --- Tentukan template ---
-        $templatePath = public_path('templates/template_laporan.docx');
+        $templatePath = public_path('templates/template_laporanSPT.docx');
 
         if (!file_exists($templatePath)) {
             return back()->with('error', 'Template laporan tidak ditemukan.');
@@ -191,7 +283,7 @@ class LaporanPerjalananDinasController extends Controller
             $template->setValue("no#{$i}", $no++);
             $template->setValue("nama_pegawai#{$i}", $pg->nama ?? '-');
             $template->setValue("nip#{$i}", $pg->nip ?? '-');
-            $template->setValue("jabatan#{$i}", $pg->jabatan ?? '-');
+            $template->setValue("jabatan#{$i}", $pg->jabatan->nama_jabatan ?? '-');
         }
             $template->setValue('nomor_spt', $perjalanan->nomor_spt ?? '-');
             // Ambil tanggal laporan dari relasi laporan
@@ -200,6 +292,24 @@ class LaporanPerjalananDinasController extends Controller
                 ? \Carbon\Carbon::parse($tanggalLaporan)->translatedFormat('d F Y')
                 : '-';
             $template->setValue('tanggal_laporan', $tanggalFormatted);
+
+            // Tambahan: tanggal_mulai, tanggal_selesai, lama_hari
+            $tanggalMulai = $perjalanan->tanggal_mulai
+                ? \Carbon\Carbon::parse($perjalanan->tanggal_mulai)->translatedFormat('d F Y')
+                : '-';
+
+            $tanggalSelesai = $perjalanan->tanggal_selesai
+                ? \Carbon\Carbon::parse($perjalanan->tanggal_selesai)->translatedFormat('d F Y')
+                : '-';
+
+            $lamaHari = ($perjalanan->tanggal_mulai && $perjalanan->tanggal_selesai)
+                ? \Carbon\Carbon::parse($perjalanan->tanggal_mulai)->diffInDays(\Carbon\Carbon::parse($perjalanan->tanggal_selesai)) + 1
+                : '-';
+            $lamaHariText = $lamaHari . ' (' . $this->terbilang($lamaHari) . ')';
+
+            $template->setValue('tanggal_mulai', $tanggalMulai);
+            $template->setValue('tanggal_selesai', $tanggalSelesai);
+            $template->setValue('lama_hari', $lamaHariText);
 
         // File output
         $fileName = 'LAPORAN_SPT_' . str_replace('/', '-', $perjalanan->nomor_spt);
@@ -228,17 +338,38 @@ class LaporanPerjalananDinasController extends Controller
 
         return back()->with('error', 'Format dokumen tidak dikenali.');
     }
+
+        private function terbilang($angka)
+    {
+        $angka = abs($angka);
+        $baca = ["", "Satu", "Dua", "Tiga", "Empat", "Lima", "Enam", "Tujuh", "Delapan", "Sembilan", "Sepuluh", "Sebelas"];
+
+        if ($angka < 12) {
+            return $baca[$angka];
+        } elseif ($angka < 20) {
+            return $this->terbilang($angka - 10) . " belas";
+        } elseif ($angka < 100) {
+            return $this->terbilang($angka / 10) . " puluh " . $this->terbilang($angka % 10);
+        } elseif ($angka < 200) {
+            return "seratus " . $this->terbilang($angka - 100);
+        } elseif ($angka < 1000) {
+            return $this->terbilang($angka / 100) . " ratus " . $this->terbilang($angka % 100);
+        }
+
+        return $angka; // fallback
+    }
+
     public function updateLaporan(Request $request, $id)
-{
-    $laporan = LaporanPerjalananDinas::where('perjalanan_dinas_id', $id)->firstOrFail();
+    {
+        $laporan = LaporanPerjalananDinas::where('perjalanan_dinas_id', $id)->firstOrFail();
 
-    $laporan->update([
-        'tanggal_laporan' => $request->tanggal_laporan,
-        'ringkasan_hasil_kegiatan' => $request->ringkasan_hasil_kegiatan,
-        'kendala_dihadapi' => $request->kendala_dihadapi,
-        'saran_tindak_lanjut' => $request->saran_tindak_lanjut,
-    ]);
+        $laporan->update([
+            'tanggal_laporan' => $request->tanggal_laporan,
+            'ringkasan_hasil_kegiatan' => $request->ringkasan_hasil_kegiatan,
+            'kendala_dihadapi' => $request->kendala_dihadapi,
+            'saran_tindak_lanjut' => $request->saran_tindak_lanjut,
+        ]);
 
-    return redirect()->back()->with('success', 'Laporan berhasil diperbarui.');
-}
+        return redirect()->back()->with('success', 'Laporan berhasil diperbarui.');
+    }
 }

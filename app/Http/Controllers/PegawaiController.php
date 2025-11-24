@@ -10,6 +10,8 @@ class PegawaiController extends Controller
 {
     public function index(Request $request)
     {
+        $golongans = \App\Models\Golongan::all();
+        $jabatans = \App\Models\Jabatan::all();
         $query = Pegawai::query();
 
         if ($request->filled('search')) {
@@ -80,7 +82,7 @@ class PegawaiController extends Controller
         }
 
         // 🔹 Jika bukan AJAX (render halaman utama)
-        return view('admin.data-pegawai', compact('pegawai', 'perPage'));
+        return view('admin.data-pegawai', compact('pegawai', 'perPage', 'golongans', 'jabatans'));
     }
 
     public function store(Request $request)
@@ -90,8 +92,8 @@ class PegawaiController extends Controller
             'email'     => 'required|email|unique:pegawai',
             'nomor_hp'  => 'required|string|max:20',
             'nip'       => 'required|string|max:50|unique:pegawai',
-            'golongan'  => 'required|string|max:255',
-            'jabatan'   => 'required|string|max:255',
+            'golongan_id' => 'required',
+            'jabatan_id' => 'required',
         ]);
 
         Pegawai::create($request->all());
@@ -107,8 +109,8 @@ class PegawaiController extends Controller
             'email'     => 'required|email|unique:pegawai,email,' . $id,
             'nomor_hp'  => 'required|string|max:20',
             'nip'       => 'required|string|max:50|unique:pegawai,nip,' . $id,
-            'golongan'  => 'required|string|max:255',
-            'jabatan'   => 'required|string|max:255',
+            'golongan_id' => 'required',
+            'jabatan_id' => 'required',
         ]);
 
         $pegawai->update($request->all());

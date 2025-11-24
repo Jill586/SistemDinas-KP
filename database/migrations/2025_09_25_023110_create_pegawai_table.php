@@ -14,6 +14,8 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->string('nomor_hp');
             $table->string('nip')->unique();
+            $table->foreignId('golongan_id')->constrained('golongans')->cascadeOnDelete();
+            $table->foreignId('jabatan_id')->constrained('jabatans')->cascadeOnDelete();
             $table->string('golongan'); // golongan
             $table->string('jabatan');
             $table->timestamps();

@@ -292,7 +292,7 @@ $this->validasiForm($request);
             $kategoriList = ['UANG_HARIAN'];
         } else {
             // Selain itu → uang harian + transportasi
-            $kategoriList = ['UANG_HARIAN', 'TRANSPORTASI_DARAT', 'TRANSPORTASI_UDARA'];
+            $kategoriList = ['UANG_HARIAN', 'TRANSPORTASI_DARAT', 'TRANSPORTASI_UDARA', 'PENGINAPAN'];
         }
 
         // Loop setiap pegawai
@@ -314,6 +314,33 @@ $this->validasiForm($request);
                     });
                 }
 
+                if ($kategori === 'PENGINAPAN') {
+                    $golongan = $pegawai->golongan->nama_golongan ?? null; 
+                    $eselon = $pegawai->jabatan->eselon ?? null; 
+                    $romanLevel = null;
+
+                    // Ekstrak angka romawi dari golongan
+                    if ($golongan) {
+                        if (preg_match('/(III|IV|II|V|I)/', $golongan, $matches)) {
+                            $romanLevel = $matches[1]; 
+                        }
+                    }
+
+                    // Tentukan value pencarian berdasarkan eselon jika tersedia
+                    if ($eselon) {
+                        $searchLevel = 'ESELON_' . strtoupper($eselon);
+                    } elseif ($romanLevel) {
+                        $searchLevel = 'GOL_' . strtoupper($romanLevel);
+                    } else {
+                        $searchLevel = null;
+                    }
+
+                    // Apply filter ke query SBU
+                    if ($searchLevel) {
+                        $sbuItemQuery->where('tingkat_pejabat_atau_golongan', 'like', "%$searchLevel%");
+                    }                
+                }
+                
                 $sbuItem = $sbuItemQuery->first();
 
                 // Jika dalam daerah → pakai uraian khusus
@@ -326,7 +353,13 @@ $this->validasiForm($request);
                 if (!$sbuItem) continue;
 
                 // Hitung jumlah unit dan subtotal
-                $jumlahUnit = ($kategori === 'UANG_HARIAN') ? $jumlahHari : 1;
+                if ($kategori === 'UANG_HARIAN') {
+                    $jumlahUnit = $jumlahHari; // contoh: 6 hari
+                } elseif ($kategori === 'PENGINAPAN') {
+                    $jumlahUnit = max($jumlahHari - 1, 1); // contoh: 6 hari → 5 malam
+                } else {
+                    $jumlahUnit = 1; // transportasi
+                }
                 $hargaSatuan = $sbuItem->besaran_biaya ?? 0;
                 $subtotal = $hargaSatuan * $jumlahUnit;
 

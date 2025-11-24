@@ -191,8 +191,8 @@ class DokumenPerjalananDinasController extends Controller
                 $template->setValue("no#{$i}", $no++);
                 $template->setValue("nama_pegawai#{$i}", $pg->nama ?? '-');
                 $template->setValue("nip#{$i}", $pg->nip ?? '-');
-                $template->setValue("golongan#{$i}", $pg->golongan ?? '-');
-                $template->setValue("jabatan#{$i}", $pg->jabatan ?? '-');
+                $template->setValue("golongan#{$i}", $pg->golongan->nama_golongan ?? '-');
+                $template->setValue("jabatan#{$i}", $pg->jabatan->nama_jabatan ?? '-');
             }
             $template->setValue('dasar_spt', $dokumen->dasar_spt ?? '-');
             $template->setValue('uraian_spt', $dokumen->uraian_spt ?? '-');
@@ -206,8 +206,8 @@ class DokumenPerjalananDinasController extends Controller
 
         if ($isSPPD) {
             $template->setValue('nama_pegawai', $pegawai->nama ?? '-');
-            $template->setValue('golongan', $pegawai->golongan ?? '-');
-            $template->setValue('jabatan', $pegawai->jabatan ?? '-');
+            $template->setValue('golongan', $pegawai->golongan->nama_golongan ?? '-');
+            $template->setValue('jabatan', $pegawai->jabatan->nama_jabatan ?? '-');
             $template->setValue('tingkat', $pegawai->tingkat ?? '-');
             $template->setValue('uraian_spt', $dokumen->uraian_spt ?? '-');
             $template->setValue('alat_angkut', $dokumen->alat_angkut ?? '-');

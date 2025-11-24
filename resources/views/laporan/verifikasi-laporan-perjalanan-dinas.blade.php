@@ -164,7 +164,7 @@
             <div>
             <p class="mb-1 fw-bold text-primary">Verifikasi Laporan Perjalanan Dinas</p>
             <ul class="mb-0 ps-3">
-                <li>Pelapor: <strong>{{ $row->pegawai->first()->nama ?? '-' }}</strong></li>
+                <li>Pelapor: <strong>{{ $row->operator->name ?? '-' }}</strong></li>
                 <li>Nomor SPT: <strong>{{ $row->nomor_spt }}</strong></li>
                 <li>Pastikan data laporan sesuai dengan <span class="text-danger">dokumen pendukung perjalanan dinas</span></li>
                 <li>Gunakan format dan penulisan <span class="text-danger">yang rapi dan konsisten</span></li>
@@ -213,7 +213,7 @@
         <div class="row">
           <div class="col-md-6">
             <p><strong>Pelapor:</strong><br>
-            {{ $row->pegawai->first()->nama ?? '-' }}</p>
+            {{ $row->operator->name ?? '-' }}</p>
           </div>
           <div class="col-md-6">
             <p><strong>Tanggal Laporan:</strong><br>

@@ -124,18 +124,14 @@
                                     <span class="badge bg-label-warning">{{ strtoupper($row->status_laporan) }}</span>
                                 @endif
                             </td>
-                            <td class="text-center mb-3">
+                            <td class="text-center">
                                 @if($row->status_laporan === 'selesai')
-                                    <div class="d-flex flex-column align-items-center gap-2">
-                                        <a href="{{ route('laporan.download', [$row->id, 'doc']) }}"
-                                          class="btn btn-primary btn-sm">
-                                            <i class="bx bxs-file-doc me-1"></i> DOC
-                                        </a>
-                                        <a href="{{ route('laporan.download', [$row->id, 'pdf']) }}"
-                                          class="btn btn-danger btn-sm">
-                                            <i class="bx bxs-file-pdf me-1"></i> PDF
-                                        </a>
-                                    </div>
+                                    <button type="button"
+                                            class="btn btn-info"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#modalDownload{{ $row->id }}">
+                                        <i class="bx bx-show"></i>
+                                    </button>
                                 @else
                                     <span class="text-muted">-</span>
                                 @endif
@@ -201,6 +197,50 @@
 
     </div>
 </div>
+
+{{-- Modal Download khusus untuk row ini --}}
+@foreach($perjalanans as $row)
+    @if($row->status_laporan === 'selesai')
+    <div class="modal fade" id="modalDownload{{ $row->id }}" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title fw-bold">Dokumen Laporan</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+                <div class="modal-body text-center">
+                    <div class="d-flex flex-column align-items-center gap-2">
+                      <div class="d-flex flex-column gap-2 w-100 mb-3">
+                        <a href="{{ route('laporan.download', [$row->id, 'doc']) }}" class="btn btn-primary w-100">
+                            <i class="bx bxs-file-doc"></i> LAPORAN SPT
+                        </a>
+                        <!-- <a href="{{ route('laporan.download', [$row->id, 'pdf']) }}" class="btn btn-danger w-100">
+                            <i class="bx bxs-file-pdf"></i> LAPORAN PDF
+                        </a> -->
+                      </div>
+                      @php
+                          $hasHotel30 = $row->biayaRiil->contains(function ($item) {
+                              return stripos($item->deskripsi_biaya, 'Hotel 30%') !== false;
+                          });
+                      @endphp
+
+                      @if($hasHotel30)
+                          <div class="d-flex flex-column gap-2 w-100 mb-3">
+                              <a href="{{ route('laporan.download', ['id' => $row->id, 'type' => 'pernyataan']) }}" class="btn btn-primary w-100">
+                                  <i class="bx bxs-file-doc"></i> PERNYATAAN 30%
+                              </a>
+                          </div>
+                      @endif
+                        <a href="{{ route('laporan.download', ['id' => $row->id, 'type' => 'sp-mutlak']) }}" class="btn btn-primary w-100">
+                            <i class="bx bxs-file-doc"></i> SP MUTLAK
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+@endforeach
 
 <!-- MODAL EDIT LAPORAN -->
 <div class="modal fade" id="modalEditLaporan" tabindex="-1">
@@ -270,194 +310,184 @@
     </div>
 </div>
 
-
-{{-- MODAL DETAIL untuk masing-masing row (aman karena di dalam foreach) --}}
 @foreach ($perjalanans as $row)
-<div class="modal fade" id="modalDetail{{ $row->id }}" tabindex="-1" aria-labelledby="modalDetailLabel{{ $row->id }}" aria-hidden="true">
+<div class="modal fade" id="modalDetail{{ $row->id }}" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-xl">
-    <div class="modal-content">
+    <div class="modal-content print-area-{{ $row->id }}">
+
+      {{-- HEADER --}}
       <div class="modal-header">
         <h5 class="modal-title">Detail Laporan Perjalanan Dinas</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
 
+      {{-- BODY --}}
       <div class="modal-body">
-        <div class="border rounded p-3 mb-4" style="background-color: #f8fcff; border-color: #6ac4ffff;">
-          <div class="d-flex align-items-start">
-            <div class="me-2">
-              <i class="bi bi-info-circle-fill text-primary fs-4"></i>
-            </div>
-            <div>
-              <ul class="mb-0 ps-3">
-                <li>Pelapor: <strong>{{ optional($row->pegawai->first())->nama ?? '-' }}</strong></li>
-                <li>Nomor SPT: <strong>{{ $row->nomor_spt ?? '-' }}</strong></li>
-              </ul>
-            </div>
-          </div>
-        </div>
 
-        <h6 class="fw-bold">Informasi Perjalanan Dinas</h6>
-        <div class="row mb-3">
-          <div class="col-md-6">
-            <p><strong>Tujuan :</strong><br>
-              {{ $row->tujuan_spt ?? '-' }} ({{ $row->kota_tujuan_id ?? '-' }}, {{ $row->provinsi_tujuan_id ?? '-' }})
-            </p>
-            <p><strong>Personil yang Ditugaskan:</strong><br>
-              @if($row->pegawai && $row->pegawai->isNotEmpty())
-                @foreach($row->pegawai as $p)
-                  {{ $p->nama }}@if(!$loop->last), @endif
-                @endforeach
-              @else
-                -
-              @endif
-            </p>
-          </div>
+        {{-- INFORMASI UTAMA --}}
+        <h6 class="fw-bold mb-3">Informasi Perjalanan Dinas</h6>
+        <table class="table table-bordered table-info-perjalanan">
+          <tbody>
+            <tr>
+              <th style="width: 30%">Pelapor</th>
+              <td>{{ $row->operator->name ?? '-' }}</td>
+            </tr>
+            <tr>
+              <th>Nomor SPT</th>
+              <td>{{ $row->nomor_spt ?? '-' }}</td>
+            </tr>
+            <tr>
+              <th>Tujuan</th>
+              <td>{{ $row->tujuan_spt }} ({{ $row->kota_tujuan_id }}, {{ $row->provinsi_tujuan_id }})</td>
+            </tr>
+            <tr>
+              <th>Personil Ditugaskan</th>
+              <td>
+                @if($row->pegawai && $row->pegawai->isNotEmpty())
+                  @foreach($row->pegawai as $p)
+                    {{ $p->nama }}@if(!$loop->last), @endif
+                  @endforeach
+                @else
+                  -
+                @endif
+              </td>
+            </tr>
+            <tr>
+              <th>Tanggal Pelaksanaan</th>
+              <td>
+                {{ \Carbon\Carbon::parse($row->tanggal_mulai)->format('d M Y') }} -
+                {{ \Carbon\Carbon::parse($row->tanggal_selesai)->format('d M Y') }}
+              </td>
+            </tr>
+            <tr>
+              <th>Status Laporan</th>
+              <td>{{ strtoupper($row->status_laporan) }}</td>
+            </tr>
+          </tbody>
+        </table>
 
-          <div class="col-md-6">
-            <p><strong>Tanggal Pelaksanaan :</strong><br>
-              {{ \Carbon\Carbon::parse($row->tanggal_mulai)->format('d M Y') }}
-              s/d
-              {{ \Carbon\Carbon::parse($row->tanggal_selesai)->format('d M Y') }}
-            </p>
+        {{-- DETAIL LAPORAN --}}
+        <h6 class="fw-bold mt-4">Detail Laporan</h6>
+        <table class="table table-bordered mb-3">
+          <tbody>
+            <tr>
+              <th style="width: 30%">Tanggal Laporan</th>
+              <td>
+                {{ optional($row->laporan)->tanggal_laporan
+                      ? \Carbon\Carbon::parse($row->laporan->tanggal_laporan)->translatedFormat('d F Y')
+                      : '-' }}
+              </td>
+            </tr>
+            <tr>
+              <th>Hasil Kegiatan</th>
+              <td style="white-space: pre-line; text-align: justify;">
+                  {{ preg_replace('/^\s+/', '', optional($row->laporan)->ringkasan_hasil_kegiatan ?? '-') }}
+              </td>
+              </td>
+            </tr>
+            <tr>
+              <th>Kendala</th>
+              <td>{{ optional($row->laporan)->kendala_dihadapi ?? '-' }}</td>
+            </tr>
+            <tr>
+              <th>Saran / Tindak Lanjut</th>
+              <td>{{ optional($row->laporan)->saran_tindak_lanjut ?? '-' }}</td>
+            </tr>
+          </tbody>
+        </table>
 
-            <p><strong>Status Laporan :</strong><br>
-              @php $sl = $row->status_laporan ?? '-'; @endphp
-              @if($sl == 'belum_dibuat')
-                <span class="badge bg-label-danger">BELUM DIBUAT</span>
-              @elseif($sl == 'diproses')
-                <span class="badge bg-label-primary">PROSES</span>
-              @elseif($sl == 'selesai')
-                <span class="badge bg-label-success">SELESAI</span>
-              @elseif($sl == 'revisi_operator')
-                <span class="badge bg-label-warning">REVISI OPERATOR</span>
-              @else
-                <span class="badge bg-label-secondary">{{ strtoupper($sl) }}</span>
-              @endif
-            </p>
-          </div>
-        </div>
-
-        <hr>
-
-        <h6 class="fw-bold">Detail Laporan</h6>
-        <div class="row mb-3">
-          <div class="col-md-6">
-            <p><strong>Tanggal Laporan:</strong><br>
-            {{ optional($row->laporan)->tanggal_laporan
-                    ? \Carbon\Carbon::parse($row->laporan->tanggal_laporan)->translatedFormat('d F Y')
-                    : '-' }}
-            </p>
-          </div>
-        </div>
-
-        <p class="mb-1 fw-bold">Hasil Kegiatan:</p>
-        <div class="p-2 bg-light border rounded mb-3"
-            style="white-space: pre-line; text-align: justify; line-height: 1.6;">
-            {{ preg_replace('/^\s+/', '', optional($row->laporan)->ringkasan_hasil_kegiatan ?? '-') }}
-        </div>
-
-        <p class="mb-1 fw-bold">Kendala yang Dihadapi:</p>
-        <div class="p-2 bg-light border rounded mb-3">
-            {{ optional($row->laporan)->kendala_dihadapi ?? '-' }}
-        </div>
-
-        <p class="mb-1 fw-bold">Saran / Tindak Lanjut:</p>
-        <div class="p-2 bg-light border rounded mb-3">
-            {{ optional($row->laporan)->saran_tindak_lanjut ?? '-' }}
-        </div>
-
-        <h6 class="fw-bold">Rincian Biaya Riil Dilaporkan</h6>
-        <div class="table-responsive mb-3">
-          <table class="table table-bordered align-middle">
-            <thead class="table-light text-center">
-              <tr>
-                <th>Deskripsi Biaya</th>
-                <th>Jumlah</th>
-                <th>Satuan</th>
-                <th>Harga Satuan (Rp)</th>
-                <th>Subtotal (Rp)</th>
-                <th>No. Bukti</th>
-                <th>File Bukti</th>
-                <th>Keterangan</th>
-              </tr>
-            </thead>
-            <tbody>
-              @forelse ($row->biayaRiil ?? [] as $biaya)
-                <tr>
-                  <td>{{ $biaya->deskripsi_biaya }}</td>
-                  <td class="text-center">{{ $biaya->jumlah }}</td>
-                  <td class="text-center">{{ $biaya->satuan }}</td>
-                  <td class="text-end">{{ number_format($biaya->harga_satuan ?? 0, 0, ',', '.') }}</td>
-                  <td class="text-end">{{ number_format($biaya->subtotal_biaya ?? 0, 0, ',', '.') }}</td>
-                  <td class="text-center">{{ $biaya->nomor_bukti ?? '-' }}</td>
-                  <td class="text-center">
-                    @if(!empty($biaya->path_bukti_file))
-                      <a href="{{ asset('storage/' . $biaya->path_bukti_file) }}" target="_blank" class="btn btn-sm btn-primary">
-                        <i class="bx bx-show"></i>
-                      </a>
-                    @else
-                      <span class="text-muted">-</span>
-                    @endif
-                  </td>
-                  <td>{{ $biaya->keterangan_tambahan ?? '-' }}</td>
-                </tr>
-              @empty
-                <tr>
-                  <td colspan="8" class="text-center text-muted">Tidak ada rincian biaya riil</td>
-                </tr>
-              @endforelse
-            </tbody>
-          </table>
-        </div>
+        {{-- BIAYA RIIL --}}
+        <h6 class="fw-bold">Rincian Biaya Riil</h6>
+        <table class="table table-bordered table-striped">
+          <thead class="table-light text-center">
+            <tr>
+              <th>Deskripsi</th>
+              <th>Jumlah</th>
+              <th>Satuan</th>
+              <th>Harga Satuan</th>
+              <th>Subtotal</th>
+              <th>No Bukti</th>
+              <th>File Bukti</th>
+              <th>Keterangan</th>
+            </tr>
+          </thead>
+          <tbody>
+            @forelse ($row->biayaRiil as $biaya)
+            <tr>
+              <td>{{ $biaya->deskripsi_biaya }}</td>
+              <td class="text-center">{{ $biaya->jumlah }}</td>
+              <td class="text-center">{{ $biaya->satuan }}</td>
+              <td class="text-end">{{ number_format($biaya->harga_satuan) }}</td>
+              <td class="text-end">{{ number_format($biaya->subtotal_biaya) }}</td>
+              <td class="text-center">{{ $biaya->nomor_bukti ?? '-' }}</td>
+              <td class="text-center"> 
+                @if(!empty($biaya->path_bukti_file)) 
+                  <a href="{{ asset('storage/' . $biaya->path_bukti_file) }}" target="_blank" class="btn btn-sm btn-info"> 
+                    <i class="bx bx-show"></i> 
+                  </a> 
+                  <a href="{{ asset('storage/' . $biaya->path_bukti_file) }}" download class="btn btn-sm btn-primary"> 
+                    <i class="bx bx-download"></i>
+                  </a> 
+                @else 
+                  <span class="text-muted">-</span> 
+                @endif 
+              </td>              
+              <td>{{ $biaya->keterangan_tambahan ?? '-' }}</td>
+            </tr>
+            @empty
+            <tr>
+              <td colspan="7" class="text-center text-muted">Tidak ada rincian biaya riil.</td>
+            </tr>
+            @endforelse
+          </tbody>
+        </table>
 
         <p class="fw-bold text-end">
-          TOTAL BIAYA RIIL DILAPORKAN: Rp {{ number_format(collect($row->biayaRiil ?? [])->sum('subtotal_biaya'), 0, ',', '.') }}
+          TOTAL BIAYA RIIL: Rp {{ number_format($row->biayaRiil->sum('subtotal_biaya')) }}
         </p>
 
-        <hr>
-        <h6 class="fw-bold">Estimasi Biaya</h6>
-        @if(!empty($row->biaya) && collect($row->biaya)->isNotEmpty())
-          <div class="table-responsive">
-            <table class="table table-bordered table-striped align-middle">
-              <thead class="table-dark text-center">
-                <tr>
-                  <th>Deskripsi Biaya</th>
-                  <th>Personil Terkait</th>
-                  <th>Harga Satuan</th>
-                  <th>Jml. Unit/Hari</th>
-                  <th>Subtotal</th>
-                </tr>
-              </thead>
-              <tbody>
-                @foreach($row->biaya as $biaya)
-                  <tr>
-                    <td>{{ $biaya->deskripsi_biaya }}</td>
-                    <td>{{ $biaya->personil_name ?? optional($biaya->pegawaiTerkait)->nama ?? 'Semua' }}</td>
-                    <td class="text-end">Rp {{ number_format($biaya->harga_satuan ?? 0, 0, ',', '.') }}</td>
-                    <td class="text-center">
-                      {{ ($biaya->jumlah_unit ?? 0) > 0 ? ($biaya->jumlah_unit . ' ' . optional($biaya->sbuItem)->satuan) : '-' }}
-                    </td>
-                    <td class="text-end">Rp {{ number_format($biaya->subtotal_biaya ?? 0, 0, ',', '.') }}</td>
-                  </tr>
-                @endforeach
-              </tbody>
-              <tfoot>
-                <tr class="table-light">
-                  <td colspan="4" class="text-end fw-bold">Total Estimasi Biaya</td>
-                  <td class="text-end fw-bold">Rp {{ number_format($row->biaya->sum('subtotal_biaya') ?? 0, 0, ',', '.') }}</td>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
-        @else
-          <div class="alert alert-info text-center">Detail estimasi biaya belum tersedia.</div>
-        @endif
-
-        <p class="fw-bold text-end">
-          TOTAL ESTIMASI AWAL: Rp {{ number_format(collect($row->biaya ?? [])->sum('subtotal_biaya'), 0, ',', '.') }}
-        </p>
+        {{-- ESTIMASI BIAYA --}}
+        <h6 class="fw-bold mt-4">Estimasi Biaya</h6>
+        <table class="table table-bordered table-striped">
+          <thead class="table-dark text-center">
+            <tr>
+              <th>Deskripsi</th>
+              <th>Personil</th>
+              <th>Harga Satuan</th>
+              <th>Unit/Hari</th>
+              <th>Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>
+            @foreach($row->biaya as $biaya)
+            <tr>
+              <td>{{ $biaya->deskripsi_biaya }}</td>
+              <td>{{ $biaya->personil_name ?? optional($biaya->pegawaiTerkait)->nama ?? 'Semua' }}</td>
+              <td class="text-end">Rp {{ number_format($biaya->harga_satuan) }}</td>
+              <td class="text-center">{{ $biaya->jumlah_unit }} {{ optional($biaya->sbuItem)->satuan }}</td>
+              <td class="text-end">Rp {{ number_format($biaya->subtotal_biaya) }}</td>
+            </tr>
+            @endforeach
+          </tbody>
+          <tfoot>
+            <tr class="table-light">
+              <th colspan="4" class="text-end">Total Estimasi</th>
+              <th class="text-end">Rp {{ number_format($row->biaya->sum('subtotal_biaya')) }}</th>
+            </tr>
+          </tfoot>
+        </table>
 
       </div>
+
+      {{-- FOOTER --}}
+      <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+
+          <button type="button" class="btn btn-primary" onclick="printModal({{ $row->id }})">
+              <i class="bx bx-printer"></i> Print
+          </button>
+      </div>
+
     </div>
   </div>
 </div>
@@ -527,6 +557,7 @@
                       <option value="Transportasi">Transportasi</option>
                       <option value="Taxi">Taxi</option>
                       <option value="Hotel">Hotel</option>
+                      <option value="Hotel 30%">Hotel (30%)</option>
                       <option value="BBM">BBM</option>
                     </select>
                   </div>
@@ -850,4 +881,110 @@ $(document).on('click', '.btn-edit2', function () {
 
     $('#modalEditLaporan').modal('show');
 });</script>
+
+<script>
+function printModal(id) {
+    let modalContent = document.querySelector(`#modalDetail${id} .modal-content`).innerHTML;
+
+    let printWindow = window.open('', '', 'width=900,height=800');
+    printWindow.document.write(`
+        <html>
+        <head>
+            <title>Laporan Perjalanan Dinas</title>
+
+            <style>
+                body {
+                    font-family: "Times New Roman", Times, serif;
+                    padding: 20px;
+                }
+
+                h5,h6 {
+                    margin-bottom: 4px;
+                    font-size: 14px;
+                }
+
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-bottom: 20px;
+                }
+
+                table, th, td {
+                    border: 1px solid #000;
+                }
+
+                th, td {
+                    padding: 6px;
+                    font-size: 13px;
+                }
+
+                .no-border {
+                    border: none !important;
+                }
+
+                .section-title {
+                    font-weight: bold;
+                    margin-top: 20px;
+                    margin-bottom: 10px;
+                    font-size: 16px;
+                }
+
+                .info-box {
+                    border: 1px solid #888;
+                    padding: 10px;
+                    margin-bottom: 15px;
+                    background: #f8f8f8;
+                }
+            </style>
+
+            <style>
+              @media print {
+                  .modal-footer,
+                  .no-print {
+                      display: none !important;
+                  }
+
+                  /* Hilangkan shadow dan background modal */
+                  .modal {
+                      position: static !important;
+                  }
+                  .modal-dialog {
+                      margin: 0 !important;
+                      max-width: 100% !important;
+                  }
+                  .modal-content {
+                      border: none !important;
+                      box-shadow: none !important;
+                  }
+              }
+              </style>
+
+            <style>
+              @media print {
+                  .table-info-perjalanan th {
+                      text-align: left !important;
+                  }
+                  .table-info-perjalanan td {
+                      text-align: left !important;
+                  }
+              }
+            </style>
+
+        </head>
+        <body>
+            ${modalContent}
+        </body>
+        </html>
+    `);
+
+    printWindow.document.close();
+    printWindow.focus();
+
+    setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+    }, 500);
+}
+</script>
+
 @endpush

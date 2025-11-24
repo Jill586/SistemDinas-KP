@@ -206,15 +206,15 @@ $(document).ready(function() {
         }
         else if (jenis === 'luar_daerah_luar_provinsi') {
             let provinsi = [
-                'Aceh','Bali','Banten','Bengkulu','DI Yogyakarta','DKI Jakarta',
-                'Gorontalo','Jambi','Jawa Barat','Jawa Tengah','Jawa Timur',
-                'Kalimantan Barat','Kalimantan Selatan','Kalimantan Tengah','Kalimantan Timur','Kalimantan Utara',
-                'Kepulauan Bangka Belitung','Kepulauan Riau','Lampung',
-                'Maluku','Maluku Utara',
-                'Nusa Tenggara Barat','Nusa Tenggara Timur',
-                'Papua','Papua Barat','Papua Barat Daya','Papua Pegunungan','Papua Selatan','Papua Tengah',
-                'Riau','Sulawesi Barat','Sulawesi Selatan','Sulawesi Tengah','Sulawesi Tenggara','Sulawesi Utara',
-                'Sumatera Barat','Sumatera Selatan','Sumatera Utara'
+                'ACEH','BALI','BANTEN','BENGKULU','D.I. YOGYAKARTA','D.K.I. JAKARTA',
+                'GORONTALO','JAMBI','JAWA BARAT','JAWA TENGAH','JAWA TIMUR',
+                'KALIMANTAN BARAT','KALIMANTAN SELATAN','KALIMANTAN TENGAH','KALIMANTAN TIMUR','KALIMANTAN UTARA',
+                'BANGKA BELITUNG','KEPULAUAN RIAU','LAMPUNG',
+                'MALUKU','MALUKU UTARA',
+                'NUSA TENGGARA BARAT','NUSA TENGGARA TIMUR',
+                'PAPUA','PAPUA BARAT',
+                'RIAU','SULAWESI BARAT','SULAWESI SELATAN','SULAWESI TENGAH','SULAWESI TENGGARA','SULAWESI UTARA',
+                'SUMATERA BARAT','SUMATERA SELATAN','SUMATERA UTARA'            
             ];
             provinsi.sort();
 

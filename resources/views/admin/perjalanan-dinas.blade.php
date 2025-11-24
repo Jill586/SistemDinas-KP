@@ -372,8 +372,8 @@
                             <div class="mb-2 ps-2">
                                 <strong>{{ $i+1 }}. {{ $u->nama }}</strong>
                                 (NIP: {{ $u->nip ?? '-' }})<br>
-                                Gol: {{ $u->golongan ?? '-' }} -
-                                Jabatan: {{ $u->jabatan ?? '-' }}
+                                Jabatan: {{ $u->jabatan->nama_jabatan ?? '-' }} - 
+                                Gol: {{ $u->golongan->nama_golongan ?? '-' }} 
                             </div>
                         @endforeach
 

@@ -10,7 +10,7 @@ class Pegawai extends Model
     protected $table = 'pegawai';
 
     protected $fillable = [
-        'nama', 'email', 'nomor_hp', 'nip', 'golongan', 'jabatan'
+        'nama', 'email', 'nomor_hp', 'nip', 'golongan_id', 'jabatan_id'
     ];
 
     public function perjalananDinas()

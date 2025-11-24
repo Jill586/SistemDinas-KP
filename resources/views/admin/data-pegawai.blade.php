@@ -63,8 +63,8 @@
             <td>{{ $row->email }}</td>
             <td>{{ $row->nomor_hp }}</td>
             <td>{{ $row->nip }}</td>
-            <td>{{ $row->golongan }}</td>
-            <td>{{ $row->jabatan }}</td>
+            <td>{{ $row->jabatan->nama_jabatan ?? '-' }}</td>
+            <td>{{ $row->golongan->nama_golongan ?? '-' }}</td>
             <td>
               <button type="button" class="btn btn-warning btn-sm btn-edit"
                       data-id="{{ $row->id }}"
@@ -132,12 +132,22 @@
               <input type="text" id="edit_nip" name="nip" class="form-control" required>
             </div>
             <div class="col-md-6">
-              <label class="form-label">Golongan</label>
-              <input type="text" id="edit_golongan" name="golongan" class="form-control" required>
+              <label class="form-label">Jabatan</label>
+              <select name="jabatan_id" class="form-select" required>
+                  <option value="">-- Pilih Jabatan --</option>
+                  @foreach($jabatans as $jabatan)
+                      <option value="{{ $jabatan->id }}">{{ $jabatan->nama_jabatan }}</option>
+                  @endforeach
+              </select>
             </div>
             <div class="col-md-6">
-              <label class="form-label">Jabatan</label>
-              <input type="text" id="edit_jabatan" name="jabatan" class="form-control" required>
+              <label class="form-label">Golongan</label>
+              <select name="golongan_id" class="form-select" required>
+                  <option value="">-- Pilih Golongan --</option>
+                  @foreach($golongans as $golongan)
+                      <option value="{{ $golongan->id }}">{{ $golongan->nama_golongan }}</option>
+                  @endforeach
+              </select>
             </div>
           </div>
         </div>
@@ -180,11 +190,21 @@
             </div>
             <div class="col-md-6">
               <label class="form-label">Golongan</label>
-              <input type="text" name="golongan" class="form-control" required>
+              <select name="golongan_id" class="form-select" required>
+                  <option value="">-- Pilih Golongan --</option>
+                  @foreach($golongans as $golongan)
+                      <option value="{{ $golongan->id }}">{{ $golongan->nama_golongan }}</option>
+                  @endforeach
+              </select>
             </div>
             <div class="col-md-6">
               <label class="form-label">Jabatan</label>
-              <input type="text" name="jabatan" class="form-control" required>
+              <select name="jabatan_id" class="form-select" required>
+                  <option value="">-- Pilih Jabatan --</option>
+                  @foreach($jabatans as $jabatan)
+                      <option value="{{ $jabatan->id }}">{{ $jabatan->nama_jabatan }}</option>
+                  @endforeach
+              </select>
             </div>
           </div>
         </div>
