@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use Carbon\Carbon;
+use App\Exports\PerjalananDinasExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class PerjalananDinasController extends Controller
 {
@@ -76,6 +78,11 @@ class PerjalananDinasController extends Controller
         if ($request->filled('tahun')) {
             $query->whereYear('tanggal_spt', $request->tahun);
         }
+        // 🟩 Filter berdasarkan status (jika diisi)
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
 
         // 🔍 Filter pencarian manual
         if ($search) {
@@ -315,14 +322,14 @@ $this->validasiForm($request);
                 }
 
                 if ($kategori === 'PENGINAPAN') {
-                    $golongan = $pegawai->golongan->nama_golongan ?? null; 
-                    $eselon = $pegawai->jabatan->eselon ?? null; 
+                    $golongan = $pegawai->golongan->nama_golongan ?? null;
+                    $eselon = $pegawai->jabatan->eselon ?? null;
                     $romanLevel = null;
 
                     // Ekstrak angka romawi dari golongan
                     if ($golongan) {
                         if (preg_match('/(III|IV|II|V|I)/', $golongan, $matches)) {
-                            $romanLevel = $matches[1]; 
+                            $romanLevel = $matches[1];
                         }
                     }
 
@@ -338,9 +345,9 @@ $this->validasiForm($request);
                     // Apply filter ke query SBU
                     if ($searchLevel) {
                         $sbuItemQuery->where('tingkat_pejabat_atau_golongan', 'like', "%$searchLevel%");
-                    }                
+                    }
                 }
-                
+
                 $sbuItem = $sbuItemQuery->first();
 
                 // Jika dalam daerah → pakai uraian khusus
@@ -427,5 +434,9 @@ $this->validasiForm($request);
 
         return response()->download($filepath);
     }
+    public function exportExcel()
+{
+    return Excel::download(new PerjalananDinasExport, 'perjalanan_dinas.xlsx');
+}
 
 }

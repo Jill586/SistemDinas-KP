@@ -26,6 +26,34 @@
                         </option>
                     @endforeach
             </select>
+             <select name="status" class="form-select" style="width: 160px;">
+                <option value="">-- Status --</option>
+
+                <option value="draft" {{ request('status') == 'draft' ? 'selected' : '' }}>
+                    Draft
+                </option>
+
+                <option value="diproses" {{ request('status') == 'diproses' ? 'selected' : '' }}>
+                    Diproses
+                </option>
+
+                <option value="revisi_operator" {{ request('status') == 'revisi_operator' ? 'selected' : '' }}>
+                    Revisi Operator
+                </option>
+
+                <option value="verifikasi" {{ request('status') == 'verifikasi' ? 'selected' : '' }}>
+                    Verifikasi
+                </option>
+
+                <option value="ditolak" {{ request('status') == 'ditolak' ? 'selected' : '' }}>
+                    Ditolak
+                </option>
+
+                <option value="disetujui" {{ request('status') == 'disetujui' ? 'selected' : '' }}>
+                    Disetujui
+                </option>
+            </select>
+
 
             <button type="submit" class="btn btn-primary">
                 <i class="bx bx-filter"></i> Filter
@@ -34,6 +62,10 @@
             <a href="{{ route('dokumen-perjalanan-dinas.index') }}" class="btn btn-secondary">
                 <i class="bx bx-reset"></i> Reset
             </a>
+             <a href="{{ route('dokumen-spt-sppd.export.excel') }}" class="btn btn-success">
+                  Export Excel
+             </a>
+
         </form>
     </div>
 

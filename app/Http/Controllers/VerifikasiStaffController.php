@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\PerjalananDinas;
 use Illuminate\Http\Request;
+use App\Exports\VerifikasiStaffExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class VerifikasiStaffController extends Controller
 {
@@ -31,6 +33,10 @@ class VerifikasiStaffController extends Controller
         if ($request->filled('tahun')) {
             $query->whereYear('tanggal_spt', $request->tahun);
         }
+        // 🔍 Filter status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
 
         // 🔍 Jika ada pencarian
         if ($request->filled('search')) {
@@ -47,18 +53,22 @@ class VerifikasiStaffController extends Controller
             });
         }
 
+
+
         // urutkan dan paginasi
         $perjalanans = $query->orderByDesc('tanggal_spt')
             ->paginate($perPage)
             ->withQueryString();
 
-        return view('admin.verifikasi-staff', compact('perjalanans'))
+       return view('admin.verifikasi-staff', compact('perjalanans'))
             ->with([
                 'bulan' => $request->bulan,
                 'tahun' => $request->tahun,
+                'status' => $request->status, // ⬅ tambahkan ini
                 'perPage' => $perPage,
                 'search' => $search,
-            ]);
+    ]);
+
     }
 
     /**
@@ -108,5 +118,9 @@ public function update(Request $request, $id)
 
 
     return redirect()->route('verifikasi-staff.index')->with('success', 'Status pengajuan berhasil diperbarui.');
+}
+public function exportExcel()
+{
+    return Excel::download(new VerifikasiStaffExport, 'verifikasi-staff.xlsx');
 }
 }

@@ -26,6 +26,27 @@
                         </option>
                     @endforeach
             </select>
+             <a href="{{ route('laporan-perjalanan.export.excel') }}" class="btn btn-success">
+                <i class="fas fa-file-excel"></i> Export Excel
+            </a>
+             <select name="status_laporan" class="form-select" style="width: 160px;">
+    <option value="">-- Status --</option>
+
+    <option value="belum_dibuat"
+        {{ request('status_laporan') == 'belum_dibuat' ? 'selected' : '' }}>
+        Belum Dibuat
+    </option>
+
+    <option value="diproses"
+        {{ request('status_laporan') == 'diproses' ? 'selected' : '' }}>
+        Diproses
+    </option>
+
+    <option value="selesai"
+        {{ request('status_laporan') == 'selesai' ? 'selected' : '' }}>
+        Selesai
+    </option>
+</select>
 
             <button type="submit" class="btn btn-primary">
                 <i class="bx bx-filter"></i> Filter
@@ -420,18 +441,18 @@
               <td class="text-end">{{ number_format($biaya->harga_satuan) }}</td>
               <td class="text-end">{{ number_format($biaya->subtotal_biaya) }}</td>
               <td class="text-center">{{ $biaya->nomor_bukti ?? '-' }}</td>
-              <td class="text-center"> 
-                @if(!empty($biaya->path_bukti_file)) 
-                  <a href="{{ asset('storage/' . $biaya->path_bukti_file) }}" target="_blank" class="btn btn-sm btn-info"> 
-                    <i class="bx bx-show"></i> 
-                  </a> 
-                  <a href="{{ asset('storage/' . $biaya->path_bukti_file) }}" download class="btn btn-sm btn-primary"> 
+              <td class="text-center">
+                @if(!empty($biaya->path_bukti_file))
+                  <a href="{{ asset('storage/' . $biaya->path_bukti_file) }}" target="_blank" class="btn btn-sm btn-info">
+                    <i class="bx bx-show"></i>
+                  </a>
+                  <a href="{{ asset('storage/' . $biaya->path_bukti_file) }}" download class="btn btn-sm btn-primary">
                     <i class="bx bx-download"></i>
-                  </a> 
-                @else 
-                  <span class="text-muted">-</span> 
-                @endif 
-              </td>              
+                  </a>
+                @else
+                  <span class="text-muted">-</span>
+                @endif
+              </td>
               <td>{{ $biaya->keterangan_tambahan ?? '-' }}</td>
             </tr>
             @empty

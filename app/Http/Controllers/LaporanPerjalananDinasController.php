@@ -8,6 +8,8 @@ use App\Models\LaporanPerjalananDinas;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\LaporanPerjalananExport;
 
 class LaporanPerjalananDinasController extends Controller
 {
@@ -67,6 +69,10 @@ class LaporanPerjalananDinasController extends Controller
         if ($request->filled('tahun')) {
             $query->whereYear('tanggal_spt', $request->tahun);
         }
+        // 🔥 **Filter Status**
+            if ($request->filled('status')) {
+                $query->where('status', $request->status);
+            }
 
         // 🔍 Jika ada pencarian
         if ($request->filled('search')) {
@@ -93,6 +99,7 @@ class LaporanPerjalananDinasController extends Controller
                 'bulan' => $request->bulan,
                 'tahun' => $request->tahun,
                 'search' => $search,
+                'status' => $request->status, 
             ]);
     }
 
@@ -372,4 +379,8 @@ class LaporanPerjalananDinasController extends Controller
 
         return redirect()->back()->with('success', 'Laporan berhasil diperbarui.');
     }
+    public function exportExcel()
+{
+    return Excel::download(new LaporanPerjalananExport, 'laporan-perjalanan.xlsx');
+}
 }

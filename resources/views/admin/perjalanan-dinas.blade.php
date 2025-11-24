@@ -7,36 +7,62 @@
 <div class="card mb-3 shadow rounded-2">
     <div class="card-body">
         <form method="GET" action="{{ route('perjalanan-dinas.index') }}" class="row g-2 align-items-end">
+
+            <!-- FILTER BULAN -->
             <div class="col-md-3">
                 <label class="form-label mb-1">Pilih Bulan</label>
                 <select name="bulan" class="form-select">
                     <option value="">-- Bulan --</option>
                     @foreach(range(1,12) as $b)
-                        <option value="{{ $b }}" {{ (isset($bulan) && $bulan == $b) ? 'selected' : '' }}>
+                        <option value="{{ $b }}" {{ request('bulan') == $b ? 'selected' : '' }}>
                             {{ \Carbon\Carbon::create()->month($b)->translatedFormat('F') }}
                         </option>
                     @endforeach
                 </select>
             </div>
+
+            <!-- FILTER TAHUN -->
             <div class="col-md-3">
                 <label class="form-label mb-1">Pilih Tahun</label>
                 <select name="tahun" class="form-select">
                     <option value="">-- Tahun --</option>
                     @foreach([2024, 2025, 2026] as $t)
-                        <option value="{{ $t }}" {{ (isset($tahun) && $tahun == $t) ? 'selected' : '' }}>
+                        <option value="{{ $t }}" {{ request('tahun') == $t ? 'selected' : '' }}>
                             {{ $t }}
                         </option>
                     @endforeach
                 </select>
             </div>
-            <div class="col-md-6 d-flex gap-2">
-                <button type="submit" class="btn btn-primary">
-                    <i class="bx bx-filter"></i> Filter
-                </button>
-                <a href="{{ route('perjalanan-dinas.index') }}" class="btn btn-secondary">
-                    <i class="bx bx-reset"></i> Reset
-                </a>
+
+            <!-- FILTER STATUS -->
+            <div class="col-md-3">
+                <label class="form-label mb-1">Pilih Status</label>
+                <select name="status" class="form-select">
+                    <option value="">-- Semua Status --</option>
+                    <option value="draft" {{ request('status') == 'draft' ? 'selected' : '' }}>Draft</option>
+                    <option value="diproses" {{ request('status') == 'diproses' ? 'selected' : '' }}>Proses</option>
+                    <option value="disetujui" {{ request('status') == 'disetujui' ? 'selected' : '' }}>Selesai</option>
+                    <option value="ditolak" {{ request('status') == 'ditolak' ? 'selected' : '' }}>Tolak</option>
+                </select>
             </div>
+
+            <!-- BARIS TOMBOL -->
+            <div class="col-12 mt-2">
+                <div class="d-flex align-items-center gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bx bx-filter"></i> Filter
+                    </button>
+
+                    <a href="{{ route('perjalanan-dinas.index') }}" class="btn btn-secondary">
+                        <i class="bx bx-reset"></i> Reset
+                    </a>
+
+                    <a href="{{ route('perjalanan-dinas.export.excel') }}" class="btn btn-success">
+                        Export Excel
+                    </a>
+                </div>
+            </div>
+
         </form>
     </div>
 </div>
@@ -372,8 +398,8 @@
                             <div class="mb-2 ps-2">
                                 <strong>{{ $i+1 }}. {{ $u->nama }}</strong>
                                 (NIP: {{ $u->nip ?? '-' }})<br>
-                                Jabatan: {{ $u->jabatan->nama_jabatan ?? '-' }} - 
-                                Gol: {{ $u->golongan->nama_golongan ?? '-' }} 
+                                Jabatan: {{ $u->jabatan->nama_jabatan ?? '-' }} -
+                                Gol: {{ $u->golongan->nama_golongan ?? '-' }}
                             </div>
                         @endforeach
 

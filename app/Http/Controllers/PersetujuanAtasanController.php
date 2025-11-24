@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\PerjalananDinas;
 use Illuminate\Http\Request;
+use App\Exports\PersetujuanAtasanExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class PersetujuanAtasanController extends Controller
 {
@@ -23,6 +25,10 @@ public function index(Request $request)
     // 🔍 Filter berdasarkan tahun dari tanggal_spt
     if ($request->filled('tahun')) {
         $query->whereYear('tanggal_spt', $request->tahun);
+    }
+    // 🔥 **Filter Status**
+    if ($request->filled('status')) {
+        $query->where('status', $request->status);
     }
 
     // 🔍 Jika ada pencarian
@@ -60,6 +66,7 @@ public function index(Request $request)
             'bulan' => $request->bulan,
             'tahun' => $request->tahun,
             'search' => $search,
+            'status' => $request->status, 
         ]);
 }
 
@@ -110,9 +117,17 @@ public function index(Request $request)
         // ============================================================
     }
 
+
     $perjalanan->save();
 
     return back()->with('success', 'Pengajuan berhasil diperbarui.');
+}
+public function exportExcel(Request $request)
+{
+    return Excel::download(
+        new PersetujuanAtasanExport($request),
+        'persetujuan-atasan.xlsx'
+    );
 }
 
 }

@@ -8,6 +8,8 @@ use PhpOffice\PhpWord\TemplateProcessor;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use App\Models\User;
+use App\Exports\DokumenSptSppdExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class DokumenPerjalananDinasController extends Controller
 {
@@ -66,6 +68,10 @@ class DokumenPerjalananDinasController extends Controller
         } elseif ($request->filled('tahun')) {
             $query->whereYear('tanggal_spt', $request->tahun);
         }
+        // 🔥 **Filter Status**
+            if ($request->filled('status')) {
+                $query->where('status', $request->status);
+            }
 
         // 🔍 Jika ada pencarian
         if ($request->filled('search')) {
@@ -97,6 +103,7 @@ class DokumenPerjalananDinasController extends Controller
                 'bulan' => $request->bulan,
                 'tahun' => $request->tahun,
                 'search' => $search,
+                'status' => $request->status,
             ]);
     }
 
@@ -175,7 +182,7 @@ class DokumenPerjalananDinasController extends Controller
 
         $lamaHari = Carbon::parse($dokumen->tanggal_mulai)
             ->diffInDays(Carbon::parse($dokumen->tanggal_selesai)) + 1;
-        
+
         $lamaHariText = $lamaHari . ' (' . $this->terbilang($lamaHari) . ')';
 
         $pengikutList = $dokumen->pegawai->where('id', '!=', $pegawai->id)->pluck('nama')->toArray();
@@ -270,4 +277,12 @@ class DokumenPerjalananDinasController extends Controller
 
         return $angka; // fallback
     }
+    public function exportExcel(Request $request)
+{
+    return Excel::download(
+        new DokumenSptSppdExport(),
+        'dokumen-spt-sppd.xlsx'
+    );
+}
+
 }

@@ -4,57 +4,67 @@ namespace App\Http\Controllers;
 
 use App\Models\PerjalananDinas;
 use Illuminate\Http\Request;
+use App\Exports\VerifikasiPengajuanExport;
+use Maatwebsite\Excel\Facades\Excel;
+
 
 class VerifikasiPengajuanController extends Controller
 {
-    public function index(Request $request)
-    {
-        $perPage = $request->get('per_page', 10);
-        $search = $request->input('search');
+   public function index(Request $request)
+{
+    $perPage = $request->get('per_page', 10);
+    $search = $request->input('search');
 
-        $query = PerjalananDinas::with([
-            'pegawai',
-            'biaya.sbuItem',
-            'biaya.pegawaiTerkait'
-        ])->whereNotIn('status', ['ditolak', 'revisi_operator', 'draft']);
+    $query = PerjalananDinas::with([
+        'pegawai',
+        'biaya.sbuItem',
+        'biaya.pegawaiTerkait'
+    ])->whereNotIn('status', ['ditolak', 'revisi_operator', 'draft']);
 
-        if ($request->filled('bulan')) {
-            $query->whereMonth('tanggal_spt', $request->bulan);
-        }
-
-        if ($request->filled('tahun')) {
-            $query->whereYear('tanggal_spt', $request->tahun);
-        }
-
-        // Searching
-        if ($request->filled('search')) {
-            $search = $request->search;
-
-            $query->where(function($q) use ($search) {
-                $q->where('nomor_spt', 'like', "%{$search}%")
-                  ->orWhere('tujuan_spt', 'like', "%{$search}%")
-                  ->orWhereHas('pegawai', function ($q2) use ($search) {
-                      $q2->where('nama', 'like', "%{$search}%");
-                  })
-                  ->orWhereHas('operator', function ($q3) use ($search) {
-                      $q3->where('name', 'like', "%{$search}%");
-                  });
-            });
-        }
-
-        $perjalanans = $query->orderByDesc('tanggal_spt')
-            ->paginate($perPage)
-            ->withQueryString();
-
-        return view('admin.verifikasi-pengajuan', compact('perjalanans'))
-            ->with([
-                'bulan' => $request->bulan,
-                'tahun' => $request->tahun,
-                'perPage' => $perPage,
-                'search' => $search,
-            ]);
+    // Filter Bulan
+    if ($request->filled('bulan')) {
+        $query->whereMonth('tanggal_spt', $request->bulan);
     }
 
+    // Filter Tahun
+    if ($request->filled('tahun')) {
+        $query->whereYear('tanggal_spt', $request->tahun);
+    }
+
+    // 🔥 **Filter Status**
+    if ($request->filled('status')) {
+        $query->where('status', $request->status);
+    }
+
+    // Searching
+    if ($request->filled('search')) {
+        $search = $request->search;
+
+        $query->where(function($q) use ($search) {
+            $q->where('nomor_spt', 'like', "%{$search}%")
+              ->orWhere('tujuan_spt', 'like', "%{$search}%")
+              ->orWhereHas('pegawai', function ($q2) use ($search) {
+                  $q2->where('nama', 'like', "%{$search}%");
+              })
+              ->orWhereHas('operator', function ($q3) use ($search) {
+                  $q3->where('name', 'like', "%{$search}%");
+              });
+        });
+    }
+
+    $perjalanans = $query->orderByDesc('tanggal_spt')
+        ->paginate($perPage)
+        ->withQueryString();
+
+    return view('admin.verifikasi-pengajuan', compact('perjalanans'))
+        ->with([
+            'bulan' => $request->bulan,
+            'tahun' => $request->tahun,
+            'perPage' => $perPage,
+            'search' => $search,
+            'status' => $request->status, // <- supaya selected di view
+        ]);
+}
 
     public function update(Request $request, $id)
     {
@@ -105,4 +115,13 @@ class VerifikasiPengajuanController extends Controller
 
         return back()->with('success', 'Pengajuan berhasil diperbarui.');
     }
+
+    public function exportExcel(Request $request)
+    {
+        return Excel::download(
+            new VerifikasiPengajuanExport($request),
+            'verifikasi-pengajuan.xlsx'
+        );
+    }
+
 }
