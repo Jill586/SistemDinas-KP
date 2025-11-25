@@ -440,31 +440,38 @@
           </thead>
           <tbody>
             @forelse ($row->biayaRiil as $biaya)
-            <tr>
-              <td>{{ $biaya->deskripsi_biaya }}</td>
-              <td>{{ $biaya->provinsi_tujuan ?? '-'}}</td>
-              <td class="text-center">{{ $biaya->jumlah }}</td>
-              <td class="text-center">{{ $biaya->satuan }}</td>
-              <td class="text-end">{{ number_format($biaya->harga_satuan) }}</td>
-              <td class="text-end">{{ number_format($biaya->subtotal_biaya) }}</td>
-              <td class="text-center">{{ $biaya->nomor_bukti ?? '-' }}</td>
-              <td class="text-center">
-                @if(!empty($biaya->path_bukti_file))
-                  <a href="{{ asset('storage/' . $biaya->path_bukti_file) }}" target="_blank" class="btn btn-sm btn-info">
-                    <i class="bx bx-show"></i>
-                  </a>
-                  <a href="{{ asset('storage/' . $biaya->path_bukti_file) }}" download class="btn btn-sm btn-primary">
-                    <i class="bx bx-download"></i>
-                  </a>
-                @else
-                  <span class="text-muted">-</span>
+
+                @if($biaya->deskripsi_biaya === 'Hotel 30%')
+                    @continue
                 @endif
-              </td>
-              <td>{{ $biaya->keterangan_tambahan ?? '-' }}</td>
+            <tr>
+            <td>{{ $biaya->deskripsi_biaya }}</td>
+            <td>{{ $biaya->provinsi_tujuan ?? '-'}}</td>
+            <td class="text-center">{{ $biaya->jumlah }}</td>
+            <td class="text-center">{{ $biaya->satuan ?? '-'}}</td>
+            <td class="text-center">{{ number_format($biaya->harga_satuan) }}</td>
+            <td class="text-center">{{ number_format($biaya->subtotal_biaya) }}</td>
+            <td class="text-center">{{ $biaya->nomor_bukti ?? '-' }}</td>
+            <td class="text-center">
+                @if(!empty($biaya->path_bukti_file))
+                <div class="d-flex justify-content-center gap-1">
+                    <a href="{{ asset('storage/' . $biaya->path_bukti_file) }}" target="_blank" class="btn btn-sm btn-info">
+                        <i class="bx bx-show"></i>
+                    </a>
+                    <a href="{{ asset('storage/' . $biaya->path_bukti_file) }}" download class="btn btn-sm btn-primary">
+                        <i class="bx bx-download"></i>
+                    </a>
+                </div>
+                @else
+                    <span class="text-muted">-</span>
+                @endif
+            </td>
+            <td>{{ $biaya->keterangan_tambahan ?? '-' }}</td>
             </tr>
+
             @empty
             <tr>
-              <td colspan="7" class="text-center text-muted">Tidak ada rincian biaya riil.</td>
+            <td colspan="7" class="text-center text-muted">Tidak ada rincian biaya riil.</td>
             </tr>
             @endforelse
           </tbody>
@@ -473,6 +480,42 @@
         <p class="fw-bold text-end">
           TOTAL BIAYA RIIL: Rp {{ number_format($row->biayaRiil->sum('subtotal_biaya')) }}
         </p>
+        <hr>
+
+        {{-- PERHITUNGAN 30% PENGINAPAN --}}
+        @php
+            // cek apakah ada Hotel 30% dari biaya riil
+            $adaHotel30 = $row->biayaRiil->where('deskripsi_biaya', 'Hotel 30%')->isNotEmpty();
+        @endphp
+
+        @if ($adaHotel30)            
+        <h6 class="fw-bold">Perhitungan (HOTEL 30%)</h6>
+            <table class="table table-bordered">
+                <thead class="table-light">
+                    <tr class="text-center">
+                        <th>Nama Pegawai</th>
+                        <th>Jumlah</th>
+                        <th>Harga Satuan</th>
+                        <th>Total Penginapan (Rp)</th>
+                        <th>30% Penginapan (Rp)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($row->data_penginapan as $d)
+                        <tr>
+                            <td>{{ $d['nama'] }}</td>
+                            <td class="text-center">{{ $d['jumlah_malam'] }} Malam</td>
+                            <td class="text-center">Rp {{ number_format($d['harga_satuan'], 0, ',', '.') }}</td>
+                            <td class="text-center">Rp {{ number_format($d['total_penginapan'], 0, ',', '.') }}</td>
+                            <td class="fw-bold text-success text-center">
+                                {{ number_format($d['uang_30'], 0, ',', '.') }}
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        <hr>
+        @endif
 
         {{-- ESTIMASI BIAYA --}}
         <h6 class="fw-bold mt-4">Estimasi Biaya</h6>
@@ -504,7 +547,6 @@
             </tr>
           </tfoot>
         </table>
-
       </div>
 
       {{-- FOOTER --}}
@@ -572,61 +614,67 @@
             <h6 class="fw-bold border-bottom pb-2 mb-3">Rincian Biaya Riil</h6>
 
             <div id="listBiayaRiil">
-              <div class="biaya-item border rounded-3 p-3 mb-3">
+                <div class="biaya-item border rounded-3 p-3 mb-3"
+                data-provinsi="{{ $row->provinsi_tujuan }}"
+                data-jumlah="{{ $row->biaya->firstWhere('deskripsi_biaya', 'Hotel')->jumlah_unit ?? 1 }}"
+                data-harga="{{ $row->biaya->firstWhere('deskripsi_biaya', 'Hotel')->harga_satuan ?? 0 }}">
+                  
                 <h6 class="fw-bold mb-3">Item Biaya #1</h6>
 
-                <div class="row g-3">
-                  <div class="col-md-3">
-                    <label class="form-label fw-semibold">Deskripsi Biaya</label>
-                    <select name="biaya[0][deskripsi]" class="form-select">
-                      <option value="">-- Pilih Deskripsi Biaya --</option>
-                      <option value="Transportasi">Transportasi</option>
-                      <option value="Taxi">Taxi</option>
-                      <option value="Hotel">Hotel</option>
-                      <option value="Hotel 30%">Hotel (30%)</option>
-                      <option value="BBM">BBM</option>
-                    </select>
-                  </div>
+                    <div class="row g-3">
 
-                  <div class="col-md-4">
-                    <label class="form-label fw-semibold">Provinsi Tujuan</label>
-                    <select name="provinsi_tujuan" class="form-select" required>
-                      <option value="">-- Pilih Provinsi Tujuan --</option>
-                      @foreach ($provinsi as $p)
-                        <option value="{{ $p->provinsi_tujuan }}">{{ $p->provinsi_tujuan }}</option>
-                      @endforeach
-                    </select>
-                  </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Deskripsi Biaya</label>
+                            <select name="biaya[0][deskripsi]" class="form-select select-deskripsi">
+                                <option value="">-- Pilih Deskripsi Biaya --</option>
+                                <option value="Transportasi">Transportasi</option>
+                                <option value="Taxi">Taxi</option>
+                                <option value="Hotel">Hotel</option>
+                                <option value="Hotel 30%">Hotel (30%)</option>
+                                <option value="BBM">BBM</option>
+                            </select>
+                        </div>
 
-                  <div class="col-md-2">
-                    <label class="form-label fw-semibold">Jumlah</label>
-                    <input type="number" name="biaya[0][jumlah]" class="form-control" value="1">
-                  </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Provinsi Tujuan</label>
+                            <select name="biaya[0][provinsi_tujuan]" class="form-select input-provinsi">
+                                <option value="">-- Pilih Provinsi Tujuan --</option>
+                                @foreach ($provinsi as $p)
+                                    <option value="{{ $p->provinsi_tujuan }}">{{ $p->provinsi_tujuan }}</option>
+                                @endforeach
+                            </select>
+                        </div>
 
-                  <div class="col-md-3">
-                    <label class="form-label fw-semibold">Satuan</label>
-                    <input type="text" name="biaya[0][satuan]" class="form-control">
-                  </div>
+                        <div class="col-md-2">
+                            <label class="form-label fw-semibold">Jumlah</label>
+                            <input type="number" name="biaya[0][jumlah]" class="form-control input-jumlah" value="1">
+                        </div>
 
-                  <div class="col-md-3">
-                    <label class="form-label fw-semibold">Harga Satuan (Rp)</label>
-                    <input type="number" name="biaya[0][harga]" class="form-control">
-                  </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Satuan</label>
+                            <input type="text" name="biaya[0][satuan]" class="form-control input-satuan">
+                        </div>
 
-                  <div class="col-md-4">
-                    <label class="form-label fw-semibold">Nomor Bukti</label>
-                    <input type="text" name="biaya[0][bukti]" class="form-control">
-                  </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Harga Satuan (Rp)</label>
+                            <input type="number" name="biaya[0][harga]" class="form-control input-harga">
+                        </div>
 
-                  <div class="col-md-5">
-                    <label class="form-label fw-semibold">Upload Bukti (Opsional)</label>
-                    <input type="file" name="biaya[0][upload_bukti]" class="form-control" accept=".jpg,.jpeg,.png,.pdf">
-                  </div>
-                </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Nomor Bukti</label>
+                            <input type="text" name="biaya[0][bukti]" class="form-control input-nomor-bukti">
+                        </div>
 
-                <div class="mt-3">
-                  <label class="form-label fw-semibold">Keterangan Tambahan</label>
-                  <textarea name="biaya[0][keterangan]" class="form-control" rows="2"></textarea>
+                        <div class="col-md-5">
+                            <label class="form-label fw-semibold">Upload Bukti (Opsional)</label>
+                            <input type="file" name="biaya[0][upload_bukti]" class="form-control input-bukti">
+                        </div>
+
+                        <div class="mt-3">
+                            <label class="form-label fw-semibold">Keterangan Tambahan</label>
+                            <textarea name="biaya[0][keterangan]" class="form-control" rows="2"></textarea>
+                        </div>
+                    </div>
                 </div>
               </div>
             </div>
@@ -719,58 +767,67 @@ document.addEventListener("DOMContentLoaded", function() {
 
     btnTambah.addEventListener('click', () => {
         const index = list.querySelectorAll('.biaya-item').length;
+
         const wrapper = document.createElement('div');
-        wrapper.className = 'biaya-item border rounded-3 p-3 mb-3 shadow-sm';
+        wrapper.className = 'biaya-item border rounded-3 p-3 mb-3';
+        wrapper.dataset.provinsi = "{{ $row->provinsi_tujuan }}";
 
         wrapper.innerHTML = `
-            <div class="d-flex justify-content-between mb-2">
-                <h6 class="fw-bold mb-0">Item Biaya #${index + 1}</h6>
-                <button type="button" class="btn btn-sm btn-danger btn-remove-item">Hapus</button>
-            </div>
-            <div class="row">
-                <div class="col-md-3 mb-2">
-                    <label class="form-label">Deskripsi Biaya</label>
-                    <select name="biaya[${index}][deskripsi]" class="form-control">
+        <div class="d-flex justify-content-between mb-2">
+            <h6 class="fw-bold mb-3">Item Biaya #${index + 1}</h6>
+            <button type="button" class="btn btn-sm btn-danger btn-remove-item">
+                Hapus
+            </button>
+        </div>
+
+            <div class="row g-3">
+
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Deskripsi Biaya</label>
+                    <select name="biaya[${index}][deskripsi]" class="form-select select-deskripsi">
                         <option value="">-- Pilih Deskripsi Biaya --</option>
                         <option value="Transportasi">Transportasi</option>
                         <option value="Taxi">Taxi</option>
                         <option value="Hotel">Hotel</option>
+                        <option value="Hotel 30%">Hotel (30%)</option>
                         <option value="BBM">BBM</option>
                     </select>
                 </div>
+
                 <div class="col-md-4">
-                  <label class="form-label fw-semibold">Provinsi Tujuan</label>
-                    <select name="provinsi_tujuan" class="form-select" required>
-                      <option value="">-- Pilih Provinsi Tujuan --</option>
+                    <label class="form-label fw-semibold">Provinsi Tujuan</label>
+                    <select name="biaya[${index}][provinsi_tujuan]" class="form-select input-provinsi">
+                        <option value="">-- Pilih Provinsi Tujuan --</option>
                         @foreach ($provinsi as $p)
-                          <option value="{{ $p->provinsi_tujuan }}">{{ $p->provinsi_tujuan }}</option>
+                            <option value="{{ $p->provinsi_tujuan }}">{{ $p->provinsi_tujuan }}</option>
                         @endforeach
-                  </select>
+                    </select>
                 </div>
-                <div class="col-md-2 mb-2">
-                    <label class="form-label">Jumlah</label>
-                    <input type="number" name="biaya[${index}][jumlah]" class="form-control" value="1">
+
+                <div class="col-md-2">
+                    <label class="form-label fw-semibold">Jumlah</label>
+                    <input type="number" name="biaya[${index}][jumlah]" class="form-control input-jumlah" value="1">
                 </div>
-                <div class="col-md-2 mb-2">
-                    <label class="form-label">Satuan</label>
-                    <input type="text" name="biaya[${index}][satuan]" class="form-control">
+
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Satuan</label>
+                    <input type="text" name="biaya[${index}][satuan]" class="form-control input-satuan">
                 </div>
-                <div class="col-md-2 mb-2">
-                    <label class="form-label">Harga Satuan (Rp)</label>
-                    <input type="number" name="biaya[${index}][harga]" class="form-control">
+
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Harga Satuan (Rp)</label>
+                    <input type="number" name="biaya[${index}][harga]" class="form-control input-harga">
                 </div>
-                <div class="col-md-3 mb-2">
-                    <label class="form-label">Nomor Bukti</label>
-                    <input type="text" name="biaya[${index}][bukti]" class="form-control">
+
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Nomor Bukti</label>
+                    <input type="text" name="biaya[${index}][bukti]" class="form-control input-nomor-bukti">
                 </div>
-                <div class="col-md-3 mb-2">
-                    <label class="form-label">Upload Bukti (Opsional)</label>
-                    <input type="file" name="biaya[${index}][upload_bukti]" class="form-control" accept=".jpg,.jpeg,.png,.pdf">
+
+                <div class="col-md-5">
+                    <label class="form-label fw-semibold">Upload Bukti (Opsional)</label>
+                    <input type="file" name="biaya[${index}][upload_bukti]" class="form-control input-bukti">
                 </div>
-            </div>
-            <div class="mb-2">
-                <label class="form-label">Keterangan Tambahan</label>
-                <textarea name="biaya[${index}][keterangan]" class="form-control" rows="2"></textarea>
             </div>
         `;
         list.appendChild(wrapper);
@@ -1003,6 +1060,40 @@ function printModal(id) {
         printWindow.close();
     }, 500);
 }
+</script>
+
+<script>
+    document.addEventListener("change", function (e) {
+        if (!e.target.classList.contains("select-deskripsi")) return;
+
+        const row = e.target.closest(".biaya-item");
+
+        const provinsiSelect = row.querySelector(".input-provinsi");
+        const jumlahInput = row.querySelector(".input-jumlah");
+        const satuanInput = row.querySelector(".input-satuan");
+        const hargaInput = row.querySelector(".input-harga");
+        const buktiInput = row.querySelector(".input-bukti");
+        const nomorBuktiInput = row.querySelector(".input-nomor-bukti");
+
+        if (e.target.value === "Hotel 30%") {
+
+            // Disable kolom harga satuan
+            hargaInput.disabled = true;
+
+            provinsiSelect.value = row.dataset.provinsi;
+            jumlahInput.value = row.dataset.jumlah;
+            satuanInput.value = "Malam";
+            hargaInput.value = row.dataset.harga;
+
+            buktiInput.disabled = true;
+            nomorBuktiInput.disabled = true;
+
+        } else {
+            hargaInput.disabled = false;
+            buktiInput.disabled = false;
+            nomorBuktiInput.disabled = false;
+        }
+    });
 </script>
 
 @endpush

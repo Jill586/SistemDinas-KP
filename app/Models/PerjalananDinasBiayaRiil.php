@@ -15,6 +15,7 @@ class PerjalananDinasBiayaRiil extends Model
     protected $fillable = [
     'perjalanan_dinas_id',
     'deskripsi_biaya',
+    'provinsi_tujuan',
     'jumlah',
     'satuan',
     'harga_satuan',

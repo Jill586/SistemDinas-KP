@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\LaporanPerjalananExport;
 use App\Models\SbuItem;
+use Carbon\Carbon;
 
 class LaporanPerjalananDinasController extends Controller
 {
@@ -96,6 +97,39 @@ class LaporanPerjalananDinasController extends Controller
         // Urutkan data terbaru berdasarkan tanggal_spt
         $perjalanans = $query->orderByDesc('tanggal_spt')->paginate($perPage);
 
+        foreach ($perjalanans as $p) {
+
+            $lamaMalam = Carbon::parse($p->tanggal_mulai)
+                        ->diffInDays(Carbon::parse($p->tanggal_selesai));
+
+            $data = [];
+
+            foreach ($p->pegawai as $pg) {
+
+                $totalPenginapan = $p->biaya
+                    ->where('pegawai_id_terkait', $pg->id)
+                    ->where('sbuItem.kategori_biaya', 'PENGINAPAN')
+                    ->sum('subtotal_biaya');
+
+                $hargaSatuan = $p->biaya
+                    ->where('pegawai_id_terkait', $pg->id)
+                    ->where('sbuItem.kategori_biaya', 'PENGINAPAN')
+                    ->first()->harga_satuan ?? 0;
+
+
+                $data[] = [
+                    'nama' => $pg->nama,
+                    'harga_satuan' => $hargaSatuan,
+                    'total_penginapan' => $totalPenginapan,
+                    'jumlah_malam' => $lamaMalam,
+                    'uang_30' => $totalPenginapan * 0.30,
+                ];
+            }
+
+            // tempel ke model agar bisa diakses dari Blade
+            $p->data_penginapan = $data;
+        }
+
         return view('laporan.laporan-perjalanan-dinas', compact('perjalanans', 'perPage', 'provinsi'))
             ->with([
                 'bulan' => $request->bulan,
@@ -140,10 +174,15 @@ class LaporanPerjalananDinasController extends Controller
 
             $subtotal = ($b['jumlah'] ?? 0) * ($b['harga'] ?? 0);
 
+            if (($b['deskripsi'] ?? '') === 'Hotel 30%') {
+                // Jika Hotel 30% maka subtotal = 30%
+                $subtotal = $subtotal * 0.30;
+            }
+
             PerjalananDinasBiayaRiil::create([
                 'perjalanan_dinas_id' => $perjalanan->id,
                 'deskripsi_biaya' => $b['deskripsi'] ?? '',
-                'provinsi_tujuan' => $request->provinsi_tujuan ?? '', 
+                'provinsi_tujuan' => $b['provinsi_tujuan'] ?? '',
                 'jumlah' => $b['jumlah'] ?? 0,
                 'satuan' => $b['satuan'] ?? '',
                 'harga_satuan' => $b['harga'] ?? 0,
@@ -187,6 +226,11 @@ class LaporanPerjalananDinasController extends Controller
             $pegawaiList = $perjalanan->pegawai;
             $template->cloneBlock('pegawai_block', $pegawaiList->count(), true, true);
 
+            // Hitung jumlah malam (tanpa +1)
+            $lamaMalam = Carbon::parse($perjalanan->tanggal_mulai)
+                                ->diffInDays(Carbon::parse($perjalanan->tanggal_selesai));
+            $jumlahMalamText = $lamaMalam . ' (' . $this->terbilang($lamaMalam) . ') Malam';
+
             $no = 1;
             foreach ($pegawaiList as $index => $pg) {
                 $i = $index + 1;
@@ -206,10 +250,13 @@ class LaporanPerjalananDinasController extends Controller
                 $template->setValue("jabatan#{$i}", $pg->jabatan->nama_jabatan ?? '-');
                 $template->setValue("kode_golongan#{$i}", $pg->golongan->kode_golongan ?? '-');
                 $template->setValue("golongan#{$i}", $pg->golongan->nama_golongan ?? '-');
-                $template->setValue("total_penginapan#{$i}", $totalPenginapanFormatted);                $template->setValue("biaya_30#{$i}", number_format($uang30Persen, 0, ',', '.'));
+                $template->setValue("total_penginapan#{$i}", $totalPenginapanFormatted);                
+                $template->setValue("biaya_30#{$i}", number_format($uang30Persen, 0, ',', '.'));
                 $template->setValue("nomor_spt#{$i}", $perjalanan->nomor_spt ?? '-');
                 $template->setValue("tanggal_mulai#{$i}", $tanggalMulai ?? '-');
                 $template->setValue("tanggal_selesai#{$i}", $tanggalSelesai ?? '-');
+                $template->setValue("jumlah_malam#{$i}", $lamaMalam);
+                $template->setValue("jumlah_malam_text#{$i}", $jumlahMalamText);
             }
 
             $fileName = 'PERNYATAAN_30_' . str_replace('/', '-', $perjalanan->nomor_spt);
