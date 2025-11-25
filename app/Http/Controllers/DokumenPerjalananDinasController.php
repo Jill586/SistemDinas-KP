@@ -279,10 +279,108 @@ class DokumenPerjalananDinasController extends Controller
     }
     public function exportExcel(Request $request)
 {
-    return Excel::download(
-        new DokumenSptSppdExport(),
-        'dokumen-spt-sppd.xlsx'
-    );
+    $user = auth()->user();
+
+    // ambil query yang sama dengan index()
+    $query = PerjalananDinas::with('pegawai')
+        ->where('status', 'disetujui');
+
+    // Role filter
+    if (in_array($user->role, ['super_admin', 'verifikator1', 'verifikator2', 'verifikator3'])) {
+        // all allowed
+    } elseif ($user->role === 'admin_bidang') {
+        $relatedRoles = [
+            'umum_kepegawaian','sekretariat','sekretariat_keuangan','sekretariat_perencanaan',
+            'bidang_ikps','bidang_tik','verifikator1','verifikator2','verifikator3','atasan'
+        ];
+        $operatorIds = User::whereIn('role', $relatedRoles)->pluck('id');
+        $operatorIds->push($user->id);
+        $query->whereIn('operator_id', $operatorIds);
+    } else {
+        $query->where('operator_id', $user->id);
+    }
+
+    // Filter bulan, tahun, status, search
+    if ($request->filled('bulan') && $request->filled('tahun')) {
+        $query->whereYear('tanggal_spt', $request->tahun)
+              ->whereMonth('tanggal_spt', $request->bulan);
+    } elseif ($request->filled('tahun')) {
+        $query->whereYear('tanggal_spt', $request->tahun);
+    }
+
+    if ($request->filled('status')) {
+        $query->where('status', $request->status);
+    }
+
+    if ($request->filled('search')) {
+        $search = $request->search;
+        $query->where(function ($q) use ($search) {
+            $q->where('nomor_spt', 'like', "%{$search}%")
+              ->orWhere('tujuan_spt', 'like', "%{$search}%")
+              ->orWhereHas('pegawai', function ($q2) use ($search) {
+                  $q2->where('nama', 'like', "%{$search}%");
+              });
+        });
+    }
+
+    $data = $query->orderByDesc('tanggal_spt')->get();
+
+    return Excel::download(new DokumenSptSppdExport($data), 'dokumen-spt-sppd.xlsx');
 }
+public function exportPdf(Request $request)
+{
+    $user = auth()->user();
+
+    // Query sama seperti index()
+    $query = PerjalananDinas::with('pegawai')
+        ->where('status', 'disetujui');
+
+    if (in_array($user->role, ['super_admin', 'verifikator1', 'verifikator2', 'verifikator3'])) {
+        //
+    } elseif ($user->role === 'admin_bidang') {
+        $relatedRoles = [
+            'umum_kepegawaian','sekretariat','sekretariat_keuangan','sekretariat_perencanaan',
+            'bidang_ikps','bidang_tik','verifikator1','verifikator2','verifikator3','atasan'
+        ];
+        $operatorIds = User::whereIn('role', $relatedRoles)->pluck('id');
+        $operatorIds->push($user->id);
+        $query->whereIn('operator_id', $operatorIds);
+    } else {
+        $query->where('operator_id', $user->id);
+    }
+
+    // Filter bulan, tahun, status, search
+    if ($request->filled('bulan') && $request->filled('tahun')) {
+        $query->whereYear('tanggal_spt', $request->tahun)
+              ->whereMonth('tanggal_spt', $request->bulan);
+    } elseif ($request->filled('tahun')) {
+        $query->whereYear('tanggal_spt', $request->tahun);
+    }
+
+    if ($request->filled('status')) {
+        $query->where('status', $request->status);
+    }
+
+    if ($request->filled('search')) {
+        $search = $request->search;
+        $query->where(function ($q) use ($search) {
+            $q->where('nomor_spt', 'like', "%{$search}%")
+              ->orWhere('tujuan_spt', 'like', "%{$search}%")
+              ->orWhereHas('pegawai', function ($q2) use ($search) {
+                  $q2->where('nama', 'like', "%{$search}%");
+              });
+        });
+    }
+
+    $data = $query->orderByDesc('tanggal_spt')->get();
+
+    // Load view PDF
+    $pdf = Pdf::loadView('pdf.export_pdf', compact('data'))
+        ->setPaper('A4', 'landscape');
+
+    return $pdf->download('dokumen-spt-sppd.pdf');
+}
+
+
 
 }

@@ -5,8 +5,13 @@ namespace App\Exports;
 use App\Models\PerjalananDinas;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\WithStyles;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class VerifikasiPengajuanExport implements FromCollection, WithHeadings
+
+class VerifikasiPengajuanExport implements FromCollection, WithHeadings, WithMapping, WithStyles
+
 {
     protected $request;
 
@@ -17,7 +22,7 @@ class VerifikasiPengajuanExport implements FromCollection, WithHeadings
 
     public function collection()
     {
-        $query = PerjalananDinas::with('pegawai')
+        $query = PerjalananDinas::with(['pegawai', 'operator', 'biaya'])
             ->whereNotIn('status', ['ditolak', 'revisi_operator', 'draft']);
 
         if ($this->request->filled('bulan')) {
@@ -28,25 +33,51 @@ class VerifikasiPengajuanExport implements FromCollection, WithHeadings
             $query->whereYear('tanggal_spt', $this->request->tahun);
         }
 
-        return $query->get()->map(function($item) {
-            return [
-                'Nomor SPT'     => $item->nomor_spt ?? '-',
-                'Nama' => $item->pegawai->first()->nama ?? '-',
-                'Tujuan'        => $item->tujuan_spt,
-                'Tanggal SPT'   => $item->tanggal_spt,
-                'Status'        => $item->status,
-            ];
-        });
+        return $query->orderBy('tanggal_spt', 'desc')->get();
     }
 
+    // --- BARIS DATA ---
+    public function map($item): array
+    {
+        // Personil: ambil list nama pegawai di relasi
+        $personil = $item->pegawai->pluck('nama')->join(', ');
+
+        // Pelaksanaan
+        $pelaksanaan = $item->tanggal_mulai . " s/d " . $item->tanggal_selesai;
+
+        // Estimasi Biaya: total semua biaya
+        $totalBiaya = $item->biaya->sum('jumlah');
+
+        return [
+            $item->nomor_spt ?: 'Belum ada',
+            $item->tanggal_spt,
+            $item->operator->name ?? '-',
+            $item->tujuan_spt,
+            $personil,
+            $pelaksanaan,
+            "Rp " . number_format($totalBiaya, 0, ',', '.'),
+            strtoupper($item->status),
+        ];
+    }
+
+    // --- HEADER KOLOM ---
     public function headings(): array
     {
         return [
-            'Nomor SPT',
-            'Nama',
-            'Tujuan',
+            'No. SPT',
             'Tanggal SPT',
+            'Operator Pengaju',
+            'Tujuan',
+            'Personil',
+            'Pelaksanaan',
+            'Estimasi Biaya',
             'Status'
+        ];
+    }
+     public function styles(Worksheet $sheet)
+    {
+        return [
+            1 => ['font' => ['bold' => true]] // Heading bold
         ];
     }
 }

@@ -65,6 +65,10 @@
             <a href="{{ route('verifikasi-pengajuan.export.excel') }}" class="btn btn-success">
                 Export Excel
             </a>
+            <a href="{{ route('verifikasi-pengajuan.export.pdf') }}" class="btn btn-danger">
+                Export PDF
+            </a>
+
 
         </form>
     </div>

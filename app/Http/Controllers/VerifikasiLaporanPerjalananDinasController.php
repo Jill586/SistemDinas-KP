@@ -93,4 +93,42 @@ public function exportExcel(Request $request)
 {
     return Excel::download(new VerifikasiLaporanExport($request), 'verifikasi-laporan.xlsx');
 }
+public function exportPdf(Request $request)
+{
+    // Query sama seperti index(), tapi tanpa paginate
+    $query = PerjalananDinas::with(['pegawai', 'laporan'])
+        ->whereIn('status_laporan', ['diproses', 'selesai']);
+
+    if ($request->filled('bulan')) {
+        $query->whereMonth('tanggal_spt', $request->bulan);
+    }
+
+    if ($request->filled('tahun')) {
+        $query->whereYear('tanggal_spt', $request->tahun);
+    }
+
+    if ($request->filled('status_laporan')) {
+        $query->where('status_laporan', $request->status_laporan);
+    }
+
+    if ($request->filled('search')) {
+        $search = $request->search;
+        $query->where(function($q) use ($search) {
+            $q->where('nomor_spt', 'like', "%{$search}%")
+              ->orWhere('tujuan_spt', 'like', "%{$search}%")
+              ->orWhereHas('pegawai', function ($q2) use ($search) {
+                  $q2->where('nama', 'like', "%{$search}%");
+              });
+        });
+    }
+
+    $data = $query->orderByDesc('tanggal_spt')->get();
+
+    $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.verifikasi-laporan-perjadin', [
+        'data' => $data
+    ])->setPaper('A4', 'landscape');
+
+    return $pdf->download('verifikasi-laporan.pdf');
+}
+
 }

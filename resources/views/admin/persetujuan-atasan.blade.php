@@ -64,6 +64,10 @@
             <a href="{{ route('persetujuan-atasan.export.excel') }}" class="btn btn-success">
                 Export Excel
             </a>
+            <a href="{{ route('persetujuan-atasan.export.pdf') }}" class="btn btn-danger">
+                Export PDF
+            </a>
+
 
         </form>
     </div>

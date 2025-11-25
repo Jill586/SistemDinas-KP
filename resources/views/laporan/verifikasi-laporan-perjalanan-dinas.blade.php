@@ -59,6 +59,11 @@
              <a href="{{ route('verifikasi-laporan.export.excel') }}" class="btn btn-success">
                 <i class="fas fa-file-excel"></i> Export Excel
             </a>
+            <a href="{{ route('verifikasi-laporan.export.pdf', request()->query()) }}"
+            class="btn btn-danger">
+                <i class="fas fa-file-pdf"></i> Export PDF
+            </a>
+
         </form>
     </div>
 
@@ -283,8 +288,8 @@
                 <td class="text-center">{{ $biaya->nomor_bukti }}</td>
                 <td class="text-center">
                     @if ($biaya->path_bukti_file)
-                        <a href="{{ asset('storage/' . $biaya->path_bukti_file) }}" 
-                        target="_blank" 
+                        <a href="{{ asset('storage/' . $biaya->path_bukti_file) }}"
+                        target="_blank"
                         class="btn btn-sm btn-primary">
                         <i class="bx bx-show"></i>
                         </a>
@@ -342,7 +347,7 @@
                 @else
                     <div class="alert alert-info text-center">Detail estimasi biaya belum tersedia.</div>
                 @endif
-        
+
         <!-- FORM VERIFIKASI -->
         @if($row->status_laporan !== 'selesai')
         <h6 class="fw-bold">Form Verifikasi Laporan</h6>

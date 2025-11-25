@@ -6,6 +6,7 @@ use App\Models\PerjalananDinas;
 use Illuminate\Http\Request;
 use App\Exports\PersetujuanAtasanExport;
 use Maatwebsite\Excel\Facades\Excel;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class PersetujuanAtasanController extends Controller
 {
@@ -66,7 +67,7 @@ public function index(Request $request)
             'bulan' => $request->bulan,
             'tahun' => $request->tahun,
             'search' => $search,
-            'status' => $request->status, 
+            'status' => $request->status,
         ]);
 }
 
@@ -128,6 +129,43 @@ public function exportExcel(Request $request)
         new PersetujuanAtasanExport($request),
         'persetujuan-atasan.xlsx'
     );
+}
+public function exportPdf(Request $request)
+{
+    // Ambil data sesuai filter
+    $query = PerjalananDinas::with(['pegawai', 'biaya'])
+        ->whereIn('status', ['verifikasi', 'disetujui']);
+
+    if ($request->filled('bulan')) {
+        $query->whereMonth('tanggal_spt', $request->bulan);
+    }
+
+    if ($request->filled('tahun')) {
+        $query->whereYear('tanggal_spt', $request->tahun);
+    }
+
+    if ($request->filled('status')) {
+        $query->where('status', $request->status);
+    }
+
+    if ($request->filled('search')) {
+        $search = $request->search;
+        $query->where(function($q) use ($search) {
+            $q->where('nomor_spt', 'like', "%{$search}%")
+              ->orWhere('tujuan_spt', 'like', "%{$search}%")
+              ->orWhereHas('pegawai', fn($q2) => $q2->where('nama', 'like', "%{$search}%"))
+              ->orWhereHas('operator', fn($q3) => $q3->where('name', 'like', "%{$search}%"))
+              ->orWhereHas('verifikator', fn($q4) => $q4->where('name', 'like', "%{$search}%"));
+        });
+    }
+
+    $data = $query->orderByDesc('tanggal_spt')->get();
+
+    // Render PDF
+    $pdf = Pdf::loadView('pdf.persetujuan-atasan', compact('data'))
+        ->setPaper('A4', 'landscape');
+
+    return $pdf->download('persetujuan-atasan.pdf');
 }
 
 }

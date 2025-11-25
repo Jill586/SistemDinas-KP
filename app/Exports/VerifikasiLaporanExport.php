@@ -7,8 +7,11 @@ use Illuminate\Http\Request;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithStyles;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use Carbon\Carbon;
 
-class VerifikasiLaporanExport implements FromCollection, WithMapping, WithHeadings
+class VerifikasiLaporanExport implements FromCollection, WithMapping, WithHeadings, WithStyles
 {
     protected $request;
 
@@ -31,8 +34,8 @@ class VerifikasiLaporanExport implements FromCollection, WithMapping, WithHeadin
         }
 
         if ($this->request->filled('search')) {
-            $query->where(function ($q) {
-                $search = $this->request->search;
+            $search = $this->request->search;
+            $query->where(function ($q) use ($search) {
                 $q->where('nomor_spt', 'like', "%{$search}%")
                     ->orWhere('tujuan_spt', 'like', "%{$search}%")
                     ->orWhereHas('pegawai', function ($q2) use ($search) {
@@ -47,12 +50,21 @@ class VerifikasiLaporanExport implements FromCollection, WithMapping, WithHeadin
     public function map($row): array
     {
         return [
-            $row->nomor_spt,
-            \Carbon\Carbon::parse($row->tanggal_spt)->format('d M Y'),
-            $row->tujuan_spt,
-            $row->pegawai->pluck('nama')->implode(', '),
-            ucfirst($row->status_laporan),
-            optional($row->created_at)->translatedFormat('d F Y'),
+            $row->nomor_spt ?? '-',
+
+            $row->tanggal_spt
+                ? Carbon::parse($row->tanggal_spt)->format('d M Y')
+                : '-',
+
+            $row->tujuan_spt ?? '-',
+
+            $row->pegawai->pluck('nama')->implode(', ') ?: '-',
+
+            ucfirst($row->status_laporan) ?? '-',
+
+            $row->created_at
+                ? Carbon::parse($row->created_at)->translatedFormat('d F Y')
+                : '-',
         ];
     }
 
@@ -65,6 +77,13 @@ class VerifikasiLaporanExport implements FromCollection, WithMapping, WithHeadin
             'Nama Pegawai',
             'Status Laporan',
             'Tanggal Dibuat'
+        ];
+    }
+
+    public function styles(Worksheet $sheet)
+    {
+        return [
+            1 => ['font' => ['bold' => true]], // Header row bold
         ];
     }
 }

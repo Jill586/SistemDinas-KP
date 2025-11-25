@@ -13,6 +13,9 @@ use App\Models\User;
 use Carbon\Carbon;
 use App\Exports\PerjalananDinasExport;
 use Maatwebsite\Excel\Facades\Excel;
+use Barryvdh\DomPDF\Facade\Pdf;
+
+
 
 class PerjalananDinasController extends Controller
 {
@@ -434,9 +437,107 @@ $this->validasiForm($request);
 
         return response()->download($filepath);
     }
-    public function exportExcel()
+   public function exportExcel(Request $request)
 {
-    return Excel::download(new PerjalananDinasExport, 'perjalanan_dinas.xlsx');
+    // Copy logika filter dari index()
+    $user = Auth::user();
+    $search = $request->input('search');
+
+    $query = PerjalananDinas::with(['pegawai', 'biaya'])
+        ->orderBy('id', 'asc');
+
+    // Filter role (copas dari index)
+    if (in_array($user->role, ['super_admin', 'verifikator1'])) {
+        //
+    } elseif ($user->role === 'admin_bidang') {
+        $relatedRoles = [
+            'umum_kepegawaian','sekretariat','sekretariat_keuangan',
+            'sekretariat_perencanaan','bidang_ikps','bidang_tik',
+            'verifikator1','verifikator2','verifikator3','atasan'
+        ];
+
+        $operatorIds = User::whereIn('role', $relatedRoles)->pluck('id');
+        $operatorIds->push($user->id);
+
+        $query->whereIn('operator_id', $operatorIds);
+    } else {
+        $query->where('operator_id', $user->id);
+    }
+
+    // Filter bulan, tahun, status, search (sama seperti index)
+    if ($request->filled('bulan')) {
+        $query->whereMonth('tanggal_spt', $request->bulan);
+    }
+
+    if ($request->filled('tahun')) {
+        $query->whereYear('tanggal_spt', $request->tahun);
+    }
+
+    if ($request->filled('status')) {
+        $query->where('status', $request->status);
+    }
+
+    if ($search) {
+        $query->where(function ($q) use ($search) {
+            $q->where('tujuan_spt', 'like', "%{$search}%")
+              ->orWhere('jenis_spt', 'like', "%{$search}%")
+              ->orWhere('jenis_kegiatan', 'like', "%{$search}%")
+              ->orWhereHas('pegawai', function ($pegawai) use ($search) {
+                  $pegawai->where('nama', 'like', "%{$search}%");
+              });
+        });
+    }
+
+    // Ambil hasil tanpa pagination
+    $data = $query->get();
+
+    return Excel::download(new PerjalananDinasExport($data), 'perjalanan_dinas.xlsx');
 }
+public function exportPdf(Request $request)
+{
+    $user = Auth::user();
+
+    $query = PerjalananDinas::with(['pegawai', 'biaya'])
+        ->orderBy('id', 'asc');
+
+    // 🔁 Filter bulan
+    if ($request->filled('bulan')) {
+        $query->whereMonth('tanggal_spt', $request->bulan);
+    }
+
+    // 🔁 Filter tahun
+    if ($request->filled('tahun')) {
+        $query->whereYear('tanggal_spt', $request->tahun);
+    }
+
+    // 🔁 Filter status
+    if ($request->filled('status')) {
+        $query->where('status', $request->status);
+    }
+
+    // 🔁 Filter text search
+    if ($request->search) {
+        $search = $request->search;
+        $query->where(function ($q) use ($search) {
+            $q->where('tujuan_spt', 'like', "%$search%")
+              ->orWhere('jenis_spt', 'like', "%$search%")
+              ->orWhere('jenis_kegiatan', 'like', "%$search%")
+              ->orWhereHas('pegawai', function ($pg) use ($search) {
+                  $pg->where('nama', 'like', "%$search%");
+              });
+        });
+    }
+
+    $perjalanans = $query->get();
+
+    // Render PDF view
+   $pdf = Pdf::loadView('pdf.perjalanan-dinas-pdf', [
+
+        'perjalanans' => $perjalanans
+    ])->setPaper('A4', 'landscape');
+
+    return $pdf->download('data-perjalanan-dinas.pdf');
+}
+
 
 }

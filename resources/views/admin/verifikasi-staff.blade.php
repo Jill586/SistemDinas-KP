@@ -64,6 +64,11 @@
             <a href="{{ url('/export-verifikasi-staff') }}" class="btn btn-success">
                 Export Excel
             </a>
+            <a href="{{ url('/export-verifikasi-staff/pdf') }}" class="btn btn-danger">
+                Export PDF
+            </a>
+            
+
 
         </form>
     </div>

@@ -6,6 +6,7 @@ use App\Models\PerjalananDinas;
 use Illuminate\Http\Request;
 use App\Exports\VerifikasiPengajuanExport;
 use Maatwebsite\Excel\Facades\Excel;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 
 class VerifikasiPengajuanController extends Controller
@@ -123,5 +124,50 @@ class VerifikasiPengajuanController extends Controller
             'verifikasi-pengajuan.xlsx'
         );
     }
+    public function exportPdf(Request $request)
+{
+    $query = PerjalananDinas::with(['pegawai', 'operator'])
+        ->whereNotIn('status', ['ditolak', 'revisi_operator', 'draft']);
+
+    // Filter bulan
+    if ($request->filled('bulan')) {
+        $query->whereMonth('tanggal_spt', $request->bulan);
+    }
+
+    // Filter tahun
+    if ($request->filled('tahun')) {
+        $query->whereYear('tanggal_spt', $request->tahun);
+    }
+
+    // Filter status
+    if ($request->filled('status')) {
+        $query->where('status', $request->status);
+    }
+
+    // Search
+    if ($request->filled('search')) {
+        $search = $request->search;
+
+        $query->where(function($q) use ($search) {
+            $q->where('nomor_spt', 'like', "%{$search}%")
+              ->orWhere('tujuan_spt', 'like', "%{$search}%")
+              ->orWhereHas('pegawai', function ($q2) use ($search) {
+                  $q2->where('nama', 'like', "%{$search}%");
+              })
+              ->orWhereHas('operator', function ($q3) use ($search) {
+                  $q3->where('name', 'like', "%{$search}%");
+              });
+        });
+    }
+
+    $data = $query->orderByDesc('tanggal_spt')->get();
+
+    $pdf = Pdf::loadView('pdf.verifikasi-pengajuan', [
+        'data' => $data
+    ])->setPaper('a4', 'landscape');
+
+    return $pdf->download('verifikasi-pengajuan.pdf');
+}
+
 
 }

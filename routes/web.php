@@ -61,6 +61,8 @@ Route::middleware(['auth', 'role:admin_bidang'])->group(function () {
         Route::post('/perjalanan-dinas/upload-ttd/{id}', 'uploadTtd')->name('perjalanan-dinas.uploadTtd');
         Route::get('/perjalanan-dinas/download-ttd/{id}', 'downloadTtd')->name('perjalanan-dinas.downloadTtd');
         Route::get('/perjalanan-dinas/export/excel', 'exportExcel')->name('perjalanan-dinas.export.excel');
+        Route::get('/perjalanan-dinas/export/pdf', 'exportPdf')->name('perjalanan-dinas.export.pdf');
+
 
     });
 
@@ -79,6 +81,10 @@ Route::middleware(['auth', 'role:admin_bidang'])->group(function () {
 
         Route::get('/laporan/download/{id}/{type}', 'downloadLaporan')->name('laporan.download');
        Route::get('/export-laporanperjalanan-dinas','exportExcel')->name('laporan-perjalanan.export.excel');
+       Route::get('/laporan/pdf', 'exportPdf')->name('laporan.export.pdf');
+
+
+
     });
 });
 /*
@@ -106,6 +112,8 @@ Route::middleware(['auth', 'role:verifikator1|admin_bidang'])->group(function ()
 
     // Export Excel
    Route::get('/export-verifikasi-staff','exportExcel')->name('verifikasi-staff.exportExcel');
+   Route::get('/export-verifikasi-staff/pdf',  'exportPdf')->name('verifikasi-staff.export.pdf');
+
 
 
 
@@ -130,6 +138,8 @@ Route::middleware(['auth', 'role:verifikator2'])->group(function () {
         Route::put('/verifikasi-pengajuan/{id}', 'update')->name('verifikasi-pengajuan.update');
         Route::post('/verifikasi-pengajuan/{id}/upload-undangan', 'uploadUndangan')->name('verifikasi.uploadUndangan');
         Route::get('/export-verifikasi-pengajuan', 'exportExcel') ->name('verifikasi-pengajuan.export.excel');
+        Route::get('/verifikasi-pengajuan/export/pdf', 'exportPdf')->name('verifikasi-pengajuan.export.pdf');
+
 
     });
 
@@ -138,6 +148,8 @@ Route::middleware(['auth', 'role:verifikator2'])->group(function () {
         Route::put('/verifikasi-laporan/{id}/update', 'update')->name('verifikasi-laporan.update');
         Route::get('/export-verifikasi-perjalanandinas','exportExcel')->name('verifikasi-laporan.export.excel');
         Route::get('/verifikasi-laporan-perjalanan-dinas/export-excel','exportExcel')->name('verifikasi-laporan.export.excel');
+        Route::get('/verifikasi-laporan/export/pdf',  'exportPdf')->name('verifikasi-laporan.export.pdf');
+
     });
 });
 
@@ -154,6 +166,8 @@ Route::middleware(['auth', 'role:verifikator3'])->group(function () {
         Route::post('/persetujuan-atasan/{id}/revisi', 'revisi')->name('persetujuan-atasan.revisi');
         Route::put('/persetujuan-atasan/{id}', 'update')->name('persetujuan-atasan.update');
         Route::get('/persetujuan-atasan/export-excel','exportExcel')->name('persetujuan-atasan.export.excel');
+        Route::get('/persetujuan-atasan/export/pdf', 'exportPdf')->name('persetujuan-atasan.export.pdf');
+
 
     });
 });
@@ -168,6 +182,8 @@ Route::middleware(['auth', 'role:super_admin|admin_bidang|verifikator2|verifikat
             Route::get('/dokumen-perjalanan-dinas', 'index')->name('dokumen-perjalanan-dinas.index');
             Route::get('/dokumen/download/{id}/{type}', 'download')->name('dokumen.download');
             Route::get('/dokumen-spt-sppd/export-excel','exportExcel')->name('dokumen-spt-sppd.export.excel');
+            Route::get('/dokumen-spt-sppd/export/pdf','exportPdf')->name('dokumen-spt-sppd.export.pdf');
+
         });
     });
 

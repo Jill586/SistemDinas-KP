@@ -26,7 +26,7 @@
                         </option>
                     @endforeach
             </select>
-            
+
              <select name="status_laporan" class="form-select" style="width: 160px;">
                 <option value="">-- Status --</option>
 
@@ -60,6 +60,13 @@
              <a href="{{ route('laporan-perjalanan.export.excel') }}" class="btn btn-success">
                 <i class="fas fa-file-excel"></i> Export Excel
             </a>
+       <a href="{{ route('laporan.export.pdf') }}" class="btn btn-danger btn-sm">
+            Export PDF
+        </a>  
+
+
+
+
         </form>
     </div>
 
@@ -488,7 +495,7 @@
             $adaHotel30 = $row->biayaRiil->where('deskripsi_biaya', 'Hotel 30%')->isNotEmpty();
         @endphp
 
-        @if ($adaHotel30)            
+        @if ($adaHotel30)
         <h6 class="fw-bold">Perhitungan (HOTEL 30%)</h6>
             <table class="table table-bordered">
                 <thead class="table-light">
@@ -618,7 +625,7 @@
                 data-provinsi="{{ $row->provinsi_tujuan }}"
                 data-jumlah="{{ $row->biaya->firstWhere('deskripsi_biaya', 'Hotel')->jumlah_unit ?? 1 }}"
                 data-harga="{{ $row->biaya->firstWhere('deskripsi_biaya', 'Hotel')->harga_satuan ?? 0 }}">
-                  
+
                 <h6 class="fw-bold mb-3">Item Biaya #1</h6>
 
                     <div class="row g-3">

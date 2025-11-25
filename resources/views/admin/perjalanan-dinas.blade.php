@@ -59,6 +59,10 @@
                 <a href="{{ route('perjalanan-dinas.export.excel') }}" class="btn btn-success">
                     <i class="fas fa-file-excel"></i> Export Excel
                 </a>
+                <a href="{{ route('perjalanan-dinas.export.pdf') }}" class="btn btn-danger">
+                    <i class="fas fa-file-pdf"></i> Export PDF
+                </a>
+
             </div>
 
         </form>

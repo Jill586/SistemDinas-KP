@@ -12,6 +12,8 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\LaporanPerjalananExport;
 use App\Models\SbuItem;
 use Carbon\Carbon;
+use PDF;
+
 
 class LaporanPerjalananDinasController extends Controller
 {
@@ -135,7 +137,7 @@ class LaporanPerjalananDinasController extends Controller
                 'bulan' => $request->bulan,
                 'tahun' => $request->tahun,
                 'search' => $search,
-                'status_laporan' => $request->status_laporan, 
+                'status_laporan' => $request->status_laporan,
             ]);
     }
 
@@ -250,7 +252,7 @@ class LaporanPerjalananDinasController extends Controller
                 $template->setValue("jabatan#{$i}", $pg->jabatan->nama_jabatan ?? '-');
                 $template->setValue("kode_golongan#{$i}", $pg->golongan->kode_golongan ?? '-');
                 $template->setValue("golongan#{$i}", $pg->golongan->nama_golongan ?? '-');
-                $template->setValue("total_penginapan#{$i}", $totalPenginapanFormatted);                
+                $template->setValue("total_penginapan#{$i}", $totalPenginapanFormatted);
                 $template->setValue("biaya_30#{$i}", number_format($uang30Persen, 0, ',', '.'));
                 $template->setValue("nomor_spt#{$i}", $perjalanan->nomor_spt ?? '-');
                 $template->setValue("tanggal_mulai#{$i}", $tanggalMulai ?? '-');
@@ -429,8 +431,41 @@ class LaporanPerjalananDinasController extends Controller
 
         return redirect()->back()->with('success', 'Laporan berhasil diperbarui.');
     }
-    public function exportExcel()
+   public function exportExcel(Request $request)
 {
-    return Excel::download(new LaporanPerjalananExport, 'laporan-perjalanan.xlsx');
+    $user = Auth::user();
+
+    // Gunakan QUERY yang sama seperti halaman tabel
+    $query = PerjalananDinas::with(['pegawai', 'biaya', 'laporan'])
+        ->whereIn('status', ['disetujui', 'selesai']);
+
+    // Filter yang sama seperti halaman tabel
+    if ($request->filled('bulan')) {
+        $query->whereMonth('tanggal_spt', $request->bulan);
+    }
+    if ($request->filled('tahun')) {
+        $query->whereYear('tanggal_spt', $request->tahun);
+    }
+    if ($request->filled('status_laporan')) {
+        $query->where('status_laporan', $request->status_laporan);
+    }
+
+    $data = $query->orderByDesc('tanggal_spt')->get();
+
+    return Excel::download(new LaporanPerjalananExport($data), 'laporan-perjalanan.xlsx');
 }
+public function exportPdf()
+{
+    $data = PerjalananDinas::with(['pegawai', 'laporan', 'biaya.sbuItem'])
+        ->orderByDesc('tanggal_mulai')
+        ->get();
+
+    $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.laporan-perjalanan-list', [
+        'data' => $data
+    ])->setPaper('A4', 'landscape');
+
+    return $pdf->download('laporan-perjalanan-dinas.pdf');
+}
+
+
 }

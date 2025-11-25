@@ -65,6 +65,10 @@
              <a href="{{ route('dokumen-spt-sppd.export.excel') }}" class="btn btn-success">
                   Export Excel
              </a>
+             <a href="{{ route('dokumen-spt-sppd.export.pdf') }}" class="btn btn-danger">
+                Export PDF
+            </a>
+
 
         </form>
     </div>
