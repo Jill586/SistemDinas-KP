@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\LaporanPerjalananDinas;
 use App\Models\PerjalananDinas;
 use Illuminate\Http\Request;
+use App\Exports\VerifikasiLaporanExport;
+use Maatwebsite\Excel\Facades\Excel;
+
 
 class VerifikasiLaporanPerjalananDinasController extends Controller
 {
@@ -25,6 +28,10 @@ public function index(Request $request)
     if ($request->filled('tahun')) {
         $query->whereYear('tanggal_spt', $request->tahun);
     }
+     // 🔥 **Filter Status**
+            if ($request->filled('status_laporan')) {
+                $query->where('status_laporan', $request->status_laporan);
+            }
 
     // 🔍 Jika ada pencarian
     if ($request->filled('search')) {
@@ -52,6 +59,7 @@ public function index(Request $request)
             'bulan' => $request->bulan,
             'tahun' => $request->tahun,
             'search' => $search,
+            'status_laporan' => $request->status_laporan,
         ]);
 }
 
@@ -79,5 +87,10 @@ public function update(Request $request, $id)
     $perjalanan->save();
 
     return redirect()->back()->with('success', 'Status laporan berhasil diperbarui.');
+}
+
+public function exportExcel(Request $request)
+{
+    return Excel::download(new VerifikasiLaporanExport($request), 'verifikasi-laporan.xlsx');
 }
 }

@@ -50,8 +50,8 @@
             <th>Email</th>
             <th>Nomor HP</th>
             <th>NIP</th>
-            <th>Golongan</th>
             <th>Jabatan</th>
+            <th>Golongan</th>
             <th>Aksi</th>
           </tr>
         </thead>

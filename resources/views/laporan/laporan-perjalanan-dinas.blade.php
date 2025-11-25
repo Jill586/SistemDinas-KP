@@ -26,27 +26,29 @@
                         </option>
                     @endforeach
             </select>
-             <a href="{{ route('laporan-perjalanan.export.excel') }}" class="btn btn-success">
-                <i class="fas fa-file-excel"></i> Export Excel
-            </a>
+            
              <select name="status_laporan" class="form-select" style="width: 160px;">
-    <option value="">-- Status --</option>
+                <option value="">-- Status --</option>
 
-    <option value="belum_dibuat"
-        {{ request('status_laporan') == 'belum_dibuat' ? 'selected' : '' }}>
-        Belum Dibuat
-    </option>
+                <option value="belum_dibuat"
+                    {{ request('status_laporan') == 'belum_dibuat' ? 'selected' : '' }}>
+                    Belum Dibuat
+                </option>
 
-    <option value="diproses"
-        {{ request('status_laporan') == 'diproses' ? 'selected' : '' }}>
-        Diproses
-    </option>
+                <option value="diproses"
+                    {{ request('status_laporan') == 'diproses' ? 'selected' : '' }}>
+                    Diproses
+                </option>
 
-    <option value="selesai"
-        {{ request('status_laporan') == 'selesai' ? 'selected' : '' }}>
-        Selesai
-    </option>
-</select>
+                <option value="selesai"
+                    {{ request('status_laporan') == 'selesai' ? 'selected' : '' }}>
+                    Selesai
+                </option>
+                <option value="revisi_operator"
+                    {{ request('status_laporan') == 'revisi_operator' ? 'selected' : '' }}>
+                    Revisi Operator
+                </option>
+            </select>
 
             <button type="submit" class="btn btn-primary">
                 <i class="bx bx-filter"></i> Filter
@@ -54,6 +56,9 @@
 
             <a href="{{ route('laporan.index') }}" class="btn btn-secondary">
                 <i class="bx bx-reset"></i> Reset
+            </a>
+             <a href="{{ route('laporan-perjalanan.export.excel') }}" class="btn btn-success">
+                <i class="fas fa-file-excel"></i> Export Excel
             </a>
         </form>
     </div>
@@ -423,6 +428,7 @@
           <thead class="table-light text-center">
             <tr>
               <th>Deskripsi</th>
+              <th>Provinsi Tujuan</th>
               <th>Jumlah</th>
               <th>Satuan</th>
               <th>Harga Satuan</th>
@@ -436,6 +442,7 @@
             @forelse ($row->biayaRiil as $biaya)
             <tr>
               <td>{{ $biaya->deskripsi_biaya }}</td>
+              <td>{{ $biaya->provinsi_tujuan ?? '-'}}</td>
               <td class="text-center">{{ $biaya->jumlah }}</td>
               <td class="text-center">{{ $biaya->satuan }}</td>
               <td class="text-end">{{ number_format($biaya->harga_satuan) }}</td>
@@ -522,7 +529,7 @@
         @csrf
         <input type="hidden" name="aksi" id="aksiInput" value="">
         <div class="modal-header bg-white">
-          <h5 class="modal-title fw-bold">Form Laporan Perjalanan Dinas</h5>
+          <h5 class="modal-title">Form Laporan Perjalanan Dinas</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
 
@@ -565,15 +572,13 @@
             <h6 class="fw-bold border-bottom pb-2 mb-3">Rincian Biaya Riil</h6>
 
             <div id="listBiayaRiil">
-              {{-- Jika ingin, kamu bisa inject item via JS ketika tombol Edit diklik --}}
-              <div class="biaya-item border rounded-3 p-3 mb-3 shadow-sm">
-                <div class="d-flex justify-content-between mb-2">
-                  <h6 class="fw-bold mb-0">Item Biaya #1</h6>
-                </div>
-                <div class="row">
-                  <div class="col-md-3 mb-2">
-                    <label class="form-label">Deskripsi Biaya</label>
-                    <select name="biaya[0][deskripsi]" class="form-control">
+              <div class="biaya-item border rounded-3 p-3 mb-3">
+                <h6 class="fw-bold mb-3">Item Biaya #1</h6>
+
+                <div class="row g-3">
+                  <div class="col-md-3">
+                    <label class="form-label fw-semibold">Deskripsi Biaya</label>
+                    <select name="biaya[0][deskripsi]" class="form-select">
                       <option value="">-- Pilih Deskripsi Biaya --</option>
                       <option value="Transportasi">Transportasi</option>
                       <option value="Taxi">Taxi</option>
@@ -582,31 +587,45 @@
                       <option value="BBM">BBM</option>
                     </select>
                   </div>
-                  <div class="col-md-2 mb-2">
-                    <label class="form-label">Jumlah</label>
+
+                  <div class="col-md-4">
+                    <label class="form-label fw-semibold">Provinsi Tujuan</label>
+                    <select name="provinsi_tujuan" class="form-select" required>
+                      <option value="">-- Pilih Provinsi Tujuan --</option>
+                      @foreach ($provinsi as $p)
+                        <option value="{{ $p->provinsi_tujuan }}">{{ $p->provinsi_tujuan }}</option>
+                      @endforeach
+                    </select>
+                  </div>
+
+                  <div class="col-md-2">
+                    <label class="form-label fw-semibold">Jumlah</label>
                     <input type="number" name="biaya[0][jumlah]" class="form-control" value="1">
                   </div>
-                  <div class="col-md-2 mb-2">
-                    <label class="form-label">Satuan</label>
+
+                  <div class="col-md-3">
+                    <label class="form-label fw-semibold">Satuan</label>
                     <input type="text" name="biaya[0][satuan]" class="form-control">
                   </div>
-                  <div class="col-md-2 mb-2">
-                    <label class="form-label">Harga Satuan (Rp)</label>
+
+                  <div class="col-md-3">
+                    <label class="form-label fw-semibold">Harga Satuan (Rp)</label>
                     <input type="number" name="biaya[0][harga]" class="form-control">
                   </div>
-                  <div class="col-md-3 mb-2">
-                    <label class="form-label">Nomor Bukti</label>
+
+                  <div class="col-md-4">
+                    <label class="form-label fw-semibold">Nomor Bukti</label>
                     <input type="text" name="biaya[0][bukti]" class="form-control">
                   </div>
 
-                  <div class="col-md-3 mb-2">
-                    <label class="form-label">Upload Bukti (Opsional)</label>
+                  <div class="col-md-5">
+                    <label class="form-label fw-semibold">Upload Bukti (Opsional)</label>
                     <input type="file" name="biaya[0][upload_bukti]" class="form-control" accept=".jpg,.jpeg,.png,.pdf">
                   </div>
                 </div>
 
-                <div class="mb-2">
-                  <label class="form-label">Keterangan Tambahan</label>
+                <div class="mt-3">
+                  <label class="form-label fw-semibold">Keterangan Tambahan</label>
                   <textarea name="biaya[0][keterangan]" class="form-control" rows="2"></textarea>
                 </div>
               </div>
@@ -618,37 +637,6 @@
               </button>
             </div>
           </div>
-
-          {{-- Ringkasan Perbandingan Biaya (akan dihitung di server saat submit) --}}
-          <div class="mt-4">
-            <h6 class="fw-bold border-bottom pb-2 mb-3">Ringkasan Perbandingan Biaya</h6>
-
-            <div class="table-responsive">
-              <table class="table table-bordered align-middle text-end">
-                <thead style="background-color: #6f42c1; color: white;">
-                  <tr>
-                    <th class="text-start">Keterangan</th>
-                    <th>Jumlah (Rp)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td class="text-start">Total Estimasi Biaya (Pengajuan)</td>
-                    <td>Rp <span id="totalEstimasi">0</span></td>
-                  </tr>
-                  <tr>
-                    <td class="text-start">Total Biaya Riil Dilaporkan</td>
-                    <td>Rp <span id="totalRiil">0</span></td>
-                  </tr>
-                  <tr id="rowSelisih">
-                    <td class="fw-bold text-start">Selisih Dana</td>
-                    <td class="fw-bold"><span id="selisihText">Rp 0</span></td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
 
         <div class="modal-footer d-flex justify-content-end">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
@@ -749,6 +737,15 @@ document.addEventListener("DOMContentLoaded", function() {
                         <option value="Hotel">Hotel</option>
                         <option value="BBM">BBM</option>
                     </select>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label fw-semibold">Provinsi Tujuan</label>
+                    <select name="provinsi_tujuan" class="form-select" required>
+                      <option value="">-- Pilih Provinsi Tujuan --</option>
+                        @foreach ($provinsi as $p)
+                          <option value="{{ $p->provinsi_tujuan }}">{{ $p->provinsi_tujuan }}</option>
+                        @endforeach
+                  </select>
                 </div>
                 <div class="col-md-2 mb-2">
                     <label class="form-label">Jumlah</label>

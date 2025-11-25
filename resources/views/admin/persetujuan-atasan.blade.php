@@ -54,8 +54,6 @@
                 </option>
             </select>
 
-
-
             <button type="submit" class="btn btn-primary">
                 <i class="bx bx-filter"></i> Filter
             </button>

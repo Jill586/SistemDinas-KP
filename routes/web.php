@@ -39,6 +39,9 @@ Route::middleware(['auth', 'role:super_admin'])->group(function () {
     Route::post('/pegawai/import', [PegawaiController::class, 'import'])->name('pegawai.import');
 
     Route::get('/sbu-item', [SbuItemController::class, 'index'])->name('sbu-item.index');
+    Route::put('/sbu-item/{id}', [SbuItemController::class, 'update'])->name('sbu-item.update');
+    Route::post('/sbu-item', [SbuItemController::class, 'store'])->name('sbu-item.store');
+    Route::delete('/sbu-item/delete/{id}', [SbuItemController::class, 'destroy'])->name('sbu-item.destroy');
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 });
@@ -133,6 +136,8 @@ Route::middleware(['auth', 'role:verifikator2'])->group(function () {
     Route::controller(VerifikasiLaporanPerjalananDinasController::class)->group(function () {
         Route::get('/verifikasi-laporan-perjalanan-dinas', 'index')->name('verifikasi-laporan.index');
         Route::put('/verifikasi-laporan/{id}/update', 'update')->name('verifikasi-laporan.update');
+        Route::get('/export-verifikasi-perjalanandinas','exportExcel')->name('verifikasi-laporan.export.excel');
+        Route::get('/verifikasi-laporan-perjalanan-dinas/export-excel','exportExcel')->name('verifikasi-laporan.export.excel');
     });
 });
 

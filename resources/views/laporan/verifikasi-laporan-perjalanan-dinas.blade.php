@@ -26,6 +26,28 @@
                         </option>
                     @endforeach
             </select>
+              <select name="status_laporan" class="form-select" style="width: 160px;">
+    <option value="">-- Status --</option>
+
+    <option value="belum_dibuat"
+        {{ request('status_laporan') == 'belum_dibuat' ? 'selected' : '' }}>
+        Belum Dibuat
+    </option>
+
+    <option value="diproses"
+        {{ request('status_laporan') == 'diproses' ? 'selected' : '' }}>
+        Diproses
+    </option>
+
+    <option value="selesai"
+        {{ request('status_laporan') == 'selesai' ? 'selected' : '' }}>
+        Selesai
+    </option>
+    <option value="revisi_operator"
+        {{ request('status_laporan') == 'revisi_operator' ? 'selected' : '' }}>
+        Revisi Operator
+    </option>
+</select>
 
             <button type="submit" class="btn btn-primary">
                 <i class="bx bx-filter"></i> Filter
@@ -33,6 +55,9 @@
 
             <a href="{{ route('verifikasi-laporan.index') }}" class="btn btn-secondary">
                 <i class="bx bx-reset"></i> Reset
+            </a>
+             <a href="{{ route('verifikasi-laporan.export.excel') }}" class="btn btn-success">
+                <i class="fas fa-file-excel"></i> Export Excel
             </a>
         </form>
     </div>
@@ -317,13 +342,6 @@
                 @else
                     <div class="alert alert-info text-center">Detail estimasi biaya belum tersedia.</div>
                 @endif
-
-
-        <p class="fw-bold text-end">
-        TOTAL ESTIMASI AWAL: Rp {{ number_format($row->biaya->sum('subtotal_biaya'), 0, ',', '.') }}
-        </p>
-
-        <hr>
         
         <!-- FORM VERIFIKASI -->
         @if($row->status_laporan !== 'selesai')

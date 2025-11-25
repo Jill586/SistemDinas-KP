@@ -9,7 +9,7 @@
         <form method="GET" action="{{ route('perjalanan-dinas.index') }}" class="row g-2 align-items-end">
 
             <!-- FILTER BULAN -->
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <label class="form-label mb-1">Pilih Bulan</label>
                 <select name="bulan" class="form-select">
                     <option value="">-- Bulan --</option>
@@ -22,7 +22,7 @@
             </div>
 
             <!-- FILTER TAHUN -->
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <label class="form-label mb-1">Pilih Tahun</label>
                 <select name="tahun" class="form-select">
                     <option value="">-- Tahun --</option>
@@ -35,7 +35,7 @@
             </div>
 
             <!-- FILTER STATUS -->
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <label class="form-label mb-1">Pilih Status</label>
                 <select name="status" class="form-select">
                     <option value="">-- Semua Status --</option>
@@ -46,21 +46,19 @@
                 </select>
             </div>
 
-            <!-- BARIS TOMBOL -->
-            <div class="col-12 mt-2">
-                <div class="d-flex align-items-center gap-2">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bx bx-filter"></i> Filter
-                    </button>
+            <!-- BUTTON (SEJARIS DENGAN FILTER) -->
+            <div class="col-md-6 d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bx bx-filter"></i> Filter
+                </button>
 
-                    <a href="{{ route('perjalanan-dinas.index') }}" class="btn btn-secondary">
-                        <i class="bx bx-reset"></i> Reset
-                    </a>
+                <a href="{{ route('perjalanan-dinas.index') }}" class="btn btn-secondary">
+                    <i class="bx bx-reset"></i> Reset
+                </a>
 
-                    <a href="{{ route('perjalanan-dinas.export.excel') }}" class="btn btn-success">
-                        Export Excel
-                    </a>
-                </div>
+                <a href="{{ route('perjalanan-dinas.export.excel') }}" class="btn btn-success">
+                    <i class="fas fa-file-excel"></i> Export Excel
+                </a>
             </div>
 
         </form>

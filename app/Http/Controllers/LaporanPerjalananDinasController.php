@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\LaporanPerjalananExport;
+use App\Models\SbuItem;
 
 class LaporanPerjalananDinasController extends Controller
 {
@@ -17,6 +18,7 @@ class LaporanPerjalananDinasController extends Controller
     {
         $user = Auth::user();
         $search = $request->input('search');
+        $provinsi = SbuItem::select('provinsi_tujuan')->distinct()->get();
 
         // Ambil perjalanan dinas yang punya laporan dan status disetujui/selesai
         $query = PerjalananDinas::with(['pegawai', 'biaya', 'laporan'])
@@ -70,8 +72,8 @@ class LaporanPerjalananDinasController extends Controller
             $query->whereYear('tanggal_spt', $request->tahun);
         }
         // 🔥 **Filter Status**
-            if ($request->filled('status')) {
-                $query->where('status', $request->status);
+            if ($request->filled('status_laporan')) {
+                $query->where('status_laporan', $request->status_laporan);
             }
 
         // 🔍 Jika ada pencarian
@@ -94,12 +96,12 @@ class LaporanPerjalananDinasController extends Controller
         // Urutkan data terbaru berdasarkan tanggal_spt
         $perjalanans = $query->orderByDesc('tanggal_spt')->paginate($perPage);
 
-        return view('laporan.laporan-perjalanan-dinas', compact('perjalanans', 'perPage'))
+        return view('laporan.laporan-perjalanan-dinas', compact('perjalanans', 'perPage', 'provinsi'))
             ->with([
                 'bulan' => $request->bulan,
                 'tahun' => $request->tahun,
                 'search' => $search,
-                'status' => $request->status, 
+                'status_laporan' => $request->status_laporan, 
             ]);
     }
 
@@ -141,6 +143,7 @@ class LaporanPerjalananDinasController extends Controller
             PerjalananDinasBiayaRiil::create([
                 'perjalanan_dinas_id' => $perjalanan->id,
                 'deskripsi_biaya' => $b['deskripsi'] ?? '',
+                'provinsi_tujuan' => $request->provinsi_tujuan ?? '', 
                 'jumlah' => $b['jumlah'] ?? 0,
                 'satuan' => $b['satuan'] ?? '',
                 'harga_satuan' => $b['harga'] ?? 0,
