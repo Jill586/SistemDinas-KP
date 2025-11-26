@@ -5,7 +5,7 @@
 @section('content')
 <div class="card">
     <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap">
-        <h5 class="mb-0 fw-bold">Daftar Laporan Perjalanan Dinas</h5>
+        <h5 class="mb-0 fw-bold">Laporan Perjalanan Dinas</h5>
 
         {{-- 🔍 Form Filter Bulan & Tahun --}}
         <form method="GET" action="{{ route('laporan.index') }}" class="d-flex flex-wrap gap-2 mt-2 mt-md-0">
@@ -60,12 +60,9 @@
              <a href="{{ route('laporan-perjalanan.export.excel') }}" class="btn btn-success">
                 <i class="fas fa-file-excel"></i> Export Excel
             </a>
-       <a href="{{ route('laporan.export.pdf') }}" class="btn btn-danger btn-sm">
-            Export PDF
-        </a>  
-
-
-
+            <a href="{{ route('laporan.export.pdf') }}" class="btn btn-danger">
+                    Export PDF
+            </a>  
 
         </form>
     </div>
@@ -195,7 +192,7 @@
                                 </button>
                                 @endif
 
-                                @if($row->status_laporan === 'diproses')
+                                @if($row->status_laporan === 'diproses' || $row->status_laporan === 'revisi_operator')
                                 <button class="btn btn-warning btn-edit2"
                                     data-bs-toggle="modal"
                                     data-bs-target="#modalEditLaporan"
