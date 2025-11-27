@@ -121,7 +121,7 @@
                     </tr>
                 </thead>
                 <tbody>
-@forelse($perjalanans as $row)
+                    @forelse($perjalanans as $row)
                         <tr>
                             <td>{{ $loop->iteration }}</td>
                             <td>{{ $row->nomor_spt ?? '-' }}</td>
@@ -167,48 +167,49 @@
                                 @endif
                             </td>
                             <td class="text-center">
-                                @if($row->status_laporan === 'belum_dibuat')
-                                <button class="btn btn-primary btn-edit"
-                                    data-id="{{ $row->id }}"
-                                    data-nomor="{{ $row->nomor_spt }}"
-                                    data-tujuan="{{ $row->tujuan_spt }}"
-                                    data-tglmulai="{{ $row->tanggal_mulai }}"
-                                    data-tglselesai="{{ $row->tanggal_selesai }}"
-                                    data-tanggal_laporan="{{ $row->tanggal_laporan }}"
-                                    data-hasil="{{ $row->hasil_kegiatan }}"
-                                    data-kendala="{{ $row->kendala }}"
-                                    data-saran="{{ $row->saran }}">
-                                    <i class="bx bx-edit-alt"></i>
-                                </button>
-                                @endif
+                                <div class="d-flex flex-column align-items-center gap-2"></div>
+                                    @if($row->status_laporan === 'belum_dibuat')
+                                    <button class="btn btn-primary btn-edit"
+                                        data-id="{{ $row->id }}"
+                                        data-nomor="{{ $row->nomor_spt }}"
+                                        data-tujuan="{{ $row->tujuan_spt }}"
+                                        data-tglmulai="{{ $row->tanggal_mulai }}"
+                                        data-tglselesai="{{ $row->tanggal_selesai }}"
+                                        data-tanggal_laporan="{{ $row->tanggal_laporan }}"
+                                        data-hasil="{{ $row->hasil_kegiatan }}"
+                                        data-kendala="{{ $row->kendala }}"
+                                        data-saran="{{ $row->saran }}">
+                                        <i class="bx bx-edit-alt"></i>
+                                    </button>
+                                    @endif
 
-                                @if($row->status_laporan === 'selesai')
-                                <button
-                                    type="button"
-                                    class="btn btn-info"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#modalDetail{{ $row->id }}">
-                                    <i class="bx bx-show"></i>
-                                </button>
-                                @endif
+                                    @if($row->status_laporan === 'selesai' || $row->status_laporan === 'diproses' || $row->status_laporan === 'revisi_operator')
+                                    <button
+                                        type="button"
+                                        class="btn btn-info"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#modalDetail{{ $row->id }}">
+                                        <i class="bx bx-show"></i>
+                                    </button>
+                                    @endif
 
-                                @if($row->status_laporan === 'diproses' || $row->status_laporan === 'revisi_operator')
-                                <button class="btn btn-warning btn-edit2"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#modalEditLaporan"
-                                    data-id="{{ $row->id }}"
-                                    data-nomor="{{ $row->nomor_spt }}"
-                                    data-tujuan="{{ $row->tujuan_spt }}"
-                                    data-tglmulai="{{ $row->tanggal_mulai }}"
-                                    data-tglselesai="{{ $row->tanggal_selesai }}"
-                                    data-tanggal_laporan="{{ optional($row->laporan)->tanggal_laporan }}"
-                                    data-hasil="{{ optional($row->laporan)->ringkasan_hasil_kegiatan }}"
-                                    data-kendala="{{ optional($row->laporan)->kendala_dihadapi }}"
-                                    data-saran="{{ optional($row->laporan)->saran_tindak_lanjut }}">
-                                    <i class="bx bx-edit"></i>
-                                </button>
-                                @endif
-
+                                    @if($row->status_laporan === 'diproses' || $row->status_laporan === 'revisi_operator')
+                                    <button class="btn btn-warning btn-edit2"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#modalEditLaporan"
+                                        data-id="{{ $row->id }}"
+                                        data-nomor="{{ $row->nomor_spt }}"
+                                        data-tujuan="{{ $row->tujuan_spt }}"
+                                        data-tglmulai="{{ $row->tanggal_mulai }}"
+                                        data-tglselesai="{{ $row->tanggal_selesai }}"
+                                        data-tanggal_laporan="{{ optional($row->laporan)->tanggal_laporan }}"
+                                        data-hasil="{{ optional($row->laporan)->ringkasan_hasil_kegiatan }}"
+                                        data-kendala="{{ optional($row->laporan)->kendala_dihadapi }}"
+                                        data-saran="{{ optional($row->laporan)->saran_tindak_lanjut }}">
+                                        <i class="bx bx-edit"></i>
+                                    </button>
+                                    @endif
+                                </div
                             </td>
                         </tr>
                     @empty
@@ -285,6 +286,7 @@
             <form method="POST" id="formEditLaporan">
                 @csrf
                 @method('PUT')
+                <input type="hidden" name="aksi" value="verifikasi">
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label">Nomor SPT</label>
@@ -331,7 +333,7 @@
 
                 <div class="modal-footer">
                     <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button class="btn btn-primary" type="submit">Simpan Perubahan</button>
+                    <button class="btn btn-primary" name="aksi" type="submit">Simpan Perubahan</button>
                 </div>
 
             </form>

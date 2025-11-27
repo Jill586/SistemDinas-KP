@@ -200,6 +200,8 @@ class DokumenPerjalananDinasController extends Controller
                 $template->setValue("nip#{$i}", $pg->nip ?? '-');
                 $template->setValue("golongan#{$i}", $pg->golongan->nama_golongan ?? '-');
                 $template->setValue("jabatan#{$i}", $pg->jabatan->nama_jabatan ?? '-');
+                $template->setValue("jabatan_struktural#{$i}", $pg->jabatan_struktural ?? '-');
+                $template->setValue("pangkat_golongan#{$i}", $pg->pangkat_golongan ?? '-');
             }
             $template->setValue('dasar_spt', $dokumen->dasar_spt ?? '-');
             $template->setValue('uraian_spt', $dokumen->uraian_spt ?? '-');
@@ -229,6 +231,8 @@ class DokumenPerjalananDinasController extends Controller
             $template->setValue('tanggal_spt', Carbon::parse($dokumen->tanggal_spt)->translatedFormat('d F Y'));
             $template->setValue('nomor_spt', $dokumen->nomor_spt ?? '-');
             $template->setValue('pengikut', $pengikutText);
+            $template->setValue('jabatan_struktural', $pegawai->jabatan_struktural ?? '-');
+            $template->setValue('pangkat_golongan', $pegawai->pangkat_golongan ?? '-');
 
             // Jika tujuan = Siak, hapus bagian tertentu
             if ($dokumen->kota_tujuan_id == 'Siak') {

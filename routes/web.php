@@ -77,11 +77,11 @@ Route::middleware(['auth', 'role:admin_bidang'])->group(function () {
 
         // UPDATE LAPORAN (EDIT)
         Route::put('/laporan-perjadin/{id}/edit','updateLaporan')->name('laporan.updateLaporan');
-
+        Route::delete('/laporan/hapus-hotel30','hapusHotel30')->name('hapus.hotel30');
 
         Route::get('/laporan/download/{id}/{type}', 'downloadLaporan')->name('laporan.download');
-       Route::get('/export-laporanperjalanan-dinas','exportExcel')->name('laporan-perjalanan.export.excel');
-       Route::get('/laporan/pdf', 'exportPdf')->name('laporan.export.pdf');
+        Route::get('/export-laporanperjalanan-dinas','exportExcel')->name('laporan-perjalanan.export.excel');
+        Route::get('/laporan/pdf', 'exportPdf')->name('laporan.export.pdf');
 
 
 

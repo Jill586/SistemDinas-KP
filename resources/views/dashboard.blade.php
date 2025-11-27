@@ -130,8 +130,8 @@
                     <small class="text-muted">{{ $pegawai->nip ?? '-' }}</small>
                   </td>
                   <td>
-                    {{ $pegawai->jabatan->nama_jabatan ?? '-' }}<br>
-                    <small class="text-muted">{{ $pegawai->golongan->nama_golongan ?? '-' }}</small>
+                    {{ $pegawai->jabatan_struktural ?? '-' }}<br>
+                    <small class="text-muted">{{ $pegawai->pangkat_golongan ?? '-' }}</small>
                   </td>
                   <td class="text-center">
                     @php

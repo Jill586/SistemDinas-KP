@@ -158,7 +158,7 @@
                 @endswitch
               </td>
               <td class="text-center">
-                <button type="button" class="btn btn-info d-flex align-items-center mx-auto"
+                <button type="button" class="btn btn-info"
                         data-bs-toggle="modal"
                         data-bs-target="#modalDetail{{ $row->id }}">
                   <i class="bx bx-show me-1"></i>

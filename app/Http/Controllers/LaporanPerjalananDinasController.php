@@ -118,7 +118,6 @@ class LaporanPerjalananDinasController extends Controller
                     ->where('sbuItem.kategori_biaya', 'PENGINAPAN')
                     ->first()->harga_satuan ?? 0;
 
-
                 $data[] = [
                     'nama' => $pg->nama,
                     'harga_satuan' => $hargaSatuan,
@@ -156,6 +155,7 @@ class LaporanPerjalananDinasController extends Controller
                 'ringkasan_hasil_kegiatan' => $request->ringkasan_hasil_kegiatan,
                 'kendala_dihadapi' => $request->kendala_dihadapi,
                 'saran_tindak_lanjut' => $request->saran_tindak_lanjut,
+                'status_laporan' => 'diproses',
             ]
         );
 
@@ -201,7 +201,8 @@ class LaporanPerjalananDinasController extends Controller
             $perjalanan->save();
         }
 
-        return redirect()->back()->with('success', 'Laporan berhasil disimpan ' .
+        return redirect()->route('laporan.index')
+            ->with('success' .
             ($request->aksi === 'verifikasi' ? 'dan dikirim untuk verifikasi.' : 'sebagai draft.'));
     }
 
@@ -249,9 +250,8 @@ class LaporanPerjalananDinasController extends Controller
                 $template->setValue("no#{$i}", $no++);
                 $template->setValue("nama_pegawai#{$i}", $pg->nama ?? '-');
                 $template->setValue("nip#{$i}", $pg->nip ?? '-');
-                $template->setValue("jabatan#{$i}", $pg->jabatan->nama_jabatan ?? '-');
-                $template->setValue("kode_golongan#{$i}", $pg->golongan->kode_golongan ?? '-');
-                $template->setValue("golongan#{$i}", $pg->golongan->nama_golongan ?? '-');
+                $template->setValue("jabatan_struktural#{$i}", $pg->jabatan_struktural ?? '-');
+                $template->setValue("pangkat_golongan#{$i}", $pg->pangkat_golongan ?? '-');
                 $template->setValue("total_penginapan#{$i}", $totalPenginapanFormatted);
                 $template->setValue("biaya_30#{$i}", number_format($uang30Persen, 0, ',', '.'));
                 $template->setValue("nomor_spt#{$i}", $perjalanan->nomor_spt ?? '-');
@@ -292,9 +292,8 @@ class LaporanPerjalananDinasController extends Controller
 
                 $template->setValue("nama_pegawai#{$i}", $pg->nama ?? '-');
                 $template->setValue("nip#{$i}", $pg->nip ?? '-');
-                $template->setValue("golongan#{$i}", $pg->golongan->nama_golongan ?? '-');
-                $template->setValue("kode_golongan#{$i}", $pg->golongan->kode_golongan ?? '-');
-                $template->setValue("jabatan#{$i}", $pg->jabatan->nama_jabatan ?? '-');
+                $template->setValue("jabatan_struktural#{$i}", $pg->jabatan_struktural ?? '-');
+                $template->setValue("pangkat_golongan#{$i}", $pg->pangkat_golongan ?? '-');
                 $template->setValue("nomor_spt#{$i}", $perjalanan->nomor_spt ?? '-');
                 $template->setValue("tanggal_mulai#{$i}", $tanggalMulai ?? '-');
                 $template->setValue("tanggal_selesai#{$i}", $tanggalSelesai ?? '-');
@@ -342,7 +341,7 @@ class LaporanPerjalananDinasController extends Controller
             $template->setValue("no#{$i}", $no++);
             $template->setValue("nama_pegawai#{$i}", $pg->nama ?? '-');
             $template->setValue("nip#{$i}", $pg->nip ?? '-');
-            $template->setValue("jabatan#{$i}", $pg->jabatan->nama_jabatan ?? '-');
+            $template->setValue("jabatan_struktural#{$i}", $pg->jabatan_struktural ?? '-');
         }
             $template->setValue('nomor_spt', $perjalanan->nomor_spt ?? '-');
             // Ambil tanggal laporan dari relasi laporan
@@ -421,7 +420,9 @@ class LaporanPerjalananDinasController extends Controller
     public function updateLaporan(Request $request, $id)
     {
         $laporan = LaporanPerjalananDinas::where('perjalanan_dinas_id', $id)->firstOrFail();
+        $perjalanan = PerjalananDinas::findOrFail($id);
 
+        // Update laporan
         $laporan->update([
             'tanggal_laporan' => $request->tanggal_laporan,
             'ringkasan_hasil_kegiatan' => $request->ringkasan_hasil_kegiatan,
@@ -429,8 +430,14 @@ class LaporanPerjalananDinasController extends Controller
             'saran_tindak_lanjut' => $request->saran_tindak_lanjut,
         ]);
 
+        // Update status laporan di tabel perjalanan_dinas
+        $perjalanan->update([
+            'status_laporan' => 'diproses'
+        ]);
+
         return redirect()->back()->with('success', 'Laporan berhasil diperbarui.');
     }
+    
    public function exportExcel(Request $request)
 {
     $user = Auth::user();
@@ -454,18 +461,16 @@ class LaporanPerjalananDinasController extends Controller
 
     return Excel::download(new LaporanPerjalananExport($data), 'laporan-perjalanan.xlsx');
 }
-public function exportPdf()
-{
-    $data = PerjalananDinas::with(['pegawai', 'laporan', 'biaya.sbuItem'])
-        ->orderByDesc('tanggal_mulai')
-        ->get();
+    public function exportPdf()
+    {
+        $data = PerjalananDinas::with(['pegawai', 'laporan', 'biaya.sbuItem'])
+            ->orderByDesc('tanggal_mulai')
+            ->get();
 
-    $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.laporan-perjalanan-list', [
-        'data' => $data
-    ])->setPaper('A4', 'landscape');
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.laporan-perjalanan-list', [
+            'data' => $data
+        ])->setPaper('A4', 'landscape');
 
-    return $pdf->download('laporan-perjalanan-dinas.pdf');
-}
-
-
+        return $pdf->download('laporan-perjalanan-dinas.pdf');
+    }
 }

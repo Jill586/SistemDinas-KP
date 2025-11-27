@@ -7,13 +7,15 @@ use App\Models\PerjalananDinas;
 use Illuminate\Http\Request;
 use App\Exports\VerifikasiLaporanExport;
 use Maatwebsite\Excel\Facades\Excel;
-
+use Carbon\Carbon;
 
 class VerifikasiLaporanPerjalananDinasController extends Controller
 {
 public function index(Request $request)
 {
     $search = $request->input('search');
+     // gunakan "perPage" supaya konsisten dengan input hidden di Blade
+    $perPage = $request->get('perPage', 10);
 
     // Ambil semua perjalanan dinas dengan status_laporan 'diproses' atau 'selesai'
     $query = PerjalananDinas::with(['pegawai', 'biayaRiil', 'laporan'])
@@ -47,11 +49,42 @@ public function index(Request $request)
             });
         });
     }
-
-    $perPage = $request->get('per_page', 10);
-
     // Urutkan data terbaru berdasarkan tanggal_spt
     $laporans = $query->orderByDesc('tanggal_spt')->paginate($perPage);
+
+        foreach ($laporans as $p) {
+
+            $lamaMalam = Carbon::parse($p->tanggal_mulai)
+                        ->diffInDays(Carbon::parse($p->tanggal_selesai));
+
+            $data = [];
+
+            foreach ($p->pegawai as $pg) {
+
+                $totalPenginapan = $p->biaya
+                    ->where('pegawai_id_terkait', $pg->id)
+                    ->where('sbuItem.kategori_biaya', 'PENGINAPAN')
+                    ->sum('subtotal_biaya');
+
+                $hargaSatuan = $p->biaya
+                    ->where('pegawai_id_terkait', $pg->id)
+                    ->where('sbuItem.kategori_biaya', 'PENGINAPAN')
+                    ->first()->harga_satuan ?? 0;
+
+
+                $data[] = [
+                    'nama' => $pg->nama,
+                    'harga_satuan' => $hargaSatuan,
+                    'total_penginapan' => $totalPenginapan,
+                    'jumlah_malam' => $lamaMalam,
+                    'uang_30' => $totalPenginapan * 0.30,
+                ];
+            }
+
+            // tempel ke model agar bisa diakses dari Blade
+            $p->data_penginapan = $data;
+        }
+    $perPage = $request->get('per_page', 10);
 
     // Kirim data dan nilai filter ke view
     return view('laporan.verifikasi-laporan-perjalanan-dinas', compact('laporans', 'perPage'))

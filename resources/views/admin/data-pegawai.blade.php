@@ -50,8 +50,9 @@
             <th>Email</th>
             <th>Nomor HP</th>
             <th>NIP</th>
-            <th>Jabatan</th>
+            <th>Eselonisasi</th>
             <th>Golongan</th>
+            <th>Jabatan</th>
             <th>Aksi</th>
           </tr>
         </thead>
@@ -64,32 +65,42 @@
             <td>{{ $row->nomor_hp }}</td>
             <td>{{ $row->nip }}</td>
             <td>{{ $row->jabatan->nama_jabatan ?? '-' }}</td>
-            <td>{{ $row->golongan->nama_golongan ?? '-' }}</td>
             <td>
-              <button type="button" class="btn btn-warning btn-sm btn-edit"
-                      data-id="{{ $row->id }}"
-                      data-nama="{{ $row->nama }}"
-                      data-email="{{ $row->email }}"
-                      data-nomor_hp="{{ $row->nomor_hp }}"
-                      data-nip="{{ $row->nip }}"
-                      data-golongan="{{ $row->golongan }}"
-                      data-jabatan="{{ $row->jabatan }}">
-                <i class="bx bx-edit"></i>
-              </button>
+              {{ $row->golongan->nama_golongan ?? '-' }}<br>
+              <small class="text-muted">{{ $row->pangkat_golongan ?? '-' }}</small>
+            </td>
+            <td>{{ $row->jabatan_struktural ?? '-' }}</td>
+            <td>
+              <div class="d-flex gap-1">
 
-              <form action="{{ route('pegawai.destroy', $row->id) }}" method="POST"
-                    onsubmit="return confirm('Yakin ingin menghapus data ini?')">
-                @csrf
-                @method('DELETE')
-                <button type="submit" class="btn btn-danger btn-sm">
-                  <i class="bx bx-trash"></i>
+                <button type="button" class="btn btn-warning btn-sm btn-edit"
+                    data-id="{{ $row->id }}"
+                    data-nama="{{ $row->nama }}"
+                    data-email="{{ $row->email }}"
+                    data-nomor_hp="{{ $row->nomor_hp }}"
+                    data-nip="{{ $row->nip }}"
+                    data-golongan="{{ $row->golongan_id }}"
+                    data-jabatan="{{ $row->jabatan_id }}"
+                    data-jabatan_struktural="{{ $row->jabatan_struktural }}"
+                    data-pangkat_golongan="{{ $row->pangkat_golongan }}">
+                  <i class="bx bx-edit"></i>
                 </button>
-              </form>
+
+                <form action="{{ route('pegawai.destroy', $row->id) }}" method="POST"
+                      onsubmit="return confirm('Yakin ingin menghapus data ini?')">
+                  @csrf
+                  @method('DELETE')
+                  <button type="submit" class="btn btn-danger btn-sm">
+                    <i class="bx bx-trash"></i>
+                  </button>
+                </form>
+
+              </div>
             </td>
           </tr>
           @empty
           <tr>
-            <td colspan="8" class="text-center">Data Pegawai belum ada</td>
+            <td colspan="9" class="text-center">Data Pegawai belum ada</td>
           </tr>
           @endforelse
         </tbody>
@@ -132,8 +143,8 @@
               <input type="text" id="edit_nip" name="nip" class="form-control" required>
             </div>
             <div class="col-md-6">
-              <label class="form-label">Jabatan</label>
-              <select name="jabatan_id" class="form-select" required>
+              <label class="form-label">Eselonisasi</label>
+              <select id="edit_jabatan" name="jabatan_id" class="form-select" required>
                   <option value="">-- Pilih Jabatan --</option>
                   @foreach($jabatans as $jabatan)
                       <option value="{{ $jabatan->id }}">{{ $jabatan->nama_jabatan }}</option>
@@ -142,11 +153,39 @@
             </div>
             <div class="col-md-6">
               <label class="form-label">Golongan</label>
-              <select name="golongan_id" class="form-select" required>
+              <select id="edit_golongan" name="golongan_id" class="form-select" required>
                   <option value="">-- Pilih Golongan --</option>
                   @foreach($golongans as $golongan)
                       <option value="{{ $golongan->id }}">{{ $golongan->nama_golongan }}</option>
                   @endforeach
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Jabatan Struktural</label>
+              <select id="edit_jabatan_struktural" name="jabatan_struktural" class="form-select">
+                  <option value="">-- Pilih Jabatan Struktural --</option>
+                  <option value="Kepala Dinas">Kepala Dinas</option>
+                  <option value="Sekretaris">Sekretaris</option>
+                  <option value="Kasubbag Umum">Kasubbag Umum dan Kepegawaian</option>
+                  <option value="Kasubbag Keuangan">Kasubbag Keuangan</option>
+                  <option value="Kabid TIK">Kabid TIK</option>
+                  <option value="Kabid IKPS">Kabid IKPS</option>
+                  <option value="Staff Pelaksana">Staff Pelaksana</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Pangkat / Golongan</label>
+              <select id="edit_pangkat_golongan" name="pangkat_golongan" class="form-select" required>
+                  <option value="">-- Pilih Pangkat / Golongan --</option>
+                  <option value="Penata III/c">Penata III/c</option>
+                  <option value="Penata Muda III/a">Penata Muda III/a</option>
+                  <option value="Penata Muda Tk. I III/b">Penata Muda Tk. I III/b</option>
+                  <option value="Penata Tingkat I III/d">Penata Tingkat I III/d</option>
+                  <option value="Pembina IV/a">Pembina IV/a</option>
+                  <option value="Pembina Tk. I IV/b">Pembina Tk. I</option>
+                  <option value="Pembina Utama Muda IV/c">Pembina Utama Muda IV/c</option>
+                  <option value="Pembina Utama Madya IV/d">Pembina Utama Madya IV/d</option>
+                  <option value="Pembina Utama IV/e">Pembina Utama IV/e</option>
               </select>
             </div>
           </div>
@@ -198,12 +237,40 @@
               </select>
             </div>
             <div class="col-md-6">
-              <label class="form-label">Jabatan</label>
+              <label class="form-label">Eselonisasi</label>
               <select name="jabatan_id" class="form-select" required>
                   <option value="">-- Pilih Jabatan --</option>
                   @foreach($jabatans as $jabatan)
                       <option value="{{ $jabatan->id }}">{{ $jabatan->nama_jabatan }}</option>
                   @endforeach
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Jabatan Struktural</label>
+              <select name="jabatan_struktural" class="form-select">
+                  <option value="">-- Pilih Jabatan Struktural --</option>
+                  <option value="Kepala Dinas">Kepala Dinas</option>
+                  <option value="Sekretaris">Sekretaris</option>
+                  <option value="Kasubbag Umum">Kasubbag Umum dan Kepegawaian</option>
+                  <option value="Kasubbag Keuangan">Kasubbag Keuangan</option>
+                  <option value="Kabid TIK">Kabid TIK</option>
+                  <option value="Kabid IKPS">Kabid IKPS</option>
+                  <option value="Staff Pelaksana">Staff Pelaksana</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Pangkat / Golongan</label>
+              <select name="pangkat_golongan" class="form-select" required>
+                  <option value="">-- Pilih Pangkat / Golongan --</option>
+                  <option value="Penata III/c">Penata III/c</option>
+                  <option value="Penata Muda III/a">Penata Muda III/a</option>
+                  <option value="Penata Muda Tk. I III/b">Penata Muda Tk. I III/b</option>
+                  <option value="Penata Tingkat I III/d">Penata Tingkat I III/d</option>
+                  <option value="Pembina IV/a">Pembina IV/a</option>
+                  <option value="Pembina Tk. I IV/b">Pembina Tk. I IV/b</option>
+                  <option value="Pembina Utama Muda IV/c">Pembina Utama Muda IV/c</option>
+                  <option value="Pembina Utama Madya IV/d">Pembina Utama Madya IV/d</option>
+                  <option value="Pembina Utama IV/e">Pembina Utama IV/e</option>
               </select>
             </div>
           </div>
@@ -286,7 +353,7 @@
           ajax: true 
         },
         beforeSend: function () {
-          $('tbody').html('<tr><td colspan="10" class="text-center text-muted">Memuat data...</td></tr>');
+          $('tbody').html('<tr><td colspan="9" class="text-center text-muted">Memuat data...</td></tr>');
         },
         success: function (response) {
           $('#pegawaiTable').html(response.html);
@@ -314,6 +381,8 @@
         $('#edit_nip').val($(this).data('nip'));
         $('#edit_golongan').val($(this).data('golongan'));
         $('#edit_jabatan').val($(this).data('jabatan'));
+        $('#edit_jabatan_struktural').val($(this).data('jabatan_struktural'));
+        $('#edit_pangkat_golongan').val($(this).data('pangkat_golongan'));
         $('#editForm').attr('action', `/pegawai/${id}`);
 
         const modal = new bootstrap.Modal(document.getElementById('editModal'));

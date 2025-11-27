@@ -21,8 +21,12 @@ class PegawaiController extends Controller
                   ->orWhere('email', 'like', "%{$search}%")
                   ->orWhere('nomor_hp', 'like', "%{$search}%")
                   ->orWhere('nip', 'like', "%{$search}%")
-                  ->orWhere('golongan', 'like', "%{$search}%")
-                  ->orWhere('jabatan', 'like', "%{$search}%");
+                    ->orWhereHas('golongan', fn($q) => 
+                        $q->where('nama_golongan', 'like', "%{$search}%")
+                    )
+                    ->orWhereHas('jabatan', fn($q) =>
+                        $q->where('nama_jabatan', 'like', "%{$search}%")
+                    );
             });
         }
 
@@ -46,8 +50,12 @@ class PegawaiController extends Controller
                         <td>' . e($row->email) . '</td>
                         <td>' . e($row->nomor_hp) . '</td>
                         <td>' . e($row->nip) . '</td>
-                        <td>' . e($row->golongan) . '</td>
-                        <td>' . e($row->jabatan) . '</td>
+                        <td>' . e($row->jabatan->nama_jabatan ?? '-') . '</td>
+                        <td>
+                            ' . e($row->golongan->nama_golongan ?? '-') . '<br>
+                            <small class="text-muted">' . e($row->pangkat_golongan ?? '-') . '</small>
+                        </td>
+                        <td>' . e($row->jabatan_struktural ?? '-') . '</td>
                         <td class="d-flex gap-2">
                             <button type="button" 
                                 class="btn btn-warning btn-sm btn-edit"
@@ -56,15 +64,18 @@ class PegawaiController extends Controller
                                 data-email="' . e($row->email) . '"
                                 data-nomor_hp="' . e($row->nomor_hp) . '"
                                 data-nip="' . e($row->nip) . '"
-                                data-golongan="' . e($row->golongan) . '"
-                                data-jabatan="' . e($row->jabatan) . '">
+                                data-golongan_id="' . e($row->golongan_id) . '"
+                                data-jabatan_id="' . e($row->jabatan_id) . '"
+                                data-jabatan_struktural="' . e($row->jabatan_struktural) . '"
+                                data-pangkat_golongan="' . e($row->pangkat_golongan) . '"
+                            >
                                 <i class="bx bx-edit"></i>
                             </button>
 
                             <form action="' . route('pegawai.destroy', $row->id) . '" 
-                                  method="POST" 
-                                  onsubmit="return confirm(\'Yakin ingin menghapus data ini?\')"
-                                  class="d-inline">
+                                method="POST" 
+                                onsubmit="return confirm(\'Yakin ingin menghapus data ini?\')"
+                                class="d-inline">
                                 ' . csrf_field() . method_field('DELETE') . '
                                 <button type="submit" class="btn btn-danger btn-sm">
                                     <i class="bx bx-trash"></i>
@@ -75,7 +86,7 @@ class PegawaiController extends Controller
             }
 
             if ($pegawai->isEmpty()) {
-                $html = '<tr><td colspan="8" class="text-center">Data tidak ditemukan</td></tr>';
+                $html = '<tr><td colspan="9" class="text-center">Data tidak ditemukan</td></tr>';
             }
 
             return response()->json(['html' => $html]);
@@ -94,6 +105,8 @@ class PegawaiController extends Controller
             'nip'       => 'required|string|max:50|unique:pegawai',
             'golongan_id' => 'required',
             'jabatan_id' => 'required',
+            'jabatan_struktural' => 'nullable|string|max:150',
+            'pangkat_golongan' => 'nullable|string|max:100',
         ]);
 
         Pegawai::create($request->all());
@@ -111,6 +124,8 @@ class PegawaiController extends Controller
             'nip'       => 'required|string|max:50|unique:pegawai,nip,' . $id,
             'golongan_id' => 'required',
             'jabatan_id' => 'required',
+            'jabatan_struktural' => 'nullable|string|max:150',
+            'pangkat_golongan' => 'nullable|string|max:100',
         ]);
 
         $pegawai->update($request->all());

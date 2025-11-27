@@ -261,55 +261,102 @@
 
         <hr>
 
-        <!-- RINCIAN BIAYA RIIL -->
-        <h6 class="fw-bold">Rincian Biaya Riil Dilaporkan</h6>
-        <div class="table-responsive">
-          <table class="table table-bordered align-middle">
-            <thead class="table-light text-center">
-              <tr>
-                <th>Deskripsi Biaya</th>
-                <th>Jumlah</th>
-                <th>Satuan</th>
-                <th>Harga Satuan (Rp)</th>
-                <th>Subtotal (Rp)</th>
-                <th>No. Bukti</th>
-                <th>File Bukti</th>
-                <th>Keterangan</th>
-              </tr>
-            </thead>
-            <tbody>
-              @foreach ($row->biayaRiil as $biaya)
-              <tr>
-                <td>{{ $biaya->deskripsi_biaya }}</td>
-                <td class="text-center">{{ $biaya->jumlah }}</td>
-                <td class="text-center">{{ $biaya->satuan }}</td>
-                <td class="text-end">{{ number_format($biaya->harga_satuan, 0, ',', '.') }}</td>
-                <td class="text-end">{{ number_format($biaya->subtotal_biaya, 0, ',', '.') }}</td>
-                <td class="text-center">{{ $biaya->nomor_bukti }}</td>
-                <td class="text-center">
-                    @if ($biaya->path_bukti_file)
-                        <a href="{{ asset('storage/' . $biaya->path_bukti_file) }}"
-                        target="_blank"
-                        class="btn btn-sm btn-primary">
+        {{-- BIAYA RIIL --}}
+        <h6 class="fw-bold">Rincian Biaya Riil</h6>
+        <table class="table table-bordered table-striped">
+          <thead class="table-light text-center">
+            <tr>
+              <th>Deskripsi</th>
+              <th>Provinsi Tujuan</th>
+              <th>Jumlah</th>
+              <th>Satuan</th>
+              <th>Harga Satuan</th>
+              <th>Subtotal</th>
+              <th>No Bukti</th>
+              <th>File Bukti</th>
+              <th>Keterangan</th>
+            </tr>
+          </thead>
+          <tbody>
+            @forelse ($row->biayaRiil as $biaya)
+
+                @if($biaya->deskripsi_biaya === 'Hotel 30%')
+                    @continue
+                @endif
+            <tr>
+            <td>{{ $biaya->deskripsi_biaya }}</td>
+            <td>{{ $biaya->provinsi_tujuan ?? '-'}}</td>
+            <td class="text-center">{{ $biaya->jumlah }}</td>
+            <td class="text-center">{{ $biaya->satuan ?? '-'}}</td>
+            <td class="text-center">{{ number_format($biaya->harga_satuan) }}</td>
+            <td class="text-center">{{ number_format($biaya->subtotal_biaya) }}</td>
+            <td class="text-center">{{ $biaya->nomor_bukti ?? '-' }}</td>
+            <td class="text-center">
+                @if(!empty($biaya->path_bukti_file))
+                <div class="d-flex justify-content-center gap-1">
+                    <a href="{{ asset('storage/' . $biaya->path_bukti_file) }}" target="_blank" class="btn btn-sm btn-info">
                         <i class="bx bx-show"></i>
-                        </a>
-                    @else
-                        <span class="text-muted">-</span>
-                    @endif
-                </td>
-                <td>{{ $biaya->keterangan_tambahan ?? '-' }}</td>
-              </tr>
-              @endforeach
-            </tbody>
-          </table>
-        </div>
+                    </a>
+                    <a href="{{ asset('storage/' . $biaya->path_bukti_file) }}" download class="btn btn-sm btn-primary">
+                        <i class="bx bx-download"></i>
+                    </a>
+                </div>
+                @else
+                    <span class="text-muted">-</span>
+                @endif
+            </td>
+            <td>{{ $biaya->keterangan_tambahan ?? '-' }}</td>
+            </tr>
+
+            @empty
+            <tr>
+            <td colspan="7" class="text-center text-muted">Tidak ada rincian biaya riil.</td>
+            </tr>
+            @endforelse
+          </tbody>
+        </table>
 
         <p class="fw-bold text-end">
-          TOTAL BIAYA RIIL DILAPORKAN: Rp {{ number_format($row->biayaRiil->sum('subtotal_biaya'), 0, ',', '.') }}
+          TOTAL BIAYA RIIL: Rp {{ number_format($row->biayaRiil->sum('subtotal_biaya')) }}
         </p>
+        <hr>
+
+        {{-- PERHITUNGAN 30% PENGINAPAN --}}
+        @php
+            // cek apakah ada Hotel 30% dari biaya riil
+            $adaHotel30 = $row->biayaRiil->where('deskripsi_biaya', 'Hotel 30%')->isNotEmpty();
+        @endphp
+
+        @if ($adaHotel30)
+        <h6 class="fw-bold">Perhitungan (HOTEL 30%)</h6>
+            <table class="table table-bordered">
+                <thead class="table-light">
+                    <tr class="text-center">
+                        <th>Nama Pegawai</th>
+                        <th>Jumlah</th>
+                        <th>Harga Satuan</th>
+                        <th>Total Penginapan (Rp)</th>
+                        <th>30% Penginapan (Rp)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($row->data_penginapan ?? [] as $d)
+                        <tr>
+                            <td>{{ $d['nama'] }}</td>
+                            <td class="text-center">{{ $d['jumlah_malam'] }} Malam</td>
+                            <td class="text-center">Rp {{ number_format($d['harga_satuan'], 0, ',', '.') }}</td>
+                            <td class="text-center">Rp {{ number_format($d['total_penginapan'], 0, ',', '.') }}</td>
+                            <td class="fw-bold text-success text-center">
+                                {{ number_format($d['uang_30'], 0, ',', '.') }}
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        <hr>
+        @endif
 
         {{-- Estimasi Biaya --}}
-                <hr>
                 <h6 class="fw-bold">Estimasi Biaya</h6>
                 @if($row->biaya->isNotEmpty())
                     <div class="table-responsive">
