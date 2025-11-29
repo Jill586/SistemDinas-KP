@@ -167,7 +167,7 @@
                                 @endif
                             </td>
                             <td class="text-center">
-                                <div class="d-flex flex-column align-items-center gap-2"></div>
+                                <div class="d-flex flex-column align-items-center gap-2">
                                     @if($row->status_laporan === 'belum_dibuat')
                                     <button class="btn btn-primary btn-edit"
                                         data-id="{{ $row->id }}"
@@ -184,9 +184,7 @@
                                     @endif
 
                                     @if($row->status_laporan === 'selesai' || $row->status_laporan === 'diproses' || $row->status_laporan === 'revisi_operator')
-                                    <button
-                                        type="button"
-                                        class="btn btn-info"
+                                    <button type="button" class="btn btn-info"
                                         data-bs-toggle="modal"
                                         data-bs-target="#modalDetail{{ $row->id }}">
                                         <i class="bx bx-show"></i>
@@ -209,7 +207,7 @@
                                         <i class="bx bx-edit"></i>
                                     </button>
                                     @endif
-                                </div
+                                </div>
                             </td>
                         </tr>
                     @empty
@@ -524,7 +522,7 @@
         @endif
 
         {{-- ESTIMASI BIAYA --}}
-        <h6 class="fw-bold mt-4">Estimasi Biaya</h6>
+        <h6 class="fw-bold mt-4">Batas Maksimal Penggunaan Keuangan (SBU ITEM)</h6>
         <table class="table table-bordered table-striped">
           <thead class="table-dark text-center">
             <tr>
@@ -533,6 +531,7 @@
               <th>Harga Satuan</th>
               <th>Unit/Hari</th>
               <th>Subtotal</th>
+              <th style="width: 1%; white-space: nowrap;">Aksi</th>
             </tr>
           </thead>
           <tbody>
@@ -543,6 +542,17 @@
               <td class="text-end">Rp {{ number_format($biaya->harga_satuan) }}</td>
               <td class="text-center">{{ $biaya->jumlah_unit }} {{ optional($biaya->sbuItem)->satuan }}</td>
               <td class="text-end">Rp {{ number_format($biaya->subtotal_biaya) }}</td>
+              <td class="text-center">
+                <form action="{{ route('laporan.hapusBiaya', $biaya->id) }}"
+                    method="POST"
+                    onsubmit="return confirm('Yakin ingin menghapus biaya ini?')">
+                    @csrf
+                    @method('DELETE')
+                    <button class="btn btn-danger btn-sm">
+                        <i class="bx bx-trash"></i>
+                    </button>
+                </form>
+              </td>
             </tr>
             @endforeach
           </tbody>
@@ -550,6 +560,7 @@
             <tr class="table-light">
               <th colspan="4" class="text-end">Total Estimasi</th>
               <th class="text-end">Rp {{ number_format($row->biaya->sum('subtotal_biaya')) }}</th>
+              <th></th>
             </tr>
           </tfoot>
         </table>

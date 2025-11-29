@@ -119,6 +119,7 @@ class LaporanPerjalananDinasController extends Controller
                     ->first()->harga_satuan ?? 0;
 
                 $data[] = [
+                    'pegawai_id' => $pg->id,
                     'nama' => $pg->nama,
                     'harga_satuan' => $hargaSatuan,
                     'total_penginapan' => $totalPenginapan,
@@ -225,8 +226,23 @@ class LaporanPerjalananDinasController extends Controller
 
             $template = new \PhpOffice\PhpWord\TemplateProcessor($templatePath);
 
+            // Ambil hanya pegawai yg punya total_penginapan > 0
+            $pegawaiList = $perjalanan->pegawai->filter(function ($pg) use ($perjalanan) {
+
+                $totalPenginapan = $perjalanan->biaya
+                    ->where('pegawai_id_terkait', $pg->id)
+                    ->filter(fn($b) => $b->sbuItem && $b->sbuItem->kategori_biaya === 'PENGINAPAN')
+                    ->sum('subtotal_biaya');
+
+                return $totalPenginapan > 0; // hanya pegawai yg punya penginapan
+            });
+
+            // Jika semua 0, tetap generate dokumen kosong (opsional)
+            if ($pegawaiList->isEmpty()) {
+                $pegawaiList = collect([]);
+            }
+
             // Clone block sesuai jumlah pegawai
-            $pegawaiList = $perjalanan->pegawai;
             $template->cloneBlock('pegawai_block', $pegawaiList->count(), true, true);
 
             // Hitung jumlah malam (tanpa +1)
@@ -238,7 +254,6 @@ class LaporanPerjalananDinasController extends Controller
             foreach ($pegawaiList as $index => $pg) {
                 $i = $index + 1;
 
-                // Hitung biaya penginapan per pegawai
                 $biayaPenginapan = $perjalanan->biaya
                     ->where('pegawai_id_terkait', $pg->id)
                     ->where('sbuItem.kategori_biaya', 'PENGINAPAN')
@@ -472,5 +487,30 @@ class LaporanPerjalananDinasController extends Controller
         ])->setPaper('A4', 'landscape');
 
         return $pdf->download('laporan-perjalanan-dinas.pdf');
+    }
+
+    public function hapusBiaya($id)
+    {
+        $biaya = \App\Models\PerjalananDinasBiaya::findOrFail($id);
+
+        // Jangan sampai menghapus biaya hotel 30% (kalau ada aturan tertentu)
+        if ($biaya->deskripsi_biaya === 'Hotel 30%') {
+            return back()->with('error', 'Tidak boleh menghapus biaya Hotel 30% dari estimasi.');
+        }
+
+        $biaya->delete();
+
+        return back()->with('success', 'Biaya berhasil dihapus.');
+    }
+
+    public function hapusHotel30(Request $request)
+    {
+        $perjalananId = $request->perjalanan_id;
+        $pegawaiId = $request->pegawai_id;
+
+        // Simpan ke session
+        session()->push("hapus_hotel30.$perjalananId", $pegawaiId);
+
+        return back()->with('success', 'Item berhasil dihapus dari daftar perhitungan.');
     }
 }
