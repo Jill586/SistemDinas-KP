@@ -431,6 +431,7 @@
         <table class="table table-bordered table-striped">
           <thead class="table-light text-center">
             <tr>
+              <th>Nama</th>
               <th>Deskripsi</th>
               <th>Provinsi Tujuan</th>
               <th>Jumlah</th>
@@ -449,6 +450,7 @@
                     @continue
                 @endif
             <tr>
+            <td>{{ $biaya->pegawaiTerkait->nama ?? '-' }}</td>
             <td>{{ $biaya->deskripsi_biaya }}</td>
             <td>{{ $biaya->provinsi_tujuan ?? '-'}}</td>
             <td class="text-center">{{ $biaya->jumlah }}</td>
@@ -488,37 +490,55 @@
 
         {{-- PERHITUNGAN 30% PENGINAPAN --}}
         @php
-            // cek apakah ada Hotel 30% dari biaya riil
-            $adaHotel30 = $row->biayaRiil->where('deskripsi_biaya', 'Hotel 30%')->isNotEmpty();
+        $hotel30 = $row->biayaRiil
+            ->where('deskripsi_biaya', 'Hotel 30%')
+            ->groupBy('pegawai_id_terkait');
         @endphp
 
-        @if ($adaHotel30)
-        <h6 class="fw-bold">Perhitungan (HOTEL 30%)</h6>
+        @if($row->hotel30_grouped->isNotEmpty())
+            <h6 class="fw-bold">Perhitungan (HOTEL 30%)</h6>
+
             <table class="table table-bordered">
                 <thead class="table-light">
                     <tr class="text-center">
                         <th>Nama Pegawai</th>
-                        <th>Jumlah</th>
+                        <th>Jumlah Malam</th>
                         <th>Harga Satuan</th>
                         <th>Total Penginapan (Rp)</th>
                         <th>30% Penginapan (Rp)</th>
                     </tr>
                 </thead>
+
                 <tbody>
-                    @foreach ($row->data_penginapan as $d)
-                        <tr>
-                            <td>{{ $d['nama'] }}</td>
-                            <td class="text-center">{{ $d['jumlah_malam'] }} Malam</td>
-                            <td class="text-center">Rp {{ number_format($d['harga_satuan'], 0, ',', '.') }}</td>
-                            <td class="text-center">Rp {{ number_format($d['total_penginapan'], 0, ',', '.') }}</td>
-                            <td class="fw-bold text-success text-center">
-                                {{ number_format($d['uang_30'], 0, ',', '.') }}
-                            </td>
-                        </tr>
-                    @endforeach
+                @foreach ($row->hotel30_grouped as $pegawaiId => $items)
+                    @php
+                        $pegawaiNama = $items->first()->pegawaiTerkait->nama ?? '-';
+                        $jumlah = $items->first()->jumlah ?? 0;
+                        $hargaPenginapan = $row->biaya
+                            ->where('pegawai_id_terkait', $pegawaiId)
+                            ->filter(function ($b) {
+                                return $b->sbuItem && $b->sbuItem->kategori_biaya === 'PENGINAPAN';
+                            })
+                            ->first()->harga_satuan ?? 0;
+
+                        $totalPenginapan = $jumlah * $hargaPenginapan;
+                        $total30 = $items->sum('subtotal_biaya');
+                    @endphp
+
+                    <tr>
+                        <td>{{ $pegawaiNama }}</td>
+                        <td class="text-center">{{ $jumlah }} Malam</td>
+                        <td class="text-center">Rp {{ number_format($hargaPenginapan, 0, ',', '.') }}</td>
+                        <td class="text-center">Rp {{ number_format($totalPenginapan, 0, ',', '.') }}</td>
+                        <td class="fw-bold text-success text-center">
+                            Rp {{ number_format($total30, 0, ',', '.') }}
+                        </td>
+                    </tr>
+                @endforeach
                 </tbody>
             </table>
-        <hr>
+
+            <hr>
         @endif
 
         {{-- ESTIMASI BIAYA --}}
@@ -531,7 +551,6 @@
               <th>Harga Satuan</th>
               <th>Unit/Hari</th>
               <th>Subtotal</th>
-              <th style="width: 1%; white-space: nowrap;">Aksi</th>
             </tr>
           </thead>
           <tbody>
@@ -542,17 +561,6 @@
               <td class="text-end">Rp {{ number_format($biaya->harga_satuan) }}</td>
               <td class="text-center">{{ $biaya->jumlah_unit }} {{ optional($biaya->sbuItem)->satuan }}</td>
               <td class="text-end">Rp {{ number_format($biaya->subtotal_biaya) }}</td>
-              <td class="text-center">
-                <form action="{{ route('laporan.hapusBiaya', $biaya->id) }}"
-                    method="POST"
-                    onsubmit="return confirm('Yakin ingin menghapus biaya ini?')">
-                    @csrf
-                    @method('DELETE')
-                    <button class="btn btn-danger btn-sm">
-                        <i class="bx bx-trash"></i>
-                    </button>
-                </form>
-              </td>
             </tr>
             @endforeach
           </tbody>
@@ -560,7 +568,6 @@
             <tr class="table-light">
               <th colspan="4" class="text-end">Total Estimasi</th>
               <th class="text-end">Rp {{ number_format($row->biaya->sum('subtotal_biaya')) }}</th>
-              <th></th>
             </tr>
           </tfoot>
         </table>
@@ -598,8 +605,16 @@
             <div class="row">
               <div class="col-md-6 mb-2"><strong>Nomor SPT:</strong> <span id="nomorSPT">-</span></div>
               <div class="col-md-6 mb-2"><strong>Tujuan:</strong> <span id="tujuanSPT">-</span></div>
-              <div class="col-md-12 mb-2">
-                <strong>Tanggal Pelaksanaan:</strong> <span id="tanggalPelaksanaan">-</span>
+              <div class="col-md-6 mb-2"><strong>Tanggal Pelaksanaan:</strong> <span id="tanggalPelaksanaan">-</span></div>
+              <div class="col-md-6 mb-2"><strong>Personil:</strong> <span>
+                @if($row->pegawai && $row->pegawai->isNotEmpty())
+                  @foreach($row->pegawai as $p)
+                    {{ $p->nama }}@if(!$loop->last), @endif
+                  @endforeach
+                @else
+                  -
+                @endif
+                </span>
               </div>
             </div>
           </div>
@@ -652,7 +667,17 @@
                             </select>
                         </div>
 
-                        <div class="col-md-4">
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Pegawai</label>
+                            <select name="biaya[0][pegawai_id]" class="form-select">
+                                <option value="">-- Pilih Pegawai --</option>
+                                @foreach ($pegawai as $pg)
+                                    <option value="{{ $pg->id }}">{{ $pg->nama }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="col-md-3">
                             <label class="form-label fw-semibold">Provinsi Tujuan</label>
                             <select name="biaya[0][provinsi_tujuan]" class="form-select input-provinsi">
                                 <option value="">-- Pilih Provinsi Tujuan --</option>
@@ -662,7 +687,7 @@
                             </select>
                         </div>
 
-                        <div class="col-md-2">
+                        <div class="col-md-3">
                             <label class="form-label fw-semibold">Jumlah</label>
                             <input type="number" name="biaya[0][jumlah]" class="form-control input-jumlah" value="1">
                         </div>
@@ -677,12 +702,12 @@
                             <input type="number" name="biaya[0][harga]" class="form-control input-harga">
                         </div>
 
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label class="form-label fw-semibold">Nomor Bukti</label>
                             <input type="text" name="biaya[0][bukti]" class="form-control input-nomor-bukti">
                         </div>
 
-                        <div class="col-md-5">
+                        <div class="col-md-3">
                             <label class="form-label fw-semibold">Upload Bukti (Opsional)</label>
                             <input type="file" name="biaya[0][upload_bukti]" class="form-control input-bukti">
                         </div>
@@ -811,7 +836,17 @@ document.addEventListener("DOMContentLoaded", function() {
                     </select>
                 </div>
 
-                <div class="col-md-4">
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Pegawai</label>
+                        <select name="biaya[${index}][pegawai_id]" class="form-select">
+                            <option value="">-- Pilih Pegawai --</option>
+                            @foreach ($pegawai as $pg)
+                                <option value="{{ $pg->id }}">{{ $pg->nama }}</option>
+                            @endforeach
+                        </select>
+                </div>
+
+                <div class="col-md-3">
                     <label class="form-label fw-semibold">Provinsi Tujuan</label>
                     <select name="biaya[${index}][provinsi_tujuan]" class="form-select input-provinsi">
                         <option value="">-- Pilih Provinsi Tujuan --</option>
@@ -821,7 +856,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     </select>
                 </div>
 
-                <div class="col-md-2">
+                <div class="col-md-3">
                     <label class="form-label fw-semibold">Jumlah</label>
                     <input type="number" name="biaya[${index}][jumlah]" class="form-control input-jumlah" value="1">
                 </div>
@@ -836,14 +871,19 @@ document.addEventListener("DOMContentLoaded", function() {
                     <input type="number" name="biaya[${index}][harga]" class="form-control input-harga">
                 </div>
 
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label class="form-label fw-semibold">Nomor Bukti</label>
                     <input type="text" name="biaya[${index}][bukti]" class="form-control input-nomor-bukti">
                 </div>
 
-                <div class="col-md-5">
+                <div class="col-md-3">
                     <label class="form-label fw-semibold">Upload Bukti (Opsional)</label>
                     <input type="file" name="biaya[${index}][upload_bukti]" class="form-control input-bukti">
+                </div>
+
+                <div class="mt-3">
+                    <label class="form-label fw-semibold">Keterangan Tambahan</label>
+                    <textarea name="biaya[${index}][keterangan]" class="form-control" rows="2"></textarea>
                 </div>
             </div>
         `;

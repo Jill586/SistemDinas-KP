@@ -93,5 +93,12 @@ class PerjalananDinas extends Model
         return $this->belongsTo(User::class, 'atasan_id');
     }
 
+    public function getHotel30GroupedAttribute()
+{
+    return $this->biayaRiil
+        ->where('deskripsi_biaya', 'Hotel 30%')
+        ->groupBy('pegawai_id');
+}
+
 
 }

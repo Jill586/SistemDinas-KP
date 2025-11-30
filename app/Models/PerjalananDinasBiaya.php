@@ -34,52 +34,26 @@ class PerjalananDinasBiaya extends Model
         'jumlah_unit' => 'integer',
     ];
 
-    /**
-     * Relasi ke PerjalananDinas
-     *
-     * @return BelongsTo
-     */
     public function perjalananDinas(): BelongsTo
     {
         return $this->belongsTo(PerjalananDinas::class, 'perjalanan_dinas_id');
     }
 
-    /**
-     * Relasi ke SbuItem
-     *
-     * @return BelongsTo
-     */
     public function sbuItem(): BelongsTo
     {
         return $this->belongsTo(SbuItem::class, 'sbu_item_id');
     }
 
-    /**
-     * Relasi ke User (jika kamu menyimpan referensi ke tabel users)
-     *
-     * @return BelongsTo
-     */
     public function userTerkait(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\User::class, 'pegawai_id_terkait');
+        return $this->belongsTo(\Pegawai::class, 'pegawai_id');
     }
 
-    /**
-     * Relasi ke Pegawai (jika kamu menyimpan referensi ke tabel pegawai)
-     *
-     * @return BelongsTo
-     */
     public function pegawaiTerkait(): BelongsTo
     {
         return $this->belongsTo(Pegawai::class, 'pegawai_id_terkait');
     }
 
-    /**
-     * Accessor helper untuk mendapatkan nama personil (prioritas: pegawai, lalu user)
-     * Usage: $biaya->personil_name
-     *
-     * @return string|null
-     */
     public function getPersonilNameAttribute(): ?string
     {
         if ($this->pegawaiTerkait) {

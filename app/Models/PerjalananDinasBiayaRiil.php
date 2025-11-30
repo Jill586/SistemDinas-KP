@@ -15,6 +15,7 @@ class PerjalananDinasBiayaRiil extends Model
     protected $fillable = [
     'perjalanan_dinas_id',
     'deskripsi_biaya',
+    'pegawai_id',
     'provinsi_tujuan',
     'jumlah',
     'satuan',
@@ -36,4 +37,10 @@ class PerjalananDinasBiayaRiil extends Model
     {
         return $this->belongsTo(PerjalananDinas::class, 'perjalanan_dinas_id');
     }
+
+    public function pegawaiTerkait(): BelongsTo
+    {
+        return $this->belongsTo(Pegawai::class, 'pegawai_id');
+    }
+
 }

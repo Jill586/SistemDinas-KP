@@ -301,8 +301,8 @@ $this->validasiForm($request);
             // Jika dalam daerah → hanya uang harian
             $kategoriList = ['UANG_HARIAN'];
         } else {
-            // Selain itu → uang harian + transportasi
-            $kategoriList = ['UANG_HARIAN', 'TRANSPORTASI_DARAT', 'TRANSPORTASI_UDARA', 'PENGINAPAN'];
+            // Selain itu
+            $kategoriList = ['UANG_HARIAN', 'TRANSPORTASI_UDARA', 'PENGINAPAN', 'TRANSPORTASI_DARAT_TAKSI'];
         }
 
         // Loop setiap pegawai
@@ -324,6 +324,15 @@ $this->validasiForm($request);
                     });
                 }
 
+                // Filter khusus Taksi berdasarkan provinsi tujuan
+                if ($kategori === 'TRANSPORTASI_DARAT_TAKSI') {
+                    // Untuk transportasi, sesuaikan kota
+                    $sbuItemQuery->where(function ($q) use ($perjalanan) {
+                        $q->where('kota_tujuan', $perjalanan->kota_tujuan_id)
+                        ->orWhereNull('kota_tujuan');
+                    });
+                }
+                
                 if ($kategori === 'PENGINAPAN') {
                     $golongan = $pegawai->golongan->nama_golongan ?? null;
                     $eselon = $pegawai->jabatan->eselon ?? null;

@@ -22,9 +22,10 @@ class LaporanPerjalananDinasController extends Controller
         $user = Auth::user();
         $search = $request->input('search');
         $provinsi = SbuItem::select('provinsi_tujuan')->distinct()->get();
+        $pegawai = \App\Models\Pegawai::all();
 
         // Ambil perjalanan dinas yang punya laporan dan status disetujui/selesai
-        $query = PerjalananDinas::with(['pegawai', 'biaya', 'laporan'])
+        $query = PerjalananDinas::with(['pegawai', 'biaya', 'laporan', 'biayaRiil.pegawaiTerkait'])
             ->whereIn('status', ['disetujui', 'selesai']);
 
         // 🔒 Filter berdasarkan role
@@ -101,12 +102,23 @@ class LaporanPerjalananDinasController extends Controller
 
         foreach ($perjalanans as $p) {
 
+            // Ambil hanya item biaya riil HOTEL 30%
+            $hotel30 = $p->biayaRiil
+                ->where('deskripsi_biaya', 'Hotel 30%')
+                ->groupBy('pegawai_id');
+
+            $p->hotel30_grouped = $hotel30;
+
             $lamaMalam = Carbon::parse($p->tanggal_mulai)
                         ->diffInDays(Carbon::parse($p->tanggal_selesai));
 
             $data = [];
 
             foreach ($p->pegawai as $pg) {
+
+                $hotel30 = $p->biayaRiil
+                    ->where('deskripsi_biaya', 'Hotel 30%')
+                    ->groupBy('pegawai_id_terkait'); 
 
                 $totalPenginapan = $p->biaya
                     ->where('pegawai_id_terkait', $pg->id)
@@ -132,7 +144,7 @@ class LaporanPerjalananDinasController extends Controller
             $p->data_penginapan = $data;
         }
 
-        return view('laporan.laporan-perjalanan-dinas', compact('perjalanans', 'perPage', 'provinsi'))
+        return view('laporan.laporan-perjalanan-dinas', compact('perjalanans', 'perPage', 'provinsi', 'pegawai'))
             ->with([
                 'bulan' => $request->bulan,
                 'tahun' => $request->tahun,
@@ -156,7 +168,6 @@ class LaporanPerjalananDinasController extends Controller
                 'ringkasan_hasil_kegiatan' => $request->ringkasan_hasil_kegiatan,
                 'kendala_dihadapi' => $request->kendala_dihadapi,
                 'saran_tindak_lanjut' => $request->saran_tindak_lanjut,
-                'status_laporan' => 'diproses',
             ]
         );
 
@@ -178,12 +189,20 @@ class LaporanPerjalananDinasController extends Controller
             $subtotal = ($b['jumlah'] ?? 0) * ($b['harga'] ?? 0);
 
             if (($b['deskripsi'] ?? '') === 'Hotel 30%') {
-                // Jika Hotel 30% maka subtotal = 30%
-                $subtotal = $subtotal * 0.30;
+
+                // 🔍 Ambil total penginapan pegawai dari tabel biaya estimasi
+                $totalPenginapan = $perjalanan->biaya
+                    ->where('pegawai_id_terkait', $b['pegawai_id'])
+                    ->where('sbuItem.kategori_biaya', 'PENGINAPAN')
+                    ->sum('subtotal_biaya');
+
+                // Hitung 30%
+                $subtotal = $totalPenginapan * 0.30;
             }
 
             PerjalananDinasBiayaRiil::create([
                 'perjalanan_dinas_id' => $perjalanan->id,
+                'pegawai_id' => $b['pegawai_id'] ?? null,
                 'deskripsi_biaya' => $b['deskripsi'] ?? '',
                 'provinsi_tujuan' => $b['provinsi_tujuan'] ?? '',
                 'jumlah' => $b['jumlah'] ?? 0,
@@ -226,15 +245,11 @@ class LaporanPerjalananDinasController extends Controller
 
             $template = new \PhpOffice\PhpWord\TemplateProcessor($templatePath);
 
-            // Ambil hanya pegawai yg punya total_penginapan > 0
             $pegawaiList = $perjalanan->pegawai->filter(function ($pg) use ($perjalanan) {
-
-                $totalPenginapan = $perjalanan->biaya
-                    ->where('pegawai_id_terkait', $pg->id)
-                    ->filter(fn($b) => $b->sbuItem && $b->sbuItem->kategori_biaya === 'PENGINAPAN')
-                    ->sum('subtotal_biaya');
-
-                return $totalPenginapan > 0; // hanya pegawai yg punya penginapan
+                return $perjalanan->biayaRiil
+                    ->where('pegawai_id', $pg->id)
+                    ->where('deskripsi_biaya', 'Hotel 30%')
+                    ->sum('subtotal_biaya') > 0;
             });
 
             // Jika semua 0, tetap generate dokumen kosong (opsional)
@@ -326,9 +341,9 @@ class LaporanPerjalananDinasController extends Controller
         // Ambil data dasar, maksud & tujuan dari perjalanan dinas
         $dasar_spt = $perjalanan->dasar_spt ?? '-';
         $uraian_spt = $perjalanan->uraian_spt ?? '-';
-
-        // Ambil data hasil dari tabel laporan_perjalanan_dinas
         $hasil = $perjalanan->laporan->ringkasan_hasil_kegiatan ?? '-';
+        $kendala = $perjalanan->laporan->kendala_dihadapi ?? '-';
+        $saran = $perjalanan->laporan->saran_tindak_lanjut ?? '-';
 
         // --- Tentukan template ---
         $templatePath = public_path('templates/template_laporanSPT.docx');
@@ -344,6 +359,8 @@ class LaporanPerjalananDinasController extends Controller
         $template->setValue('dasar_spt', $dasar_spt);
         $template->setValue('uraian_spt', $uraian_spt);
         $template->setValue('ringkasan_hasil_kegiatan', $hasil);
+        $template->setValue('kendala_dihadapi', $kendala);
+        $template->setValue('saran_tindak_lanjut', $saran);
 
         // === BAGIAN MULTI PEGAWAI MENGGUNAKAN cloneBlock ===
         $pegawaiList = $perjalanan->pegawai;

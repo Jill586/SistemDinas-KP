@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Pegawai;
 use Illuminate\Http\Request;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use App\Models\Golongan;
+use App\Models\Jabatan;
+use Illuminate\Support\Facades\Log;
 
 class PegawaiController extends Controller
 {
@@ -147,37 +150,52 @@ class PegawaiController extends Controller
         ]);
 
         try {
-            // ✅ Simpan file ke storage
             $file = $request->file('file');
             $filename = time() . '_' . $file->getClientOriginalName();
             $filePath = $file->storeAs('uploads/excel', $filename, 'public');
 
-            // ✅ Load file Excel pakai PhpSpreadsheet
             $spreadsheet = IOFactory::load(storage_path('app/public/' . $filePath));
             $sheet = $spreadsheet->getActiveSheet();
             $rows = $sheet->toArray();
 
             $count = 0;
+
             foreach (array_slice($rows, 1) as $row) {
-                if (empty($row[0]) || empty($row[3])) continue; // skip baris kosong / tanpa NIP
+                if (empty($row[0]) || empty($row[3])) continue;
+
+                $nama   = trim($row[0]);
+                $email  = trim($row[1] ?? '-');
+                $hp     = trim($row[2] ?? '-');
+                $nip    = trim((string)$row[3]);
+                $gol    = trim($row[4] ?? null);
+                $jab    = trim($row[5] ?? null);
+
+                $golongan = Golongan::where('nama_golongan', $gol)->first();
+                $jabatan  = Jabatan::where('nama_jabatan', $jab)->first();
+
+                // Warning kalau tidak ketemu
+                if (!$golongan) Log::warning("Golongan tidak ditemukan: ".$gol);
+                if (!$jabatan) Log::warning("Jabatan tidak ditemukan: ".$jab);
 
                 Pegawai::updateOrCreate(
-                    ['nip' => $row[3]], // cari berdasarkan NIP
+                    ['nip' => $nip],
                     [
-                        'nama'      => $row[0],
-                        'email'     => $row[1],
-                        'nomor_hp'  => $row[2],
-                        'golongan'  => $row[4],
-                        'jabatan'   => $row[5],
+                        'nama'               => $nama,
+                        'email'              => $email,
+                        'nomor_hp'           => $hp,
+                        'golongan_id'        => $golongan->id ?? null,
+                        'jabatan_id'         => $jabatan->id ?? null,
+                        'jabatan_struktural' => $jab,
+                        'pangkat_golongan'   => $gol,
                     ]
                 );
 
                 $count++;
             }
 
-            return redirect()->back()->with('success', "Berhasil import {$count} data pegawai. File disimpan di storage/uploads/excel/");
+            return redirect()->back()->with('success', "Berhasil import {$count} data pegawai.");
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Gagal mengimport file: ' . $e->getMessage());
+            dd($e->getMessage());
         }
     }
 }

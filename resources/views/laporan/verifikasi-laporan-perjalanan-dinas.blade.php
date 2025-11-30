@@ -266,6 +266,7 @@
         <table class="table table-bordered table-striped">
           <thead class="table-light text-center">
             <tr>
+              <th>Nama</th>
               <th>Deskripsi</th>
               <th>Provinsi Tujuan</th>
               <th>Jumlah</th>
@@ -284,6 +285,7 @@
                     @continue
                 @endif
             <tr>
+            <td>{{ $biaya->pegawaiTerkait->nama ?? '-' }}</td>
             <td>{{ $biaya->deskripsi_biaya }}</td>
             <td>{{ $biaya->provinsi_tujuan ?? '-'}}</td>
             <td class="text-center">{{ $biaya->jumlah }}</td>
@@ -323,37 +325,55 @@
 
         {{-- PERHITUNGAN 30% PENGINAPAN --}}
         @php
-            // cek apakah ada Hotel 30% dari biaya riil
-            $adaHotel30 = $row->biayaRiil->where('deskripsi_biaya', 'Hotel 30%')->isNotEmpty();
+        $hotel30 = $row->biayaRiil
+            ->where('deskripsi_biaya', 'Hotel 30%')
+            ->groupBy('pegawai_id_terkait');
         @endphp
 
-        @if ($adaHotel30)
-        <h6 class="fw-bold">Perhitungan (HOTEL 30%)</h6>
+        @if($row->hotel30_grouped->isNotEmpty())
+            <h6 class="fw-bold">Perhitungan (HOTEL 30%)</h6>
+
             <table class="table table-bordered">
                 <thead class="table-light">
                     <tr class="text-center">
                         <th>Nama Pegawai</th>
-                        <th>Jumlah</th>
+                        <th>Jumlah Malam</th>
                         <th>Harga Satuan</th>
                         <th>Total Penginapan (Rp)</th>
                         <th>30% Penginapan (Rp)</th>
                     </tr>
                 </thead>
+
                 <tbody>
-                    @foreach ($row->data_penginapan ?? [] as $d)
-                        <tr>
-                            <td>{{ $d['nama'] }}</td>
-                            <td class="text-center">{{ $d['jumlah_malam'] }} Malam</td>
-                            <td class="text-center">Rp {{ number_format($d['harga_satuan'], 0, ',', '.') }}</td>
-                            <td class="text-center">Rp {{ number_format($d['total_penginapan'], 0, ',', '.') }}</td>
-                            <td class="fw-bold text-success text-center">
-                                {{ number_format($d['uang_30'], 0, ',', '.') }}
-                            </td>
-                        </tr>
-                    @endforeach
+                @foreach ($row->hotel30_grouped as $pegawaiId => $items)
+                    @php
+                        $pegawaiNama = $items->first()->pegawaiTerkait->nama ?? '-';
+                        $jumlah = $items->first()->jumlah ?? 0;
+                        $hargaPenginapan = $row->biaya
+                            ->where('pegawai_id_terkait', $pegawaiId)
+                            ->filter(function ($b) {
+                                return $b->sbuItem && $b->sbuItem->kategori_biaya === 'PENGINAPAN';
+                            })
+                            ->first()->harga_satuan ?? 0;
+
+                        $totalPenginapan = $jumlah * $hargaPenginapan;
+                        $total30 = $items->sum('subtotal_biaya');
+                    @endphp
+
+                    <tr>
+                        <td>{{ $pegawaiNama }}</td>
+                        <td class="text-center">{{ $jumlah }} Malam</td>
+                        <td class="text-center">Rp {{ number_format($hargaPenginapan, 0, ',', '.') }}</td>
+                        <td class="text-center">Rp {{ number_format($totalPenginapan, 0, ',', '.') }}</td>
+                        <td class="fw-bold text-success text-center">
+                            Rp {{ number_format($total30, 0, ',', '.') }}
+                        </td>
+                    </tr>
+                @endforeach
                 </tbody>
             </table>
-        <hr>
+
+            <hr>
         @endif
 
         {{-- Estimasi Biaya --}}
