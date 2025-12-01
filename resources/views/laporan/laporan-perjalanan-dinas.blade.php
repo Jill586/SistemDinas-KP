@@ -486,7 +486,6 @@
         <p class="fw-bold text-end">
           TOTAL BIAYA RIIL: Rp {{ number_format($row->biayaRiil->sum('subtotal_biaya')) }}
         </p>
-        <hr>
 
         {{-- PERHITUNGAN 30% PENGINAPAN --}}
         @php
@@ -542,7 +541,7 @@
         @endif
 
         {{-- ESTIMASI BIAYA --}}
-        <h6 class="fw-bold mt-4">Batas Maksimal Penggunaan Keuangan (SBU ITEM)</h6>
+        <h6 class="fw-bold mt-4">Batas Atas Penggunaan Keuangan (SBU ITEM)</h6>
         <table class="table table-bordered table-striped">
           <thead class="table-dark text-center">
             <tr>
@@ -571,6 +570,111 @@
             </tr>
           </tfoot>
         </table>
+
+        {{-- NOMINAL DIBAYARKAN --}}
+        <table class="table table-bordered table-striped">
+            <thead class="table-light text-center">
+            </thead>
+                <tbody>
+                   @php
+                    $mapping = [
+                        'BBM' => 'Luar Kabupaten Riau',
+
+                        'Transportasi Darat' => 'Taksi Riau',
+                        'Taksi' => 'Taksi Riau',
+                        'Taxi' => 'Taksi Riau',
+
+                        'Hotel' => [
+                            'Hotel Riau Eselon III/Golongan IV',
+                            'Hotel Riau Eselon IV/Golongan III',
+                        ],
+                    ];
+                    @endphp
+
+                    @foreach ($row->pegawai as $pg)
+                        @php
+                            $biayaRiilPegawai = $row->biayaRiil->where('pegawai_id', $pg->id);
+                        @endphp
+
+                        <h6 class="fw-bold mt-4">Nominal Dibayarkan — {{ $pg->nama }}</h6>
+
+                        <table class="table table-bordered table-striped">
+                            <thead class="table-light text-center">
+                                <tr class="text-center">
+                                    <th>Deskripsi</th>
+                                    <th>Real Cost (Riil)</th>
+                                    <th>Batas Atas (SBU)</th>
+                                    <th>Nominal Dibayarkan</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+
+                                @foreach ($biayaRiilPegawai as $riil)
+                                    @php
+                                        // REAL COST
+                                        $realCost = $riil->subtotal_biaya;
+
+                                        // --- CARI DESKRIPSI ESTIMASI DARI PEMETAAN ---
+                                        $key = $riil->deskripsi_biaya;
+                                        $targetDeskripsi = $mapping[$key] ?? null;
+
+                                        $estimasi = null;
+
+                                        if ($targetDeskripsi) {
+
+                                            // Jika mapping adalah array (Hotel)
+                                            if (is_array($targetDeskripsi)) {
+                                                $estimasi = $row->biaya
+                                                    ->where('pegawai_id_terkait', $pg->id)
+                                                    ->whereIn('deskripsi_biaya', $targetDeskripsi)
+                                                    ->first();
+                                            } else {
+                                                // jika mapping single value
+                                                $estimasi = $row->biaya
+                                                    ->where('pegawai_id_terkait', $pg->id)
+                                                    ->where('deskripsi_biaya', $targetDeskripsi)
+                                                    ->first();
+                                            }
+                                        }
+
+                                        // Batas Atas dari estimasi
+                                        $batasAtas = $estimasi->subtotal_biaya ?? 0;
+
+                                        // Nominal Dibayarkan
+                                        $dibayar = min($realCost, $batasAtas);
+                                    @endphp
+
+                                    <tr>
+                                        <td>{{ $riil->deskripsi_biaya }}</td>
+                                        <td class="text-center">Rp {{ number_format($realCost) }}</td>
+                                        <td class="text-center">Rp {{ number_format($batasAtas) }}</td>
+                                        <td class="text-center fw-bold text-primary">
+                                            Rp {{ number_format($dibayar) }}
+                                        </td>
+                                    </tr>
+                                @endforeach
+
+                            </tbody>
+                        </table>
+                    @endforeach
+                </tbody>
+        </table>
+
+        <hr>
+
+        <h6 class="fw-bold">Dokumentasi Perjalanan Dinas</h6>
+        @if ($row->laporan && $row->laporan->foto_dokumentasi)
+            @php
+                $fotos = json_decode($row->laporan->foto_dokumentasi, true);
+            @endphp
+
+            @foreach ($fotos as $foto)
+                <img src="{{ asset('storage/' . $foto) }}"
+                    class="img-thumbnail mb-2"
+                    width="300">
+            @endforeach
+        @endif
+
       </div>
 
       {{-- FOOTER --}}
@@ -638,6 +742,12 @@
             <div class="col-md-12 mb-4">
               <label class="form-label fw-bold">Saran / Tindak Lanjut</label>
               <textarea name="saran_tindak_lanjut" id="saran" class="form-control" rows="3"></textarea>
+            </div>
+
+            <div class="col-md-12 mb-4">
+                <label class="form-label fw-bold">Foto Dokumentasi Perjalanan Dinas <span class="text-danger">*</span></label>
+                <input type="file" name="foto_dokumentasi[]" id="fotoDokumentasi" multiple class="form-control"
+                    accept="image/*" multiple required>
             </div>
           </div>
 

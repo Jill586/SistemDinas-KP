@@ -23,6 +23,7 @@ class LaporanPerjalananDinasController extends Controller
         $search = $request->input('search');
         $provinsi = SbuItem::select('provinsi_tujuan')->distinct()->get();
         $pegawai = \App\Models\Pegawai::all();
+        $laporan = LaporanPerjalananDinas::all();
 
         // Ambil perjalanan dinas yang punya laporan dan status disetujui/selesai
         $query = PerjalananDinas::with(['pegawai', 'biaya', 'laporan', 'biayaRiil.pegawaiTerkait'])
@@ -144,7 +145,7 @@ class LaporanPerjalananDinasController extends Controller
             $p->data_penginapan = $data;
         }
 
-        return view('laporan.laporan-perjalanan-dinas', compact('perjalanans', 'perPage', 'provinsi', 'pegawai'))
+        return view('laporan.laporan-perjalanan-dinas', compact('perjalanans', 'perPage', 'provinsi', 'pegawai', 'laporan'))
             ->with([
                 'bulan' => $request->bulan,
                 'tahun' => $request->tahun,
@@ -170,6 +171,19 @@ class LaporanPerjalananDinasController extends Controller
                 'saran_tindak_lanjut' => $request->saran_tindak_lanjut,
             ]
         );
+
+         // === ⬇️ Tambahkan Bagian Upload Foto Dokumentasi ===
+        if ($request->hasFile('foto_dokumentasi')) {
+
+                $paths = [];
+
+                foreach ($request->file('foto_dokumentasi') as $file) {
+                    $paths[] = $file->store('foto_dokumentasi', 'public');
+                }
+
+                $laporan->foto_dokumentasi = json_encode($paths);
+                $laporan->save();
+        }
 
         // Hapus biaya riil lama
         $perjalanan->biayaRiil()->delete();
@@ -337,7 +351,6 @@ class LaporanPerjalananDinasController extends Controller
                 ->deleteFileAfterSend(true);
         }
 
-
         // Ambil data dasar, maksud & tujuan dari perjalanan dinas
         $dasar_spt = $perjalanan->dasar_spt ?? '-';
         $uraian_spt = $perjalanan->uraian_spt ?? '-';
@@ -400,6 +413,21 @@ class LaporanPerjalananDinasController extends Controller
             $template->setValue('tanggal_mulai', $tanggalMulai);
             $template->setValue('tanggal_selesai', $tanggalSelesai);
             $template->setValue('lama_hari', $lamaHariText);
+
+            // === FOTO DOKUMENTASI ===
+            $fotos = json_decode(optional($perjalanan->laporan)->foto_dokumentasi ?? '[]', true);
+
+            if (!empty($fotos)) {
+                $fotoPath = storage_path('app/public/' . $fotos[0]);
+
+                if (file_exists($fotoPath)) {
+                    $template->setImageValue('foto1', [
+                        'path' => $fotoPath,
+                        'width' => 300,
+                        'height' => 250,
+                    ]);
+                }
+            }
 
         // File output
         $fileName = 'LAPORAN_SPT_' . str_replace('/', '-', $perjalanan->nomor_spt);

@@ -35,21 +35,14 @@
                     <td>{{ $index + 1 }}</td>
                     <td>{{ $u->name }}</td>
                     <td>{{ $u->email }}</td>
-
-
-
-                    <td>
-                        {{ $u->role}}
-                    </td>
-
+                    <td>{{ $u->role}}</td>
                     <td>{{ $u->created_at->format('d M Y H:i') }}</td>
-
                     <td>
                         <!-- Edit -->
                         <button class="btn btn-warning btn-sm"
                                 data-bs-toggle="modal"
                                 data-bs-target="#modalEditUser{{ $u->id }}">
-                            Edit
+                             <i class="bx bx-edit"></i>
                         </button>
 
                         <!-- Delete -->
@@ -59,7 +52,9 @@
                               onsubmit="return confirm('Yakin ingin menghapus user ini?')">
                             @csrf
                             @method('DELETE')
-                            <button class="btn btn-danger btn-sm">Hapus</button>
+                            <button class="btn btn-danger btn-sm">
+                                <i class="bx bx-trash"></i>
+                            </button>
                         </form>
                     </td>
                 </tr>
@@ -75,10 +70,6 @@
         </div>
     </div>
 </div>
-
-
-
-
 
 <!-- ================================================================= -->
 <!--                  MODAL TAMBAH USER                               -->
@@ -124,10 +115,7 @@
                         <option value="verifikator3" {{ $u->role === 'verifikator3' ? 'selected' : '' }}>verifikator3</option>
                     </select>
                 </div>
-
-
             </div>
-
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
                 <button type="submit" class="btn btn-primary">Simpan</button>
@@ -136,12 +124,6 @@
         </form>
     </div>
 </div>
-
-
-
-
-
-
 
 <!-- ================================================================= -->
 <!--                  MODAL EDIT USER (LOOP)                           -->
@@ -166,7 +148,6 @@
                         required placeholder="Nama lengkap">
                 </div>
 
-
                 <div class="mb-3">
                     <label class="form-label">Email</label>
                     <input type="email" name="email" class="form-control"
@@ -189,9 +170,7 @@
                         <option value="verifikator3" {{ $u->role === 'verifikator3' ? 'selected' : '' }}>verifikator3</option>
                     </select>
                 </div>
-
             </div>
-
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
                 <button type="submit" class="btn btn-primary">Update</button>
@@ -201,9 +180,6 @@
     </div>
 </div>
 @endforeach
-
-
-
 
 <!-- ================================================================= -->
 <!--              SWEETALERT NOTIFICATION                              -->

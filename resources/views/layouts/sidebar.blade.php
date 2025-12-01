@@ -122,7 +122,7 @@
    @if ($role === 'super_admin')
   <li class="menu-item {{ request()->routeIs('tambah-user') ? 'active' : '' }}">
     <a href="{{ route('tambah-user') }}" class="menu-link">
-      <i class="menu-icon tf-icons bx bx-grid"></i>
+      <i class="menu-icon tf-icons bx bx-user-plus"></i>
       <div>Tambah User</div>
     </a>
   </li>
