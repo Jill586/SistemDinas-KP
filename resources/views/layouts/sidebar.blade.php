@@ -119,6 +119,16 @@
       </li>
     @endif
 
+   @if ($role === 'super_admin')
+  <li class="menu-item {{ request()->routeIs('tambah-user') ? 'active' : '' }}">
+    <a href="{{ route('tambah-user') }}" class="menu-link">
+      <i class="menu-icon tf-icons bx bx-grid"></i>
+      <div>Tambah User</div>
+    </a>
+  </li>
+@endif
+
+
     {{-- Spacer agar Logout turun ke bawah --}}
     <div style="flex-grow: 1;"></div>
 

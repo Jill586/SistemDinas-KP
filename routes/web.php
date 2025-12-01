@@ -5,6 +5,7 @@ use App\Http\Controllers\LoginController;
 use App\Http\Controllers\PegawaiController;
 use App\Http\Controllers\SbuItemController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\TambahUserController;
 use App\Http\Controllers\PerjalananDinasController;
 use App\Http\Controllers\VerifikasiStaffController;
 use App\Http\Controllers\PersetujuanAtasanController;
@@ -34,7 +35,20 @@ Route::middleware(['auth', 'role:super_admin'])->group(function () {
         Route::post('/pegawai/store', 'store')->name('pegawai.store');
         Route::put('/pegawai/{id}', 'update')->name('pegawai.update');
         Route::delete('/pegawai/delete/{id}', 'destroy')->name('pegawai.destroy');
-    });
+        });
+
+
+    // Tambah User
+     Route::controller(TambahUserController::class)->group(function () {
+      Route::get('/tambah-user',  'index')->name('tambah-user');
+      Route::post('/tambah-user',  'store')->name('tambah-user.store');
+      Route::put('/tambah-user/{id}',  'update')->name('tambah-user.update');
+      Route::delete('/tambah-user/{id}', 'destroy')->name('tambah-user.destroy');
+
+
+
+
+     });
 
     Route::post('/pegawai/import', [PegawaiController::class, 'import'])->name('pegawai.import');
 
