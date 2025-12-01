@@ -89,6 +89,35 @@
     justify-content: space-between;
     height: 100%;
   }
+
+  .col-5th {
+  width: 20%;
+}
+
+@media (max-width: 1200px) {
+  .col-5th {
+    width: 25%;
+  }
+}
+
+@media (max-width: 992px) {
+  .col-5th {
+    width: 33.33%;
+  }
+}
+
+@media (max-width: 768px) {
+  .col-5th {
+    width: 50%;
+  }
+}
+
+@media (max-width: 576px) {
+  .col-5th {
+    width: 100%;
+  }
+}
+
 </style>
 
 

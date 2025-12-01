@@ -9,7 +9,8 @@
   {{-- ====== ROW 1 : 4 CARD UTAMA ====== --}}
 <div class="row g-4 mb-4">
   {{-- Jumlah Pegawai --}}
-  <div class="col-lg-3 col-md-6 col-sm-12">
+  <div class="col-5th px-2">
+
     <div class="card h-100">
       <div class="card-body d-flex flex-column justify-content-between">
         <div class="d-flex align-items-start justify-content-between mb-2">
@@ -27,7 +28,8 @@
   </div>
 
   {{-- Jumlah Perjalanan --}}
-  <div class="col-lg-3 col-md-6 col-sm-12">
+  <div class="col-5th px-2">
+
     <div class="card h-100">
       <div class="card-body d-flex flex-column justify-content-between">
         <div class="d-flex align-items-start justify-content-between mb-2">
@@ -45,7 +47,8 @@
   </div>
 
   {{-- Perjalanan Hari Ini --}}
-  <div class="col-lg-3 col-md-6 col-sm-12">
+  <div class="col-5th px-2">
+
     <div class="card h-100">
       <div class="card-body d-flex flex-column justify-content-between">
         <div class="d-flex align-items-start justify-content-between mb-2">
@@ -65,7 +68,8 @@
   </div>
 
   {{-- Total Pengeluaran --}}
-  <div class="col-lg-3 col-md-6 col-sm-12">
+  <div class="col-5th px-2">
+
     <div class="card h-100">
       <div class="card-body d-flex flex-column justify-content-between">
         <div class="d-flex align-items-start justify-content-between mb-2">
@@ -82,6 +86,24 @@
               <span class="text-muted">dari pengajuan terakhir</span>
             </small>
           @endif
+        </div>
+      </div>
+    </div>
+  </div>
+   {{-- ⭐ CARD BARU — TOTAL REAL COST --}}
+  <div class="col-5th px-2">
+
+    <div class="card h-100">
+      <div class="card-body d-flex flex-column justify-content-between">
+        <div class="d-flex align-items-start justify-content-between mb-2">
+          <div class="avatar flex-shrink-0 bg-label-danger rounded">
+            <i class="bx bx-money bx-sm text-danger"></i>
+          </div>
+        </div>
+        <div>
+          <span class="fw-semibold d-block mb-1 text-uppercase">Total Real Cost</span>
+          <h3 class="card-title mb-2">Rp {{ number_format($totalRealCost, 0, ',', '.') }}</h3>
+          <span class="text-muted small">Biaya riil dari laporan perjalanan</span>
         </div>
       </div>
     </div>

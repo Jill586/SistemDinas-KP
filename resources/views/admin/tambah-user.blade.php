@@ -39,7 +39,7 @@
 
 
                     <td>
-                        {{ $u->role === 'super_admin' ? 'Super Admin' : 'Admin Bidang' }}
+                        {{ $u->role}}
                     </td>
 
                     <td>{{ $u->created_at->format('d M Y H:i') }}</td>
@@ -114,14 +114,17 @@
                            required placeholder="********">
                 </div>
 
-                <div class="mb-3">
+               <div class="mb-3">
                     <label class="form-label">Role</label>
                     <select name="role" class="form-select" required>
-                        <option value="">-- Pilih Role --</option>
-                        <option value="super_admin">Super Admin</option>
-                        <option value="admin_bidang">Admin Bidang</option>
+                        <option value="super_admin" {{ $u->role === 'super_admin' ? 'selected' : '' }}>Super Admin</option>
+                        <option value="admin_bidang" {{ $u->role === 'admin_bidang' ? 'selected' : '' }}>Admin Bidang</option>
+                        <option value="verifikator1" {{ $u->role === 'verifikator1' ? 'selected' : '' }}>verifikator1</option>
+                        <option value="verifikator2" {{ $u->role === 'verifikator2' ? 'selected' : '' }}>verifikator2</option>
+                        <option value="verifikator3" {{ $u->role === 'verifikator3' ? 'selected' : '' }}>verifikator3</option>
                     </select>
                 </div>
+
 
             </div>
 
@@ -181,6 +184,9 @@
                     <select name="role" class="form-select" required>
                         <option value="super_admin" {{ $u->role === 'super_admin' ? 'selected' : '' }}>Super Admin</option>
                         <option value="admin_bidang" {{ $u->role === 'admin_bidang' ? 'selected' : '' }}>Admin Bidang</option>
+                        <option value="verifikator1" {{ $u->role === 'verifikator1' ? 'selected' : '' }}>verifikator1</option>
+                        <option value="verifikator2" {{ $u->role === 'verifikator2' ? 'selected' : '' }}>verifikator2</option>
+                        <option value="verifikator3" {{ $u->role === 'verifikator3' ? 'selected' : '' }}>verifikator3</option>
                     </select>
                 </div>
 

@@ -13,66 +13,71 @@ class DashboardController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
-    {
-        $jumlahPegawai = Pegawai::count();
+public function index()
+{
+    $jumlahPegawai = Pegawai::count();
 
-        // Hitung jumlah perjalanan bulan ini yang statusnya selesai
-        $jumlahPerjalanan = PerjalananDinas::whereMonth('tanggal_spt', Carbon::now()->month)
-            ->whereYear('tanggal_spt', Carbon::now()->year)
-            ->where('status', 'disetujui')
-            ->count();
+    // Perjalanan bulan ini (status disetujui)
+    $jumlahPerjalanan = PerjalananDinas::whereMonth('tanggal_spt', Carbon::now()->month)
+        ->whereYear('tanggal_spt', Carbon::now()->year)
+        ->where('status', 'disetujui')
+        ->count();
 
-        // Hitung jumlah perjalanan hari ini yang statusnya selesai
-        $perjalananHariIni = PerjalananDinas::whereDate('tanggal_mulai', Carbon::today())
-            ->where('status', 'disetujui')
-            ->count();   
+    // Perjalanan hari ini
+    $perjalananHariIni = PerjalananDinas::whereDate('tanggal_mulai', Carbon::today())
+        ->where('status', 'disetujui')
+        ->count();
 
-       // Ambil semua pegawai dengan jumlah perjalanan masing-masing
-       $topPelapor = Pegawai::select('pegawai.*', DB::raw('COUNT(perjalanan_dinas_user.perjalanan_dinas_id) as total_perjalanan'))
+    // Top pelapor
+    $topPelapor = Pegawai::select('pegawai.*', DB::raw('COUNT(perjalanan_dinas_user.perjalanan_dinas_id) as total_perjalanan'))
         ->leftJoin('perjalanan_dinas_user', 'perjalanan_dinas_user.pegawai_id', '=', 'pegawai.id')
         ->groupBy('pegawai.id')
         ->orderByDesc('total_perjalanan')
         ->get();
 
+    // Total seluruh biaya (SPT)
+    $totalBiaya = DB::table('perjalanan_dinas_biaya')->sum('subtotal_biaya');
 
-        # Hitung total biaya dari semua perjalanan dinas
-        $totalBiaya = DB::table('perjalanan_dinas_biaya')->sum('subtotal_biaya');
-        $totalBaru = DB::table('perjalanan_dinas_biaya')
-            ->join('perjalanan_dinas', 'perjalanan_dinas_biaya.perjalanan_dinas_id', '=', 'perjalanan_dinas.id')
-            ->where('perjalanan_dinas.status_laporan', 'diproses')
-            ->sum('perjalanan_dinas_biaya.subtotal_biaya');
+    // Total biaya real cost (biaya riil)
+    $totalRealCost = DB::table('perjalanan_dinas_biaya_riil')->sum('subtotal_biaya');
 
-        // Total seluruh biaya
-        $totalBiaya = DB::table('perjalanan_dinas_biaya')->sum('subtotal_biaya');
+    // Ambil biaya terbaru (rekaman terakhir)
+    $lastRecord = DB::table('perjalanan_dinas_biaya')
+        ->orderBy('created_at', 'desc')
+        ->first();
 
-        // Ambil record terakhir berdasarkan waktu input (pengajuan terbaru)
-        $lastRecord = DB::table('perjalanan_dinas_biaya')
-            ->orderBy('created_at', 'desc')
-            ->first();
+    $totalBaru = $lastRecord ? $lastRecord->subtotal_biaya : 0;
 
-        // Ambil subtotal dari record terbaru
-        $totalBaru = $lastRecord ? $lastRecord->subtotal_biaya : 0;
+    // Donut chart -> status
+    $statusCounts = PerjalananDinas::selectRaw('status, COUNT(*) as total')
+        ->groupBy('status')
+        ->pluck('total', 'status');
 
-        // Hitung jumlah tiap status laporan (DONUT CHART)
-        $statusCounts = PerjalananDinas::selectRaw('status, COUNT(*) as total')
-            ->groupBy('status')
-            ->pluck('total', 'status');
+    // Bar chart -> jenis SPT
+    $jenisSptCounts = PerjalananDinas::selectRaw('jenis_spt, COUNT(*) as total')
+        ->groupBy('jenis_spt')
+        ->pluck('total', 'jenis_spt');
 
-        // Hitung jumlah per jenis_spt (BARCHART)
-        $jenisSptCounts = PerjalananDinas::selectRaw('jenis_spt, COUNT(*) as total')
-            ->groupBy('jenis_spt')
-            ->pluck('total', 'jenis_spt');
+    // Pie chart -> destinasi terbanyak
+    $topDestinasi = PerjalananDinas::select('kota_tujuan_id', DB::raw('COUNT(*) as total'))
+        ->groupBy('kota_tujuan_id')
+        ->orderByDesc('total')
+        ->take(5)
+        ->get();
 
-        // Hitung jumlah tujuan terbanyak (PIECHART)
-        $topDestinasi = PerjalananDinas::select('kota_tujuan_id', DB::raw('COUNT(*) as total'))
-            ->groupBy('kota_tujuan_id')
-            ->orderByDesc('total')
-            ->take(5)
-            ->get();
-
-        return view('dashboard', compact('jumlahPegawai', 'jumlahPerjalanan', 'topPelapor', 'perjalananHariIni', 'totalBiaya', 'totalBaru', 'statusCounts', 'jenisSptCounts', 'topDestinasi'));
-    }
+    return view('dashboard', compact(
+        'jumlahPegawai',
+        'jumlahPerjalanan',
+        'topPelapor',
+        'perjalananHariIni',
+        'totalBiaya',
+        'totalBaru',
+        'totalRealCost',
+        'statusCounts',
+        'jenisSptCounts',
+        'topDestinasi'
+    ));
+}
 
     /**
      * Show the form for creating a new resource.
