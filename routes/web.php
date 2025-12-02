@@ -37,17 +37,12 @@ Route::middleware(['auth', 'role:super_admin'])->group(function () {
         Route::delete('/pegawai/delete/{id}', 'destroy')->name('pegawai.destroy');
         });
 
-
     // Tambah User
      Route::controller(TambahUserController::class)->group(function () {
       Route::get('/tambah-user',  'index')->name('tambah-user');
       Route::post('/tambah-user',  'store')->name('tambah-user.store');
       Route::put('/tambah-user/{id}',  'update')->name('tambah-user.update');
       Route::delete('/tambah-user/{id}', 'destroy')->name('tambah-user.destroy');
-
-
-
-
      });
 
     Route::post('/pegawai/import', [PegawaiController::class, 'import'])->name('pegawai.import');
@@ -56,7 +51,8 @@ Route::middleware(['auth', 'role:super_admin'])->group(function () {
     Route::put('/sbu-item/{id}', [SbuItemController::class, 'update'])->name('sbu-item.update');
     Route::post('/sbu-item', [SbuItemController::class, 'store'])->name('sbu-item.store');
     Route::delete('/sbu-item/delete/{id}', [SbuItemController::class, 'destroy'])->name('sbu-item.destroy');
-
+    Route::get('/sbu-item/export', [SbuItemController::class, 'export'])->name('sbu-item.export');
+    Route::post('/sbu-item/import', [SbuItemController::class, 'import'])->name('sbu-item.import');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 });
 
@@ -191,7 +187,7 @@ Route::middleware(['auth', 'role:verifikator3'])->group(function () {
 | ROUTE DOKUMEN PERJALANAN DINAS (multi role)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'role:super_admin|admin_bidang|verifikator2|verifikator2|verifikator3'])->group(function () {
+Route::middleware(['auth', 'role:super_admin|admin_bidang|verifikator1|verifikator2|verifikator3'])->group(function () {
         Route::controller(DokumenPerjalananDinasController::class)->group(function () {
             Route::get('/dokumen-perjalanan-dinas', 'index')->name('dokumen-perjalanan-dinas.index');
             Route::get('/dokumen/download/{id}/{type}', 'download')->name('dokumen.download');

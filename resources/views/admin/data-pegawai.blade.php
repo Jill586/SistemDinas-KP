@@ -174,18 +174,25 @@
               </select>
             </div>
             <div class="col-md-6">
-              <label class="form-label">Pangkat / Golongan</label>
+              <label class="form-label">Pangkat</label>
               <select id="edit_pangkat_golongan" name="pangkat_golongan" class="form-select" required>
-                  <option value="">-- Pilih Pangkat / Golongan --</option>
-                  <option value="Penata III/c">Penata III/c</option>
-                  <option value="Penata Muda III/a">Penata Muda III/a</option>
-                  <option value="Penata Muda Tk. I III/b">Penata Muda Tk. I III/b</option>
-                  <option value="Penata Tingkat I III/d">Penata Tingkat I III/d</option>
-                  <option value="Pembina IV/a">Pembina IV/a</option>
-                  <option value="Pembina Tk. I IV/b">Pembina Tk. I</option>
-                  <option value="Pembina Utama Muda IV/c">Pembina Utama Muda IV/c</option>
-                  <option value="Pembina Utama Madya IV/d">Pembina Utama Madya IV/d</option>
-                  <option value="Pembina Utama IV/e">Pembina Utama IV/e</option>
+                  <option value="">-- Pilih Pangkat --</option>
+                  <option value="Pembina Utama Madya (IV/d)">Pembina Utama Madya (IV/d)</option>
+                  <option value="Pembina Utama Muda (IV/c)">Pembina Utama Muda (IV/c)</option>
+                  <option value="Pembina Tk. I (IV/b)">Pembina Tk. I (IV/b)</option>
+                  <option value="Pembina (IV/a)">Pembina (IV/a)</option>
+                  <option value="Penata Tk. I (III/d)">Penata Tk. I (III/d)</option>
+                  <option value="Penata (III/c)">Penata (III/c)</option>
+                  <option value="Penata Muda Tk. I (III/b)">Penata Muda Tk. I (III/b)</option>
+                  <option value="Penata Muda (III/a)">Penata Muda (III/a)</option>
+                  <option value="Pengatur Tk. I (II/d)">Pengatur Tk. I (II/d)</option>
+                  <option value="Pengatur (II/c)">Pengatur (II/c)</option>
+                  <option value="Pengatur Muda Tk. I (II/b)">Pengatur Muda Tk. I (II/b)</option>
+                  <option value="Pengatur Muda (II/a)">Pengatur Muda (II/a)</option>  
+                  <option value="Juru Tk. I (I/d)">Juru Tk. I (I/d)</option>
+                  <option value="Juru (I/c)">Juru (I/c)</option>
+                  <option value="Juru Muda Tk. I (I/b)">Juru Muda Tk. I (I/b)</option>
+                  <option value="Juru Muda (I/a)">Juru Muda (I/a)</option>
               </select>
             </div>
           </div>
@@ -228,20 +235,20 @@
               <input type="text" name="nip" class="form-control" required>
             </div>
             <div class="col-md-6">
-              <label class="form-label">Golongan</label>
-              <select name="golongan_id" class="form-select" required>
-                  <option value="">-- Pilih Golongan --</option>
-                  @foreach($golongans as $golongan)
-                      <option value="{{ $golongan->id }}">{{ $golongan->nama_golongan }}</option>
-                  @endforeach
-              </select>
-            </div>
-            <div class="col-md-6">
               <label class="form-label">Eselonisasi</label>
               <select name="jabatan_id" class="form-select" required>
                   <option value="">-- Pilih Jabatan --</option>
                   @foreach($jabatans as $jabatan)
                       <option value="{{ $jabatan->id }}">{{ $jabatan->nama_jabatan }}</option>
+                  @endforeach
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Golongan</label>
+              <select name="golongan_id" class="form-select" required>
+                  <option value="">-- Pilih Golongan --</option>
+                  @foreach($golongans as $golongan)
+                      <option value="{{ $golongan->id }}">{{ $golongan->nama_golongan }}</option>
                   @endforeach
               </select>
             </div>
@@ -259,18 +266,25 @@
               </select>
             </div>
             <div class="col-md-6">
-              <label class="form-label">Pangkat / Golongan</label>
+              <label class="form-label">Pangkat</label>
               <select name="pangkat_golongan" class="form-select" required>
-                  <option value="">-- Pilih Pangkat / Golongan --</option>
-                  <option value="Penata III/c">Penata III/c</option>
-                  <option value="Penata Muda III/a">Penata Muda III/a</option>
-                  <option value="Penata Muda Tk. I III/b">Penata Muda Tk. I III/b</option>
-                  <option value="Penata Tingkat I III/d">Penata Tingkat I III/d</option>
-                  <option value="Pembina IV/a">Pembina IV/a</option>
-                  <option value="Pembina Tk. I IV/b">Pembina Tk. I IV/b</option>
-                  <option value="Pembina Utama Muda IV/c">Pembina Utama Muda IV/c</option>
-                  <option value="Pembina Utama Madya IV/d">Pembina Utama Madya IV/d</option>
-                  <option value="Pembina Utama IV/e">Pembina Utama IV/e</option>
+                  <option value="">-- Pilih Pangkat --</option>
+                  <option value="Pembina Utama Madya (IV/d)">Pembina Utama Madya (IV/d)</option>
+                  <option value="Pembina Utama Muda (IV/c)">Pembina Utama Muda (IV/c)</option>
+                  <option value="Pembina Tk. I (IV/b)">Pembina Tk. I (IV/b)</option>
+                  <option value="Pembina (IV/a)">Pembina (IV/a)</option>
+                  <option value="Penata Tk. I (III/d)">Penata Tk. I (III/d)</option>
+                  <option value="Penata (III/c)">Penata (III/c)</option>
+                  <option value="Penata Muda Tk. I (III/b)">Penata Muda Tk. I (III/b)</option>
+                  <option value="Penata Muda (III/a)">Penata Muda (III/a)</option>
+                  <option value="Pengatur Tk. I (II/d)">Pengatur Tk. I (II/d)</option>
+                  <option value="Pengatur (II/c)">Pengatur (II/c)</option>
+                  <option value="Pengatur Muda Tk. I (II/b)">Pengatur Muda Tk. I (II/b)</option>
+                  <option value="Pengatur Muda (II/a)">Pengatur Muda (II/a)</option>  
+                  <option value="Juru Tk. I (I/d)">Juru Tk. I (I/d)</option>
+                  <option value="Juru (I/c)">Juru (I/c)</option>
+                  <option value="Juru Muda Tk. I (I/b)">Juru Muda Tk. I (I/b)</option>
+                  <option value="Juru Muda (I/a)">Juru Muda (I/a)</option>
               </select>
             </div>
           </div>

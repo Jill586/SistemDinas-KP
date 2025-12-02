@@ -414,19 +414,33 @@ class LaporanPerjalananDinasController extends Controller
             $template->setValue('tanggal_selesai', $tanggalSelesai);
             $template->setValue('lama_hari', $lamaHariText);
 
-            // === FOTO DOKUMENTASI ===
+           // === FOTO DOKUMENTASI ===
             $fotos = json_decode(optional($perjalanan->laporan)->foto_dokumentasi ?? '[]', true);
 
-            if (!empty($fotos)) {
-                $fotoPath = storage_path('app/public/' . $fotos[0]);
+            // Ambil maksimal 3 foto pertama
+            $fotos = array_slice($fotos, 0, 3);
+
+            foreach ($fotos as $index => $foto) {
+                $placeholder = 'foto' . ($index + 1); // foto1, foto2, foto3
+                $fotoPath = storage_path('app/public/' . $foto);
 
                 if (file_exists($fotoPath)) {
-                    $template->setImageValue('foto1', [
+                    $template->setImageValue($placeholder, [
                         'path' => $fotoPath,
-                        'width' => 300,
+                        'width' => 200,
                         'height' => 250,
                     ]);
                 }
+            }
+
+            // Kosongkan placeholder jika kurang dari 3
+            for ($i = count($fotos) + 1; $i <= 3; $i++) {
+                $template->setValue('foto' . $i, '');
+            }
+
+            // Jika foto kurang dari 3, sisa placeholder dikosongkan
+            for ($i = count($fotos) + 1; $i <= 3; $i++) {
+                $template->setValue('foto' . $i, ''); 
             }
 
         // File output

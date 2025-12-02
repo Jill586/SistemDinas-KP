@@ -9,7 +9,7 @@
     <!-- HEADER -->
     <div class="card-header bg-white d-flex justify-content-between align-items-center">
         <h5 class="mb-0 fw-bold">Manajemen User</h5>
-        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalTambahUser">
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalTambahUser">
             Tambah User
         </button>
     </div>
@@ -17,9 +17,9 @@
     <!-- TABLE -->
     <div class="card-body">
         <div class="table-responsive">
-            <table class="table table-bordered align-middle">
+            <table class="table table-striped table-bordered align-middle">
                 <thead class="table-light">
-                <tr>
+                <tr class="text-center">
                     <th>No</th>
                     <th>Nama</th>
                     <th>Email</th>
@@ -32,12 +32,12 @@
                 <tbody>
                 @forelse ($users as $index => $u)
                 <tr>
-                    <td>{{ $index + 1 }}</td>
+                    <td class="text-center">{{ $index + 1 }}</td>
                     <td>{{ $u->name }}</td>
                     <td>{{ $u->email }}</td>
-                    <td>{{ $u->role}}</td>
-                    <td>{{ $u->created_at->format('d M Y H:i') }}</td>
-                    <td>
+                    <td class="text-center">{{ $u->role}}</td>
+                    <td class="text-center">{{ $u->created_at->format('d M Y H:i') }}</td>
+                    <td class="text-center">
                         <!-- Edit -->
                         <button class="btn btn-warning btn-sm"
                                 data-bs-toggle="modal"

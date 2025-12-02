@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\SbuItem;
+use App\Exports\SbuItemExport;
+use App\Imports\SbuItemImport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class SbuItemController extends Controller
 {
@@ -153,5 +156,21 @@ class SbuItemController extends Controller
         $items->delete();
 
         return redirect()->back()->with('success', 'Pegawai berhasil dihapus.');
+    }
+
+    public function export()
+    {
+        return Excel::download(new SbuItemExport, 'sbu_items.xlsx');
+    }
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls'
+        ]);
+
+        Excel::import(new SbuItemImport, $request->file('file'));
+
+        return back()->with('success', 'Import SBU Item berhasil!');
     }
 }

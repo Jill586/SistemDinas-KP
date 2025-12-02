@@ -212,7 +212,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="text-center">Belum ada data perjalanan dinas</td>
+                            <td colspan="9" class="text-center">Belum ada data perjalanan dinas</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -578,10 +578,14 @@
                 <tbody>
                    @php
                     $mapping = [
-                        'BBM' => 'Luar Kabupaten Riau',
+                        'BBM' => [
+                            'Transportasi Darat Siak - Dumai (PP)',
+                            'Transportasi Darat Siak - Pekanbaru (PP)',
+                            'Transportasi Darat Siak - Bengkalis (PP)',
+                            'Transportasi Darat Siak - Rokan Hilir (PP)',
+                        ],
 
                         'Transportasi Darat' => 'Taksi Riau',
-                        'Taksi' => 'Taksi Riau',
                         'Taxi' => 'Taksi Riau',
 
                         'Hotel' => [
@@ -594,6 +598,7 @@
                     @foreach ($row->pegawai as $pg)
                         @php
                             $biayaRiilPegawai = $row->biayaRiil->where('pegawai_id', $pg->id);
+                            $totalDibayarPegawai = 0;
                         @endphp
 
                         <h6 class="fw-bold mt-4">Nominal Dibayarkan — {{ $pg->nama }}</h6>
@@ -603,6 +608,8 @@
                                 <tr class="text-center">
                                     <th>Deskripsi</th>
                                     <th>Real Cost (Riil)</th>
+                                    <th>Nominal Harian</th>
+                                    <th>Unit/Hari</th>
                                     <th>Batas Atas (SBU)</th>
                                     <th>Nominal Dibayarkan</th>
                                 </tr>
@@ -637,23 +644,41 @@
                                             }
                                         }
 
+                                        // Nominal Harian (Harga Satuan dari Estimasi SBU)
+                                        $nominalHarian = $estimasi->harga_satuan ?? 0;
+
                                         // Batas Atas dari estimasi
                                         $batasAtas = $estimasi->subtotal_biaya ?? 0;
 
                                         // Nominal Dibayarkan
-                                        $dibayar = min($realCost, $batasAtas);
+                                        if ($batasAtas > 0) {
+                                            $dibayar = min($realCost, $batasAtas);
+                                        } else {
+                                            $dibayar = $realCost; // fallback jika tidak ada batas SBU
+                                        }
+
+                                        $totalDibayarPegawai += $dibayar;
+
                                     @endphp
 
                                     <tr>
                                         <td>{{ $riil->deskripsi_biaya }}</td>
                                         <td class="text-center">Rp {{ number_format($realCost) }}</td>
+                                        <td class="text-center">Rp {{ number_format($nominalHarian) }}</td>
+                                        <td class="text-center">
+                                            {{ optional($estimasi)->jumlah_unit ?? '-' }}
+                                            {{ optional(optional($estimasi)->sbuItem)->satuan ?? '' }}
+                                        </td>
                                         <td class="text-center">Rp {{ number_format($batasAtas) }}</td>
-                                        <td class="text-center fw-bold text-primary">
+                                        <td class="text-end">
                                             Rp {{ number_format($dibayar) }}
                                         </td>
                                     </tr>
                                 @endforeach
-
+                                    <tr class="table-light">
+                                        <td colspan="5" class="text-end">TOTAL DIBAYARKAN</td>
+                                        <td class="text-end">Rp {{ number_format($totalDibayarPegawai) }}</td>
+                                    </tr>
                             </tbody>
                         </table>
                     @endforeach
@@ -668,11 +693,13 @@
                 $fotos = json_decode($row->laporan->foto_dokumentasi, true);
             @endphp
 
-            @foreach ($fotos as $foto)
-                <img src="{{ asset('storage/' . $foto) }}"
-                    class="img-thumbnail mb-2"
-                    width="300">
-            @endforeach
+            <div class="d-flex gap-3 flex-wrap mt-2">
+                @foreach ($fotos as $foto)
+                    <img src="{{ asset('storage/' . $foto) }}"
+                        class="img-thumbnail"
+                        width="250">
+                @endforeach
+            </div>
         @endif
 
       </div>
@@ -710,16 +737,7 @@
               <div class="col-md-6 mb-2"><strong>Nomor SPT:</strong> <span id="nomorSPT">-</span></div>
               <div class="col-md-6 mb-2"><strong>Tujuan:</strong> <span id="tujuanSPT">-</span></div>
               <div class="col-md-6 mb-2"><strong>Tanggal Pelaksanaan:</strong> <span id="tanggalPelaksanaan">-</span></div>
-              <div class="col-md-6 mb-2"><strong>Personil:</strong> <span>
-                @if($row->pegawai && $row->pegawai->isNotEmpty())
-                  @foreach($row->pegawai as $p)
-                    {{ $p->nama }}@if(!$loop->last), @endif
-                  @endforeach
-                @else
-                  -
-                @endif
-                </span>
-              </div>
+              <div class="col-md-6 mb-2"><strong>Personil:</strong> <span id="PersonilSPT">-</span></div>
             </div>
           </div>
 
@@ -745,7 +763,7 @@
             </div>
 
             <div class="col-md-12 mb-4">
-                <label class="form-label fw-bold">Foto Dokumentasi Perjalanan Dinas <span class="text-danger">*</span></label>
+                <label class="form-label fw-bold">Upload Foto Dokumentasi Perjalanan Dinas <span class="text-danger">*</span></label>
                 <input type="file" name="foto_dokumentasi[]" id="fotoDokumentasi" multiple class="form-control"
                     accept="image/*" multiple required>
             </div>
@@ -757,9 +775,9 @@
 
             <div id="listBiayaRiil">
                 <div class="biaya-item border rounded-3 p-3 mb-3"
-                data-provinsi="{{ $row->provinsi_tujuan }}"
-                data-jumlah="{{ $row->biaya->firstWhere('deskripsi_biaya', 'Hotel')->jumlah_unit ?? 1 }}"
-                data-harga="{{ $row->biaya->firstWhere('deskripsi_biaya', 'Hotel')->harga_satuan ?? 0 }}">
+                    data-provinsi=""
+                    data-jumlah="1"
+                    data-harga="0">
 
                 <h6 class="fw-bold mb-3">Item Biaya #1</h6>
 
@@ -922,7 +940,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         const wrapper = document.createElement('div');
         wrapper.className = 'biaya-item border rounded-3 p-3 mb-3';
-        wrapper.dataset.provinsi = "{{ $row->provinsi_tujuan }}";
+        wrapper.dataset.provinsi = "";
 
         wrapper.innerHTML = `
         <div class="d-flex justify-content-between mb-2">
@@ -1261,6 +1279,27 @@ function printModal(id) {
             nomorBuktiInput.disabled = false;
         }
     });
+</script>
+
+<script>
+    document.getElementById('fotoDokumentasi').addEventListener('change', function() {
+        if (this.files.length > 3) {
+            alert("Maksimal hanya boleh upload 3 foto!");
+            this.value = ""; // reset input
+        }
+    });
+</script>
+
+<script>
+    document.querySelectorAll('.btn-edit').forEach(btn => {
+    btn.addEventListener('click', function () {
+        let modal = document.querySelector('#modalVerifikasi');
+        
+        modal.querySelector('.biaya-item').dataset.provinsi = this.dataset.provinsi;
+        modal.querySelector('.biaya-item').dataset.jumlah = this.dataset.jumlah;
+        modal.querySelector('.biaya-item').dataset.harga = this.dataset.harga;
+    });
+});
 </script>
 
 @endpush

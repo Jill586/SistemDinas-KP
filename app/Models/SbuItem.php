@@ -24,6 +24,6 @@ class SbuItem extends Model
         'tingkat_pejabat_atau_golongan',
         'keterangan',
         'jarak_km_min',
-        'jarak_km_max',
+        'jarak_km_max'
     ];
 }

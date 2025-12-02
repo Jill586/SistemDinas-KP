@@ -415,6 +415,137 @@
                     <div class="alert alert-info text-center">Detail estimasi biaya belum tersedia.</div>
                 @endif
 
+                        {{-- NOMINAL DIBAYARKAN --}}
+        <table class="table table-bordered table-striped">
+            <thead class="table-light text-center">
+            </thead>
+                <tbody>
+                   @php
+                    $mapping = [
+                        'BBM' => [
+                            'Transportasi Darat Siak - Dumai (PP)',
+                            'Transportasi Darat Siak - Pekanbaru (PP)',
+                            'Transportasi Darat Siak - Bengkalis (PP)',
+                            'Transportasi Darat Siak - Rokan Hilir (PP)',
+                        ],
+
+                        'Transportasi Darat' => 'Taksi Riau',
+                        'Taxi' => 'Taksi Riau',
+
+                        'Hotel' => [
+                            'Hotel Riau Eselon III/Golongan IV',
+                            'Hotel Riau Eselon IV/Golongan III',
+                        ],
+                    ];
+                    @endphp
+
+                    @foreach ($row->pegawai as $pg)
+                        @php
+                            $biayaRiilPegawai = $row->biayaRiil->where('pegawai_id', $pg->id);
+                            $totalDibayarPegawai = 0;
+                        @endphp
+
+                        <h6 class="fw-bold mt-4">Nominal Dibayarkan — {{ $pg->nama }}</h6>
+
+                        <table class="table table-bordered table-striped">
+                            <thead class="table-light text-center">
+                                <tr class="text-center">
+                                    <th>Deskripsi</th>
+                                    <th>Real Cost (Riil)</th>
+                                    <th>Nominal Harian</th>
+                                    <th>Unit/Hari</th>
+                                    <th>Batas Atas (SBU)</th>
+                                    <th>Nominal Dibayarkan</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+
+                                @foreach ($biayaRiilPegawai as $riil)
+                                    @php
+                                        // REAL COST
+                                        $realCost = $riil->subtotal_biaya;
+
+                                        // --- CARI DESKRIPSI ESTIMASI DARI PEMETAAN ---
+                                        $key = $riil->deskripsi_biaya;
+                                        $targetDeskripsi = $mapping[$key] ?? null;
+
+                                        $estimasi = null;
+
+                                        if ($targetDeskripsi) {
+
+                                            // Jika mapping adalah array (Hotel)
+                                            if (is_array($targetDeskripsi)) {
+                                                $estimasi = $row->biaya
+                                                    ->where('pegawai_id_terkait', $pg->id)
+                                                    ->whereIn('deskripsi_biaya', $targetDeskripsi)
+                                                    ->first();
+                                            } else {
+                                                // jika mapping single value
+                                                $estimasi = $row->biaya
+                                                    ->where('pegawai_id_terkait', $pg->id)
+                                                    ->where('deskripsi_biaya', $targetDeskripsi)
+                                                    ->first();
+                                            }
+                                        }
+
+                                        // Nominal Harian (Harga Satuan dari Estimasi SBU)
+                                        $nominalHarian = $estimasi->harga_satuan ?? 0;
+
+                                        // Batas Atas dari estimasi
+                                        $batasAtas = $estimasi->subtotal_biaya ?? 0;
+
+                                        // Nominal Dibayarkan
+                                        if ($batasAtas > 0) {
+                                            $dibayar = min($realCost, $batasAtas);
+                                        } else {
+                                            $dibayar = $realCost; // fallback jika tidak ada batas SBU
+                                        }
+
+                                        $totalDibayarPegawai += $dibayar;
+
+                                    @endphp
+
+                                    <tr>
+                                        <td>{{ $riil->deskripsi_biaya }}</td>
+                                        <td class="text-center">Rp {{ number_format($realCost) }}</td>
+                                        <td class="text-center">Rp {{ number_format($nominalHarian) }}</td>
+                                        <td class="text-center">
+                                            {{ optional($estimasi)->jumlah_unit ?? '-' }}
+                                            {{ optional(optional($estimasi)->sbuItem)->satuan ?? '' }}
+                                        </td>
+                                        <td class="text-center">Rp {{ number_format($batasAtas) }}</td>
+                                        <td class="text-end">
+                                            Rp {{ number_format($dibayar) }}
+                                        </td>
+                                    </tr>
+                                @endforeach
+                                    <tr class="table-light">
+                                        <td colspan="5" class="text-end">TOTAL DIBAYARKAN</td>
+                                        <td class="text-end">Rp {{ number_format($totalDibayarPegawai) }}</td>
+                                    </tr>
+                            </tbody>
+                        </table>
+                    @endforeach
+                </tbody>
+        </table>
+
+        <hr>
+
+        <h6 class="fw-bold">Dokumentasi Perjalanan Dinas</h6>
+        @if ($row->laporan && $row->laporan->foto_dokumentasi)
+            @php
+                $fotos = json_decode($row->laporan->foto_dokumentasi, true);
+            @endphp
+
+            <div class="d-flex gap-3 flex-wrap mt-2 mb-4">
+                @foreach ($fotos as $foto)
+                    <img src="{{ asset('storage/' . $foto) }}"
+                        class="img-thumbnail"
+                        width="250">
+                @endforeach
+            </div>
+        @endif
+
         <!-- FORM VERIFIKASI -->
         @if($row->status_laporan !== 'selesai')
         <h6 class="fw-bold">Form Verifikasi Laporan</h6>

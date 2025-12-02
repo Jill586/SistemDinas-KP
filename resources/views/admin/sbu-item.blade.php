@@ -11,7 +11,7 @@
         <div class="d-flex gap-2 flex-wrap align-items-center">
             {{-- 🔍 Form Filter --}}
             <form method="GET" action="{{ route('sbu-item.index') }}" class="d-flex flex-wrap gap-2">
-                <select name="kategori_biaya" class="form-select" style="width: 200px;">
+                <select name="kategori_biaya" class="form-select" style="width: 150px;">
                     <option value="">-- Kategori Biaya --</option>
                     <option value="UANG_HARIAN" {{ request('kategori_biaya') == 'UANG_HARIAN' ? 'selected' : '' }}>Uang Harian</option>
                     <option value="PENGINAPAN" {{ request('kategori_biaya') == 'PENGINAPAN' ? 'selected' : '' }}>Penginapan</option>
@@ -21,7 +21,7 @@
                     <option value="TRANSPORTASI_UDARA" {{ request('kategori_biaya') == 'TRANSPORTASI_UDARA' ? 'selected' : '' }}>Transportasi Udara</option>
                 </select>
 
-                <select name="provinsi_tujuan" class="form-select" style="width: 200px;">
+                <select name="provinsi_tujuan" class="form-select" style="width: 150px;">
                     <option value="">-- Provinsi Tujuan --</option>
                     @foreach($provinsiList as $prov)
                         <option value="{{ $prov }}" {{ request('provinsi_tujuan') == $prov ? 'selected' : '' }}>
@@ -30,14 +30,23 @@
                     @endforeach
                 </select>
 
-                <button type="submit" class="btn btn-info">
+                <button type="submit" class="btn btn-info btn-sm">
                     <i class="bx bx-filter"></i> Filter
                 </button>
 
-                <a href="{{ route('sbu-item.index') }}" class="btn btn-secondary">
-                    <i class="bx bx-reset"></i> Reset
+                <a href="{{ route('sbu-item.index') }}" class="btn btn-secondary btn-sm d-flex align-items-center gap-1">
+                    <i class="bx bx-reset"></i> <span>Reset</span>
                 </a>
+
             </form>
+
+            <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#modalImportExcel">
+               Import Excel
+            </button>
+
+             <a href="{{ route('sbu-item.export') }}" class="btn btn-success">
+                 Export Excel
+             </a>
 
             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalSBUItem">
                 + Tambah SBU
@@ -85,6 +94,7 @@
                         <th>Kategori Biaya</th>
                         <th>Uraian Biaya</th>
                         <th>Provinsi Tujuan</th>
+                        <th>Kota Tujuan</th>
                         <th>Satuan</th>
                         <th>Besaran Biaya</th>
                         <th>Aksi</th>
@@ -104,6 +114,7 @@
                             <td>{{ $item->kategori_biaya }}</td>
                             <td>{{ $item->uraian_biaya }}</td>
                             <td>{{ $item->provinsi_tujuan }}</td>
+                            <td>{{ $item->kota_tujuan ?? '-' }}</td>
                             <td>{{ $item->satuan }}</td>
                             <td>Rp {{ number_format($item->besaran_biaya, 0, ',', '.') }}</td>
                             <td class="text-center">
@@ -143,6 +154,55 @@
             </div>
         @endif
     </div>
+</div>
+
+<!-- Modal Import Excel -->
+<div class="modal fade" id="modalImportExcel" tabindex="-1" aria-labelledby="modalImportLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold">Import Data SBU dari Excel</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <form action="{{ route('sbu-item.import') }}" method="POST" enctype="multipart/form-data">
+        @csrf
+
+        <div class="modal-body">
+
+          <div class="alert alert-info">
+            Pastikan file Excel memiliki header kolom yang sesuai:
+            <ul class="mb-0">
+                <li>kategori_biaya</li>
+                <li>uraian_biaya</li>
+                <li>provinsi_tujuan</li>
+                <li>kota_tujuan</li>
+                <li>satuan</li>
+                <li>tingkat_pejabat_atau_golongan</li>
+                <li>tipe_perjalanan</li>
+                <li>besaran_biaya</li>
+            </ul>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Pilih File Excel</label>
+            <input type="file" name="file" class="form-control" accept=".xlsx,.xls" required>
+          </div>
+
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+          <button type="submit" class="btn btn-primary">
+            <i class="bx bx-upload"></i> Upload File
+          </button>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
 </div>
 
 <!-- Modal Tambah SBU Item -->
