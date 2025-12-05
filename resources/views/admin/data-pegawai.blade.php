@@ -166,7 +166,7 @@
                   <option value="">-- Pilih Jabatan Struktural --</option>
                   <option value="Kepala Dinas">Kepala Dinas</option>
                   <option value="Sekretaris">Sekretaris</option>
-                  <option value="Kasubbag Umum">Kasubbag Umum dan Kepegawaian</option>
+                  <option value="Kasubbag Umum dan Kepegawaian">Kasubbag Umum dan Kepegawaian</option>
                   <option value="Kasubbag Keuangan">Kasubbag Keuangan</option>
                   <option value="Kabid TIK">Kabid TIK</option>
                   <option value="Kabid IKPS">Kabid IKPS</option>
