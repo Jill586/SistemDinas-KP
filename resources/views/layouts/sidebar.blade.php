@@ -128,6 +128,15 @@
   </li>
 @endif
 
+@if ($role === 'super_admin')
+  <li class="menu-item {{ request()->routeIs('arsip.periode.index') ? 'active' : '' }}">
+    <a href="{{ route('arsip.periode.index') }}" class="menu-link">
+      <i class="menu-icon tf-icons bx bx-archive"></i>
+      <div>Arsip</div>
+    </a>
+  </li>
+@endif
+
 
     {{-- Spacer agar Logout turun ke bawah --}}
     <div style="flex-grow: 1;"></div>

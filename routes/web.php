@@ -13,6 +13,7 @@ use App\Http\Controllers\VerifikasiPengajuanController;
 use App\Http\Controllers\DokumenPerjalananDinasController;
 use App\Http\Controllers\LaporanPerjalananDinasController;
 use App\Http\Controllers\VerifikasiLaporanPerjalananDinasController;
+use App\Http\Controllers\ArsipPeriodeController;
 
 /*
 |--------------------------------------------------------------------------
@@ -44,6 +45,18 @@ Route::middleware(['auth', 'role:super_admin'])->group(function () {
       Route::put('/tambah-user/{id}',  'update')->name('tambah-user.update');
       Route::delete('/tambah-user/{id}', 'destroy')->name('tambah-user.destroy');
      });
+
+
+
+// Arsip Periode
+Route::prefix('arsip')->middleware('auth')->group(function () {
+    Route::get('/periode', [ArsipPeriodeController::class, 'index'])->name('arsip.periode.index');  // halaman utama
+    Route::post('/periode', [ArsipPeriodeController::class, 'store'])->name('arsip.periode.store'); // tambah
+    Route::put('/periode/{id}', [ArsipPeriodeController::class, 'update'])->name('arsip.periode.update'); // edit via modal
+    Route::delete('/periode/{id}', [ArsipPeriodeController::class, 'destroy'])->name('arsip.periode.destroy'); // hapus
+    Route::put('/arsip/periode/{id}', [ArsipPeriodeController::class, 'update'])->name('arsip.periode.update');
+
+});
 
     Route::post('/pegawai/import', [PegawaiController::class, 'import'])->name('pegawai.import');
 

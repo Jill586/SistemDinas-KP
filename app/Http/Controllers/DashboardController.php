@@ -65,18 +65,46 @@ public function index()
         ->take(5)
         ->get();
 
-    return view('dashboard', compact(
-        'jumlahPegawai',
-        'jumlahPerjalanan',
-        'topPelapor',
-        'perjalananHariIni',
-        'totalBiaya',
-        'totalBaru',
-        'totalRealCost',
-        'statusCounts',
-        'jenisSptCounts',
-        'topDestinasi'
-    ));
+    $periodeAktif = DB::table('arsip_periode')->where('is_active', 1)->first();
+
+
+    $total_anggaran = $periodeAktif ? $periodeAktif->total_anggaran : 0;
+
+    $sisaAnggaran = $total_anggaran - $totalRealCost;
+    if ($sisaAnggaran < 0) {
+        $sisaAnggaran = 0;
+    }
+
+    $periodeAktif = DB::table('arsip_periode')
+    ->where('is_active', 1)
+    ->first();
+
+$total_anggaran = $periodeAktif ? $periodeAktif->total_anggaran : 0;
+
+$sisaAnggaran = max(0, $total_anggaran - $totalRealCost);
+
+$persen = ($total_anggaran > 0)
+    ? ($totalRealCost / $total_anggaran) * 100
+    : 0;
+
+return view('dashboard', compact(
+    'jumlahPegawai',
+    'jumlahPerjalanan',
+    'topPelapor',
+    'perjalananHariIni',
+    'totalBiaya',
+    'totalBaru',
+    'totalRealCost',
+    'statusCounts',
+    'jenisSptCounts',
+    'topDestinasi',
+    'total_anggaran',
+    'sisaAnggaran',
+    'periodeAktif',
+    'persen'
+));
+
+
 }
 
     /**
