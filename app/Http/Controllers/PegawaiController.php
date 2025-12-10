@@ -161,21 +161,45 @@ class PegawaiController extends Controller
             $count = 0;
 
             foreach (array_slice($rows, 1) as $row) {
+
+                // Skip jika nama atau nip kosong
                 if (empty($row[0]) || empty($row[3])) continue;
 
                 $nama   = trim($row[0]);
                 $email  = trim($row[1] ?? '-');
                 $hp     = trim($row[2] ?? '-');
                 $nip    = trim((string)$row[3]);
-                $gol    = trim($row[4] ?? null);
-                $jab    = trim($row[5] ?? null);
 
-                $golongan = Golongan::where('nama_golongan', $gol)->first();
-                $jabatan  = Jabatan::where('nama_jabatan', $jab)->first();
+                $golInput = trim($row[4] ?? null); // Bisa ID / Nama
+                $jabInput = trim($row[5] ?? null); // Bisa ID / Nama
 
-                // Warning kalau tidak ketemu
-                if (!$golongan) Log::warning("Golongan tidak ditemukan: ".$gol);
-                if (!$jabatan) Log::warning("Jabatan tidak ditemukan: ".$jab);
+                $jabatanStruktural = trim($row[6] ?? null);
+                $pangkatGolongan   = trim($row[7] ?? null);
+
+                // --- Golongan: support ID atau Nama ---
+                $golongan = null;
+                if (is_numeric($golInput)) {
+                    $golongan = Golongan::find($golInput);
+                } else {
+                    $golongan = Golongan::where('nama_golongan', $golInput)->first();
+                }
+
+                // --- Jabatan: support ID atau Nama ---
+                $jabatan = null;
+                if (is_numeric($jabInput)) {
+                    $jabatan = Jabatan::find($jabInput);
+                } else {
+                    $jabatan = Jabatan::where('nama_jabatan', $jabInput)->first();
+                }
+
+                // Log jika tidak ditemukan
+                if (!$golongan && $golInput) {
+                    Log::warning("Golongan tidak ditemukan: ".$golInput);
+                }
+
+                if (!$jabatan && $jabInput) {
+                    Log::warning("Jabatan tidak ditemukan: ".$jabInput);
+                }
 
                 Pegawai::updateOrCreate(
                     ['nip' => $nip],
@@ -185,8 +209,8 @@ class PegawaiController extends Controller
                         'nomor_hp'           => $hp,
                         'golongan_id'        => $golongan->id ?? null,
                         'jabatan_id'         => $jabatan->id ?? null,
-                        'jabatan_struktural' => $jab,
-                        'pangkat_golongan'   => $gol,
+                        'jabatan_struktural' => $jabatanStruktural,
+                        'pangkat_golongan'   => $pangkatGolongan,
                     ]
                 );
 
@@ -195,7 +219,7 @@ class PegawaiController extends Controller
 
             return redirect()->back()->with('success', "Berhasil import {$count} data pegawai.");
         } catch (\Exception $e) {
-            dd($e->getMessage());
+            return redirect()->back()->with('error', $e->getMessage());
         }
     }
 }

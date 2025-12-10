@@ -3,12 +3,10 @@
 @section('title', 'Daftar Pengajuan Perjalanan Dinas Saya')
 
 @section('content')
-{{-- 🔹 AREA FILTER DI LUAR CARD --}}
 <div class="card mb-3 shadow rounded-2">
     <div class="card-body">
         <form method="GET" action="{{ route('perjalanan-dinas.index') }}" class="row g-2 align-items-end">
 
-            <!-- FILTER BULAN -->
             <div class="col-md-2">
                 <label class="form-label mb-1">Pilih Bulan</label>
                 <select name="bulan" class="form-select">
@@ -21,7 +19,6 @@
                 </select>
             </div>
 
-            <!-- FILTER TAHUN -->
             <div class="col-md-2">
                 <label class="form-label mb-1">Pilih Tahun</label>
                 <select name="tahun" class="form-select">
@@ -34,7 +31,6 @@
                 </select>
             </div>
 
-            <!-- FILTER STATUS -->
             <div class="col-md-2">
                 <label class="form-label mb-1">Pilih Status</label>
                 <select name="status" class="form-select">
@@ -46,7 +42,6 @@
                 </select>
             </div>
 
-            <!-- BUTTON (SEJARIS DENGAN FILTER) -->
             <div class="col-md-6 d-flex gap-2 mt-4">
                 <button type="submit" class="btn btn-primary">
                     <i class="bx bx-filter"></i> Filter
@@ -80,14 +75,12 @@
         {{-- 🔽 Show Entries & Search --}}
         <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
             <div class="d-flex align-items-center mb-2 mb-sm-0">
-                <label for="showEntries" class="me-2 text-secondary">Show</label>
                 <select id="showEntries" class="form-select w-auto me-2">
                     <option value="10" {{ $perPage == 10 ? 'selected' : '' }}>10</option>
                     <option value="25" {{ $perPage == 25 ? 'selected' : '' }}>25</option>
                     <option value="50" {{ $perPage == 50 ? 'selected' : '' }}>50</option>
                     <option value="100" {{ $perPage == 100 ? 'selected' : '' }}>100</option>
                 </select>
-                <span class="text-secondary">entries</span>
             </div>
 
             <form action="{{ route('perjalanan-dinas.index') }}" method="GET" class="d-flex align-items-center">
@@ -98,7 +91,7 @@
                     name="search"
                     value="{{ request('search') }}"
                     class="form-control me-2"
-                    style="width: 260px; font-size: 0.95rem; padding: 8px 12px;">
+                    style="width: 180px; font-size: 0.95rem; padding: 8px 12px;">
                 <button type="submit" class="btn btn-primary">
                     <i class="bx bx-search"></i>
                 </button>
@@ -152,7 +145,7 @@
                             </td>
                             <td class="text-center">
                                 {{-- Tombol Edit (hanya muncul jika status revisi_operator) --}}
-                                @if($row->status == 'revisi_operator')
+                                @if((Auth::check() && Auth::user()->role === 'super_admin')|| $row->status === 'revisi_operator')   
                                     <button type="button" class="btn btn-warning btn-sm"
                                         data-bs-toggle="modal" data-bs-target="#modalEdit{{ $row->id }}">
                                         <i class="bx bx-edit"></i>
@@ -196,7 +189,7 @@
 
 {{-- Modal Edit --}}
 @foreach($perjalanans as $row)
-    @if($row->status == 'revisi_operator')
+     @if((Auth::check() && Auth::user()->role === 'super_admin')|| $row->status === 'revisi_operator')   
     <div class="modal fade" id="modalEdit{{ $row->id }}" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
@@ -283,7 +276,9 @@
                         {{-- Personil --}}
                         <div class="mb-3">
                             <label class="form-label">Personil yang Berangkat</label>
-                            <select name="pegawai_ids[]" class="form-select pegawai-edit" multiple required>
+                            <select name="pegawai_ids[]" class="form-select pegawai-select"
+                                multiple
+                                data-dropdown-parent="#modalEdit{{ $row->id }}">
                                 @foreach($pegawai as $p)
                                     <option value="{{ $p->id }}"
                                         {{ in_array($p->id, $row->pegawai->pluck('id')->toArray()) ? 'selected' : '' }}>
@@ -510,123 +505,138 @@
         @endsection
 
 @push('scripts')
-    <!-- Select2 -->
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
-    <script>
-        $(document).ready(function () {
+<!-- Select2 -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
-            // 🔹 Fungsi render form dinamis
-            function renderFormEdit(jenis, target, data = {}) {
-                let html = '';
-
-                if (jenis === 'dalam_daerah') {
-                    html += `
-                        <div class="mb-3">
-                            <label class="form-label">Tempat Tujuan</label>
-                            <input type="text" name="tujuan" class="form-control"
-                                value="${data.tujuan || ''}" required>
-                        </div>
-                    `;
-                } else if (jenis === 'luar_daerah_dalam_provinsi' || jenis === 'luar_daerah_luar_provinsi') {
-                    html += `
-                        <div class="mb-3">
-                            <label class="form-label">Provinsi Tujuan</label>
-                            <input type="text" name="provinsi_tujuan" class="form-control"
-                                value="${data.provinsi_tujuan || ''}" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Kota/Kabupaten Tujuan</label>
-                            <input type="text" name="kota_tujuan" class="form-control"
-                                value="${data.kota_tujuan || ''}" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Tempat Tujuan</label>
-                            <input type="text" name="tujuan" class="form-control"
-                                value="${data.tujuan || ''}" required>
-                        </div>
-                    `;
-                }
-
-                $(`#form-dinamis-edit${target}`).html(html);
-            }
-
-            // 🔹 Render setiap modal edit sesuai jenis_spt-nya
-            const rowData = @json($perjalanans->keyBy('id'));
-
-            $('.jenis-spt-edit').each(function () {
-                const target = $(this).data('target');
-                const jenis = $(this).val();
-                renderFormEdit(jenis, target, rowData[target]);
-
-                $(this).on('change', function () {
-                    renderFormEdit($(this).val(), target, rowData[target]);
-                });
-            });
-
-            // 🔹 Jalankan Select2 setelah modal dibuka
-            $('.modal').on('shown.bs.modal', function () {
-                $(this).find('.pegawai-edit').select2({
-                    dropdownParent: $(this),
-                    width: '100%',
-                    placeholder: "Pilih personil yang berangkat"
-                });
-            });
-
-            // 🔹 Hapus Select2 instance saat modal ditutup biar gak error kalau dibuka lagi
-                $('.modal').on('hidden.bs.modal', function () {
-            $(this).find('.pegawai-edit').val(null).trigger('change.select2');
-        });
-        });
-    </script>
-
-    @push('scripts')
+<!-- SweetAlert -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-$(document).ready(function() {
+$(document).ready(function () {
 
-    // Jika ada session success dari controller
+    /* ============================================================
+       SWEETALERT SUCCESS MESSAGE
+    ============================================================ */
     @if (session('success'))
         Swal.fire({
             title: "Success!",
+            text: "{{ session('success') }}",
             icon: "success",
-            draggable: true,
-            text: "{{ session('success') }}"
         });
     @endif
 
-});
-</script>
 
-<script>
-$(document).ready(function () {
+    /* ============================================================
+       RENDER FORM DINAMIS (EDIT)
+    ============================================================ */
+    function renderFormEdit(jenis, target, data = {}) {
+        let html = '';
+
+        if (jenis === 'dalam_daerah') {
+            html = `
+                <div class="mb-3">
+                    <label class="form-label">Tempat Tujuan</label>
+                    <input type="text" name="tujuan" class="form-control"
+                           value="${data.tujuan || ''}" required>
+                </div>`;
+        }
+
+        else if (jenis === 'luar_daerah_dalam_provinsi' || jenis === 'luar_daerah_luar_provinsi') {
+            html = `
+                <div class="mb-3">
+                    <label class="form-label">Provinsi Tujuan</label>
+                    <input type="text" name="provinsi_tujuan" class="form-control"
+                           value="${data.provinsi_tujuan || ''}" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Kota/Kabupaten Tujuan</label>
+                    <input type="text" name="kota_tujuan" class="form-control"
+                           value="${data.kota_tujuan || ''}" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Tempat Tujuan</label>
+                    <input type="text" name="tujuan" class="form-control"
+                           value="${data.tujuan || ''}" required>
+                </div>`;
+        }
+
+        $(`#form-dinamis-edit${target}`).html(html);
+    }
+
+    const rowData = @json($perjalanans->keyBy('id'));
+
+    $(".jenis-spt-edit").each(function () {
+        const target = $(this).data("target");
+        const jenis = $(this).val();
+        renderFormEdit(jenis, target, rowData[target]);
+
+        $(this).on("change", function () {
+            renderFormEdit($(this).val(), target, rowData[target]);
+        });
+    });
+
+
+    /* ============================================================
+       SELECT2 DI MODAL — AUTO INIT + FIX SCROLL
+    ============================================================ */
+    $(document).on('shown.bs.modal', '.modal', function () {
+        $(this).find('.pegawai-select').each(function () {
+
+            if ($(this).data('select2')) {
+                $(this).select2('destroy');
+            }
+
+            $(this).select2({
+                dropdownParent: $(this).closest('.modal'),
+                width: '100%',
+                placeholder: "Pilih personil"
+            });
+        });
+    });
+
+
+    /* ============================================================
+       SHOW ENTRIES (AJAX PAGINATION)
+    ============================================================ */
     $('#showEntries').on('change', function () {
-        let perPage = $(this).val(); // ambil jumlah per page dari dropdown
+        let perPage = $(this).val();
+        let search = "{{ request('search') }}";
 
         $.ajax({
             url: "{{ route('perjalanan-dinas.index') }}",
             type: "GET",
-            data: { per_page: perPage },
+            data: {
+                perPage: perPage,
+                search: search
+            },
             beforeSend: function () {
-                $('tbody').html('<tr><td colspan="10" class="text-center text-muted">Memuat data...</td></tr>');
+                $('tbody').html(`
+                    <tr>
+                        <td colspan="10" class="text-center text-muted">Memuat data...</td>
+                    </tr>
+                `);
             },
             success: function (response) {
-                // Ambil isi tabel & pagination dari response HTML
-                let newTableBody = $(response).find('tbody').html();
-                let newPagination = $(response).find('.pagination').html();
 
-                $('tbody').html(newTableBody);
-                $('.pagination').html(newPagination);
-            },
-            error: function () {
-                $('tbody').html('<tr><td colspan="10" class="text-center text-danger">Gagal memuat data</td></tr>');
+                let newBody   = $(response).find("table tbody").html();
+                let newPaging = $(response).find("#paginationContainer").html();
+
+                $("table tbody").html(newBody);
+                $("#paginationContainer").html(newPaging);
+
+                // update URL tanpa reload
+                let newUrl = `?perPage=${perPage}`;
+                if (search) newUrl += `&search=${search}`;
+                window.history.pushState({}, "", newUrl);
             }
         });
     });
+
 });
 </script>
 
-@endpush
 @endpush

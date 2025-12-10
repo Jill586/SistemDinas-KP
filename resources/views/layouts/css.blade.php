@@ -120,4 +120,18 @@
 
 </style>
 
+<style>
+  .select2-container {
+    width: 100% !important;
+}
+
+.select2-dropdown {
+    z-index: 999999 !important;
+}
+
+.select2-container--open .select2-selection--multiple {
+    height: auto !important;
+}
+</style>
+
 

@@ -29,7 +29,7 @@ class PerjalananDinasController extends Controller
         $data = PerjalananDinas::with('pegawai')->latest()->get();
 
         $query = PerjalananDinas::with(['pegawai', 'biaya']) // <— tambahkan eager load relasi pegawai & biaya
-            ->orderBy('id', 'asc'); // urutan default berdasarkan ID
+             ->orderBy('created_at', 'desc');  // terbaru paling atas
 
         // 🔒 Filter berdasarkan role
         if (in_array($user->role, ['super_admin', 'verifikator1'])) {

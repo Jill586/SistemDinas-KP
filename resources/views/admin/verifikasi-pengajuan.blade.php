@@ -3,30 +3,37 @@
 @section('title', 'Verifikasi Pengajuan')
 
 @section('content')
-<div class="card">
-    <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap">
-        <h5 class="mb-0 fw-bold">Daftar Verifikasi Pengajuan</h5>
+<div class="card mb-3 shadow rounded-2">
+    <div class="card-body">
+        <form method="GET" action="{{ route('verifikasi-pengajuan.index') }}" class="row g-2 align-items-end">
 
-        {{-- 🔍 Form Filter Bulan & Tahun --}}
-        <form method="GET" action="{{ route('verifikasi-pengajuan.index') }}" class="d-flex flex-wrap gap-2 mt-2 mt-md-0">
-            <select name="bulan" class="form-select" style="width: 150px;">
-                <option value="">-- Bulan --</option>
-                @foreach(range(1,12) as $b)
-                    <option value="{{ $b }}" {{ (isset($bulan) && $bulan == $b) ? 'selected' : '' }}>
-                        {{ \Carbon\Carbon::create()->month($b)->translatedFormat('F') }}
-                    </option>
-                @endforeach
-            </select>
-
-            <select name="tahun" class="form-select" style="width: 130px;">
-                <option value="">-- Tahun --</option>
-                    @foreach([2024, 2025, 2026] as $t)
-                        <option value="{{ $t }}" {{ (isset($tahun) && $tahun == $t) ? 'selected' : '' }}>
-                            {{ $t }}
+            <div class="col-md-2">
+                <label class="form-label mb-1">Pilih Bulan</label>
+                <select name="bulan" class="form-select">
+                    <option value="">-- Bulan --</option>
+                    @foreach(range(1,12) as $b)
+                        <option value="{{ $b }}" {{ (isset($bulan) && $bulan == $b) ? 'selected' : '' }}>
+                            {{ \Carbon\Carbon::create()->month($b)->translatedFormat('F') }}
                         </option>
                     @endforeach
-            </select>
-              <select name="status" class="form-select" style="width: 160px;">
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <label class="form-label mb-1">Pilih Tahun</label>
+                <select name="tahun" class="form-select">
+                    <option value="">-- Tahun --</option>
+                        @foreach([2024, 2025, 2026] as $t)
+                            <option value="{{ $t }}" {{ (isset($tahun) && $tahun == $t) ? 'selected' : '' }}>
+                                {{ $t }}
+                            </option>
+                        @endforeach
+                </select>
+            </div>
+
+            <div class="col-md-2">
+            <label class="form-label mb-1">Pilih Status</label>
+                <select name="status" class="form-select">
                 <option value="">-- Status --</option>
 
                 <option value="draft" {{ request('status') == 'draft' ? 'selected' : '' }}>
@@ -52,39 +59,45 @@
                 <option value="disetujui" {{ request('status') == 'disetujui' ? 'selected' : '' }}>
                     Disetujui
                 </option>
-            </select>
+                </select>
+            </div>
 
+            <div class="col-md-6 d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bx bx-filter"></i> Filter
+                </button>
 
-            <button type="submit" class="btn btn-primary">
-                <i class="bx bx-filter"></i> Filter
-            </button>
-
-            <a href="{{ route('verifikasi-pengajuan.index') }}" class="btn btn-secondary">
-                <i class="bx bx-reset"></i> Reset
-            </a>
-            <a href="{{ route('verifikasi-pengajuan.export.excel') }}" class="btn btn-success">
-                Export Excel
-            </a>
-            <a href="{{ route('verifikasi-pengajuan.export.pdf') }}" class="btn btn-danger">
-                Export PDF
-            </a>
-
+                <a href="{{ route('verifikasi-pengajuan.index') }}" class="btn btn-secondary">
+                    <i class="bx bx-reset"></i> Reset
+                </a>
+                <a href="{{ route('verifikasi-pengajuan.export.excel') }}" class="btn btn-success">
+                    Export Excel
+                </a>
+                <a href="{{ route('verifikasi-pengajuan.export.pdf') }}" class="btn btn-danger">
+                    Export PDF
+                </a>
+            </div>
 
         </form>
     </div>
+</div>
 
-    <div class="card-body">
+    <div class="card shadow rounded-2">
+        <div class="card-header bg-white">
+            <h5 class="mb-0 fw-bold">Daftar Verifikasi Pengajuan</h5>
+        </div>
+
+        <div class="card-body">
+
         <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
             {{-- 🔽 Show Entries --}}
             <div class="d-flex align-items-center mb-2 mb-sm-0">
-            <label for="showEntries" class="me-2 text-secondary">Show</label>
             <select id="showEntries" class="form-select w-auto me-2">
                 <option value="10" {{ $perPage == 10 ? 'selected' : '' }}>10</option>
                 <option value="25" {{ $perPage == 25 ? 'selected' : '' }}>25</option>
                 <option value="50" {{ $perPage == 50 ? 'selected' : '' }}>50</option>
                 <option value="100" {{ $perPage == 100 ? 'selected' : '' }}>100</option>
             </select>
-            <span class="text-secondary">entries</span>
             </div>
 
              {{-- 🔍 Manual Search --}}
@@ -98,7 +111,7 @@
                     name="search"
                     value="{{ request('search') }}"
                     class="form-control me-2"
-                    style="width: 260px; font-size: 0.95rem; padding: 8px 12px;">
+                    style="width: 180px; font-size: 0.95rem; padding: 8px 12px;">
 
                 <button type="submit" class="btn btn-primary">
                     <i class="bx bx-search"></i>
@@ -185,12 +198,10 @@
                 </tbody>
             </table>
         </div>
-
         {{-- Pagination --}}
         <div class="d-flex justify-content-center mt-3">
             {{ $perjalanans->onEachSide(2)->links('pagination::bootstrap-5') }}
         </div>
-
     </div>
 </div>
 

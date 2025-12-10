@@ -3,69 +3,77 @@
 @section('title', 'Daftar SBU Items')
 
 @section('content')
-<div class="card">
-    {{-- Header --}}
-    <div class="card-header d-flex justify-content-between align-items-center bg-white flex-wrap gap-2">
-        <h5 class="mb-0 fw-bold">Daftar SBU Items</h5>
+<div class="card mb-3 shadow rounded-2">
+    <div class="card-body">
+            <form method="GET" action="{{ route('sbu-item.index') }}" class="row g-2 align-items-end">
 
-        <div class="d-flex gap-2 flex-wrap align-items-center">
-            {{-- 🔍 Form Filter --}}
-            <form method="GET" action="{{ route('sbu-item.index') }}" class="d-flex flex-wrap gap-2">
-                <select name="kategori_biaya" class="form-select" style="width: 150px;">
-                    <option value="">-- Kategori Biaya --</option>
-                    <option value="UANG_HARIAN" {{ request('kategori_biaya') == 'UANG_HARIAN' ? 'selected' : '' }}>Uang Harian</option>
-                    <option value="PENGINAPAN" {{ request('kategori_biaya') == 'PENGINAPAN' ? 'selected' : '' }}>Penginapan</option>
-                    <option value="TRANSPORTASI_DARAT" {{ request('kategori_biaya') == 'TRANSPORTASI_DARAT' ? 'selected' : '' }}>Transportasi Darat</option>
-                    <option value="TRANSPORTASI_DARAT_TAKSI" {{ request('kategori_biaya') == 'TRANSPORTASI_DARAT_TAKSI' ? 'selected' : '' }}>Transportasi Darat Taksi</option>
-                    <option value="REPRESENTASI" {{ request('kategori_biaya') == 'REPRESENTASI' ? 'selected' : '' }}>Representasi</option>
-                    <option value="TRANSPORTASI_UDARA" {{ request('kategori_biaya') == 'TRANSPORTASI_UDARA' ? 'selected' : '' }}>Transportasi Udara</option>
-                </select>
+              <div class="col-md-2">
+                <label class="form-label mb-1">Pilih Kategori</label>
+                  <select name="kategori_biaya" class="form-select">
+                      <option value="">-- Kategori Biaya --</option>
+                      <option value="UANG_HARIAN" {{ request('kategori_biaya') == 'UANG_HARIAN' ? 'selected' : '' }}>Uang Harian</option>
+                      <option value="PENGINAPAN" {{ request('kategori_biaya') == 'PENGINAPAN' ? 'selected' : '' }}>Penginapan</option>
+                      <option value="TRANSPORTASI_DARAT" {{ request('kategori_biaya') == 'TRANSPORTASI_DARAT' ? 'selected' : '' }}>Transportasi Darat</option>
+                      <option value="TRANSPORTASI_DARAT_TAKSI" {{ request('kategori_biaya') == 'TRANSPORTASI_DARAT_TAKSI' ? 'selected' : '' }}>Transportasi Darat Taksi</option>
+                      <option value="REPRESENTASI" {{ request('kategori_biaya') == 'REPRESENTASI' ? 'selected' : '' }}>Representasi</option>
+                      <option value="TRANSPORTASI_UDARA" {{ request('kategori_biaya') == 'TRANSPORTASI_UDARA' ? 'selected' : '' }}>Transportasi Udara</option>
+                  </select>
+              </div>
 
-                <select name="provinsi_tujuan" class="form-select" style="width: 150px;">
-                    <option value="">-- Provinsi Tujuan --</option>
-                    @foreach($provinsiList as $prov)
-                        <option value="{{ $prov }}" {{ request('provinsi_tujuan') == $prov ? 'selected' : '' }}>
-                            {{ $prov }}
-                        </option>
-                    @endforeach
-                </select>
+              <div class="col-md-2">
+                <label class="form-label mb-1">Pilih Provinsi Tujuan</label>
+                  <select name="provinsi_tujuan" class="form-select">
+                      <option value="">-- Provinsi Tujuan --</option>
+                      @foreach($provinsiList as $prov)
+                          <option value="{{ $prov }}" {{ request('provinsi_tujuan') == $prov ? 'selected' : '' }}>
+                              {{ $prov }}
+                          </option>
+                      @endforeach
+                  </select>
+              </div>
 
-                <button type="submit" class="btn btn-info btn-sm">
-                    <i class="bx bx-filter"></i> Filter
-                </button>
+                <div class="col-md-7 d-flex gap-2 mt-4">
+                  <button type="submit" class="btn btn-info">
+                      <i class="bx bx-filter"></i> Filter
+                  </button>
 
-                <a href="{{ route('sbu-item.index') }}" class="btn btn-secondary btn-sm d-flex align-items-center gap-1">
-                    <i class="bx bx-reset"></i> <span>Reset</span>
-                </a>
+                  <a href="{{ route('sbu-item.index') }}" class="btn btn-secondary">
+                      <i class="bx bx-reset"></i> <span>Reset</span>
+                  </a>
+              
+                  <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#modalImportExcel">
+                    Import Excel
+                  </button>
 
-            </form>
+                  <a href="{{ route('sbu-item.export') }}" class="btn btn-success">
+                      Export Excel
+                  </a>
 
-            <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#modalImportExcel">
-               Import Excel
-            </button>
+                  <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalSBUItem">
+                      + Tambah SBU
+                  </button>
+                </div>
 
-             <a href="{{ route('sbu-item.export') }}" class="btn btn-success">
-                 Export Excel
-             </a>
-
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalSBUItem">
-                + Tambah SBU
-            </button>
+          </form>
         </div>
     </div>
 
+<div class="card shadow rounded-2">
+    <div class="card-header bg-white">
+        <h5 class="mb-0 fw-bold">SBU Item</h5>
+    </div>
+
     <div class="card-body">
+
         <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
             {{-- 🔽 Show Entries --}}
             <div class="d-flex align-items-center mb-2 mb-sm-0">
-            <label for="showEntries" class="me-2 text-secondary">Show</label>
             <select id="showEntries" class="form-select w-auto me-2">
                 <option value="10" {{ $perPage == 10 ? 'selected' : '' }}>10</option>
                 <option value="25" {{ $perPage == 25 ? 'selected' : '' }}>25</option>
                 <option value="50" {{ $perPage == 50 ? 'selected' : '' }}>50</option>
                 <option value="100" {{ $perPage == 100 ? 'selected' : '' }}>100</option>
                 <option value="ALL" {{ $perPage == 'ALL' ? 'selected' : '' }}>All</option>            </select>
-            <span class="text-secondary">entries</span>
             </div>
 
              {{-- 🔍 Manual Search --}}
@@ -78,7 +86,7 @@
                     name="search"
                     value="{{ request('search') }}"
                     class="form-control me-2"
-                    style="width: 260px; font-size: 0.95rem; padding: 8px 12px;">
+                    style="width: 180px; font-size: 0.95rem; padding: 8px 12px;">
 
                 <button type="submit" class="btn btn-primary">
                     <i class="bx bx-search"></i>

@@ -5,14 +5,14 @@
 @section('content')
 <div class="card shadow mb-4">
   <div class="card-header text-start bg-white d-flex justify-content-between align-items-center">
-    <h5 class="mb-0 fw-bold">DATA PEGAWAI</h5>
+    <h5 class="mb-0 fw-bold">Data Pegawai</h5>
       <div class="d-flex justify-content-between align-items-center mb-3">
           <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalExcel">
             Import Excel
           </button>
 
           <button class="btn btn-primary ms-2" data-bs-toggle="modal" data-bs-target="#modalTambah">
-            + Tambah Pegawai
+            + Tambah
           </button>
       </div>
   </div>
@@ -21,14 +21,12 @@
   <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
     {{-- 🔽 Show Entries --}}
     <div class="d-flex align-items-center mb-2 mb-sm-0">
-      <label for="showEntries" class="me-2 text-secondary">Show</label>
       <select id="showEntries" class="form-select w-auto me-2">
         <option value="10" {{ $perPage == 10 ? 'selected' : '' }}>10</option>
         <option value="25" {{ $perPage == 25 ? 'selected' : '' }}>25</option>
         <option value="50" {{ $perPage == 50 ? 'selected' : '' }}>50</option>
         <option value="100" {{ $perPage == 100 ? 'selected' : '' }}>100</option>
       </select>
-      <span class="text-secondary">entries</span>
     </div>
 
     {{-- 🔍 Search --}}
@@ -36,7 +34,7 @@
       <label for="search" class="me-2 text-secondary">Search:</label>
       <input type="text" id="search" name="search"
             class="form-control"
-            style="width: 260px; font-size: 0.95rem; padding: 8px 12px;">
+            style="width: 180px; font-size: 0.95rem; padding: 8px 12px;">
     </div>
   </div>
 
@@ -193,6 +191,11 @@
                   <option value="Juru (I/c)">Juru (I/c)</option>
                   <option value="Juru Muda Tk. I (I/b)">Juru Muda Tk. I (I/b)</option>
                   <option value="Juru Muda (I/a)">Juru Muda (I/a)</option>
+                  <option value="Golongan V">Golongan V</option>
+                  <option value="Golongan VI">Golongan VI</option>
+                  <option value="Golongan VII">Golongan VII</option>
+                  <option value="Golongan VIII">Golongan VIII</option>
+                  <option value="Golongan IX">Golongan IX</option>
               </select>
             </div>
           </div>
@@ -285,6 +288,11 @@
                   <option value="Juru (I/c)">Juru (I/c)</option>
                   <option value="Juru Muda Tk. I (I/b)">Juru Muda Tk. I (I/b)</option>
                   <option value="Juru Muda (I/a)">Juru Muda (I/a)</option>
+                  <option value="Golongan V">Golongan V</option>
+                  <option value="Golongan VI">Golongan VI</option>
+                  <option value="Golongan VII">Golongan VII</option>
+                  <option value="Golongan VIII">Golongan VIII</option>
+                  <option value="Golongan IX">Golongan IX</option>
               </select>
             </div>
           </div>
@@ -310,9 +318,21 @@
         @csrf
         <div class="modal-body">
           {{-- ⚠️ Informasi Format Kolom --}}
-          <div class="alert alert-info" role="alert" style="font-size: 14px;">
+          <div class="alert alert-success" role="alert" style="font-size: 14px;">
             <strong>Perhatian:</strong><br>
-            Pastikan file Excel memiliki format kolom <strong>berdasarkan huruf kolom</strong> berikut:
+            Silakan unduh template Excel terlebih dahulu, lalu isi data sesuai format yang tersedia.
+
+            <div class="mt-2">
+              <a href="{{ asset('templates/pegawai_template.xlsx') }}"
+                class="btn btn-success"
+                download>
+                <i class="bi bi-download"></i> Download Template Excel
+              </a>
+            </div>
+
+            <hr>
+
+            <strong>Format Kolom Excel:</strong>
             <ul class="mt-2 mb-0">
               <li><strong>Kolom A</strong> = NAMA</li>
               <li><strong>Kolom B</strong> = EMAIL</li>
@@ -320,9 +340,12 @@
               <li><strong>Kolom D</strong> = NIP</li>
               <li><strong>Kolom E</strong> = GOLONGAN</li>
               <li><strong>Kolom F</strong> = JABATAN</li>
+              <li><strong>Kolom G</strong> = JABATAN STRUKTURAL</li>
+              <li><strong>Kolom H</strong> = PANGKAT</li>
             </ul>
+
             <div class="mt-2">
-              <strong>Catatan:</strong> File tidak boleh mengandung rumus Excel (contoh: =A1+B1). Dan data tidak boleh duplikat.
+              <strong>Catatan:</strong> File tidak boleh mengandung rumus Excel dan tidak boleh ada data duplikat.
             </div>
           </div>
 
