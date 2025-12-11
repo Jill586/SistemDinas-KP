@@ -19,16 +19,7 @@
 
   <div class="card-body">
   <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
-    {{-- 🔽 Show Entries --}}
-    <div class="d-flex align-items-center mb-2 mb-sm-0">
-      <select id="showEntries" class="form-select w-auto me-2">
-        <option value="10" {{ $perPage == 10 ? 'selected' : '' }}>10</option>
-        <option value="25" {{ $perPage == 25 ? 'selected' : '' }}>25</option>
-        <option value="50" {{ $perPage == 50 ? 'selected' : '' }}>50</option>
-        <option value="100" {{ $perPage == 100 ? 'selected' : '' }}>100</option>
-      </select>
-    </div>
-
+    
     {{-- 🔍 Search --}}
     <div class="d-flex align-items-center">
       <label for="search" class="me-2 text-secondary">Search:</label>
@@ -51,6 +42,7 @@
             <th>Eselonisasi</th>
             <th>Golongan</th>
             <th>Jabatan</th>
+            <th>Bidang</th>
             <th>Aksi</th>
           </tr>
         </thead>
@@ -68,6 +60,7 @@
               <small class="text-muted">{{ $row->pangkat_golongan ?? '-' }}</small>
             </td>
             <td>{{ $row->jabatan_struktural ?? '-' }}</td>
+            <td>{{ $row->bidang ?? '-' }}</td>
             <td>
               <div class="d-flex gap-1">
 
@@ -80,7 +73,8 @@
                     data-golongan="{{ $row->golongan_id }}"
                     data-jabatan="{{ $row->jabatan_id }}"
                     data-jabatan_struktural="{{ $row->jabatan_struktural }}"
-                    data-pangkat_golongan="{{ $row->pangkat_golongan }}">
+                    data-pangkat_golongan="{{ $row->pangkat_golongan }}"
+                    data-bidang="{{ $row->bidang }}">
                   <i class="bx bx-edit"></i>
                 </button>
 
@@ -104,10 +98,22 @@
         </tbody>
       </table>
     </div>
+    <div class="d-flex justify-content-between align-items-center flex-wrap mt-3">
         {{-- Pagination --}}
         <div class="d-flex justify-content-center mt-3">
             {{ $pegawai->onEachSide(2)->links('pagination::bootstrap-5') }}
         </div>
+
+        {{-- 🔽 Show Entries --}}
+        <div class="d-flex align-items-center mb-2 mb-sm-0">
+          <select id="showEntries" class="form-select w-auto me-2">
+            <option value="10" {{ $perPage == 10 ? 'selected' : '' }}>10</option>
+            <option value="25" {{ $perPage == 25 ? 'selected' : '' }}>25</option>
+            <option value="50" {{ $perPage == 50 ? 'selected' : '' }}>50</option>
+            <option value="100" {{ $perPage == 100 ? 'selected' : '' }}>100</option>
+          </select>
+        </div>
+    </div>
   </div>
 </div>
 
@@ -196,6 +202,15 @@
                   <option value="Golongan VII">Golongan VII</option>
                   <option value="Golongan VIII">Golongan VIII</option>
                   <option value="Golongan IX">Golongan IX</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Bidang</label>
+              <select id="edit_bidang" name="bidang" class="form-select" required>
+                  <option value="">-- Pilih Bidang --</option>
+                  <option value="Sekretariat">Sekretariat</option>
+                  <option value="IKPS">IKPS</option>
+                  <option value="TIK">TIK</option>
               </select>
             </div>
           </div>
@@ -295,6 +310,15 @@
                   <option value="Golongan IX">Golongan IX</option>
               </select>
             </div>
+            <div class="col-md-6">
+              <label class="form-label">Bidang</label>
+              <select id="edit_bidang" name="bidang" class="form-select" required>
+                  <option value="">-- Pilih Bidang --</option>
+                  <option value="Sekretariat">Sekretariat</option>
+                  <option value="IKPS">IKPS</option>
+                  <option value="TIK">TIK</option>
+              </select>
+            </div>
           </div>
         </div>
         <div class="modal-footer">
@@ -339,9 +363,10 @@
               <li><strong>Kolom C</strong> = NO. TELEPON</li>
               <li><strong>Kolom D</strong> = NIP</li>
               <li><strong>Kolom E</strong> = GOLONGAN</li>
-              <li><strong>Kolom F</strong> = JABATAN</li>
+              <li><strong>Kolom F</strong> = ESELONISASI</li>
               <li><strong>Kolom G</strong> = JABATAN STRUKTURAL</li>
               <li><strong>Kolom H</strong> = PANGKAT</li>
+              <li><strong>Kolom I</strong> = BIDANG</li>
             </ul>
 
             <div class="mt-2">
@@ -420,6 +445,7 @@
         $('#edit_jabatan').val($(this).data('jabatan'));
         $('#edit_jabatan_struktural').val($(this).data('jabatan_struktural'));
         $('#edit_pangkat_golongan').val($(this).data('pangkat_golongan'));
+        $('#edit_bidang').val($(this).data('bidang'));
         $('#editForm').attr('action', `/pegawai/${id}`);
 
         const modal = new bootstrap.Modal(document.getElementById('editModal'));

@@ -110,6 +110,7 @@ class PegawaiController extends Controller
             'jabatan_id' => 'required',
             'jabatan_struktural' => 'nullable|string|max:150',
             'pangkat_golongan' => 'nullable|string|max:100',
+            'bidang' => 'nullable|string|max:100',
         ]);
 
         Pegawai::create($request->all());
@@ -129,6 +130,7 @@ class PegawaiController extends Controller
             'jabatan_id' => 'required',
             'jabatan_struktural' => 'nullable|string|max:150',
             'pangkat_golongan' => 'nullable|string|max:100',
+            'bidang' => 'nullable|string|max:100',
         ]);
 
         $pegawai->update($request->all());
@@ -175,6 +177,7 @@ class PegawaiController extends Controller
 
                 $jabatanStruktural = trim($row[6] ?? null);
                 $pangkatGolongan   = trim($row[7] ?? null);
+                $bidang            = trim($row[8] ?? null);
 
                 // --- Golongan: support ID atau Nama ---
                 $golongan = null;
@@ -211,6 +214,7 @@ class PegawaiController extends Controller
                         'jabatan_id'         => $jabatan->id ?? null,
                         'jabatan_struktural' => $jabatanStruktural,
                         'pangkat_golongan'   => $pangkatGolongan,
+                        'bidang'             => $bidang,
                     ]
                 );
 

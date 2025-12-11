@@ -41,6 +41,12 @@ public function index()
     // Total biaya real cost (biaya riil)
     $totalRealCost = DB::table('perjalanan_dinas_biaya_riil')->sum('subtotal_biaya');
 
+   $penggunaanPerBidang = DB::table('perjalanan_dinas_biaya_riil')
+    ->join('pegawai', 'perjalanan_dinas_biaya_riil.pegawai_id', '=', 'pegawai.id')
+    ->select('pegawai.bidang', DB::raw('SUM(perjalanan_dinas_biaya_riil.subtotal_biaya) AS total'))
+    ->groupBy('pegawai.bidang')
+    ->get();
+
     // Ambil biaya terbaru (rekaman terakhir)
     $lastRecord = DB::table('perjalanan_dinas_biaya')
         ->orderBy('created_at', 'desc')
@@ -79,32 +85,31 @@ public function index()
     ->where('is_active', 1)
     ->first();
 
-$total_anggaran = $periodeAktif ? $periodeAktif->total_anggaran : 0;
+    $total_anggaran = $periodeAktif ? $periodeAktif->total_anggaran : 0;
 
-$sisaAnggaran = max(0, $total_anggaran - $totalRealCost);
+    $sisaAnggaran = max(0, $total_anggaran - $totalRealCost);
 
-$persen = ($total_anggaran > 0)
-    ? ($totalRealCost / $total_anggaran) * 100
-    : 0;
+    $persen = ($total_anggaran > 0)
+        ? ($totalRealCost / $total_anggaran) * 100
+        : 0;
 
-return view('dashboard', compact(
-    'jumlahPegawai',
-    'jumlahPerjalanan',
-    'topPelapor',
-    'perjalananHariIni',
-    'totalBiaya',
-    'totalBaru',
-    'totalRealCost',
-    'statusCounts',
-    'jenisSptCounts',
-    'topDestinasi',
-    'total_anggaran',
-    'sisaAnggaran',
-    'periodeAktif',
-    'persen'
-));
-
-
+    return view('dashboard', compact(
+        'jumlahPegawai',
+        'jumlahPerjalanan',
+        'topPelapor',
+        'perjalananHariIni',
+        'totalBiaya',
+        'totalBaru',
+        'totalRealCost',
+        'statusCounts',
+        'jenisSptCounts',
+        'topDestinasi',
+        'total_anggaran',
+        'sisaAnggaran',
+        'periodeAktif',
+        'persen',
+        'penggunaanPerBidang'
+    ));
 }
 
     /**

@@ -51,16 +51,6 @@
                 class="btn btn-secondary">
                     <i class="bx bx-reset"></i> Reset
                 </a>
-
-                <a href="{{ url('/export-verifikasi-staff') }}"
-                class="btn btn-success">
-                    Export Excel
-                </a>
-
-                <a href="{{ url('/export-verifikasi-staff/pdf') }}"
-                class="btn btn-danger">
-                    Export PDF
-                </a>
             </div>
 
         </form>
@@ -68,22 +58,34 @@
 </div>
 
 <div class="card shadow rounded-2">
-    <div class="card-header bg-white">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
         <h5 class="mb-0 fw-bold">Daftar Verifikasi Staff</h5>
+
+        <div class="dropdown">
+            <button class="btn btn-light btn-sm" type="button" id="dropdownMenuButton"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                style="border-radius: 50%; width: 35px; height: 35px; padding: 0;">
+                <i class="bx bx-dots-vertical-rounded fs-4"></i>
+            </button>
+
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
+                <li>
+                    <a class="dropdown-item" href="{{ route('verifikasi-staff.export.pdf') }}">
+                        <i class="bx bxs-file-pdf me-1"></i> Export PDF
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item" href="{{ route('verifikasi-staff.exportExcel') }}">
+                        <i class="bx bxs-file me-1"></i> Export Excel
+                    </a>
+                </li>
+            </ul>
+        </div>
     </div>
 
     <div class="card-body">
 
         <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
-            {{-- 🔽 Show Entries --}}
-            <div class="d-flex align-items-center mb-2 mb-sm-0">
-                <select id="showEntries" class="form-select w-auto me-2">
-                    <option value="10" {{ $perPage == 10 ? 'selected' : '' }}>10</option>
-                    <option value="25" {{ $perPage == 25 ? 'selected' : '' }}>25</option>
-                    <option value="50" {{ $perPage == 50 ? 'selected' : '' }}>50</option>
-                    <option value="100" {{ $perPage == 100 ? 'selected' : '' }}>100</option>
-                </select>
-            </div>
 
              {{-- 🔍 Manual Search --}}
             <form action="{{ route('verifikasi-staff.index') }}" method="GET" class="d-flex align-items-center">
@@ -183,9 +185,20 @@
                 </tbody>
             </table>
         </div>
-        {{-- Pagination --}}
-        <div class="d-flex justify-content-center mt-3">
-            {{ $perjalanans->onEachSide(2)->links('pagination::bootstrap-5') }}
+        <div class="d-flex justify-content-between align-items-center flex-wrap mt-3">
+            {{-- Pagination --}}
+            <div class="d-flex justify-content-center mt-3">
+                {{ $perjalanans->onEachSide(2)->links('pagination::bootstrap-5') }}
+            </div>
+
+            <div class="d-flex align-items-center mb-2 mb-sm-0">
+                <select id="showEntries" class="form-select w-auto me-2">
+                    <option value="10" {{ $perPage == 10 ? 'selected' : '' }}>10</option>
+                    <option value="25" {{ $perPage == 25 ? 'selected' : '' }}>25</option>
+                    <option value="50" {{ $perPage == 50 ? 'selected' : '' }}>50</option>
+                    <option value="100" {{ $perPage == 100 ? 'selected' : '' }}>100</option>
+                </select>
+            </div>
         </div>
     </div>
 </div>

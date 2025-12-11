@@ -50,14 +50,6 @@
                 <a href="{{ route('perjalanan-dinas.index') }}" class="btn btn-secondary">
                     <i class="bx bx-reset"></i> Reset
                 </a>
-
-                <a href="{{ route('perjalanan-dinas.export.excel') }}" class="btn btn-success">
-                    <i class="fas fa-file-excel"></i> Export Excel
-                </a>
-                <a href="{{ route('perjalanan-dinas.export.pdf') }}" class="btn btn-danger">
-                    <i class="fas fa-file-pdf"></i> Export PDF
-                </a>
-
             </div>
 
         </form>
@@ -66,22 +58,36 @@
 
 {{-- 🔹 CARD TABEL --}}
 <div class="card shadow rounded-2">
-    <div class="card-header bg-white">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
         <h5 class="mb-0 fw-bold">Daftar Perjalanan Dinas</h5>
+
+        <!-- 🔽 Dropdown Titik Tiga -->
+        <div class="dropdown">
+            <button class="btn btn-light btn-sm" type="button" id="dropdownMenuButton"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                style="border-radius: 50%; width: 35px; height: 35px; padding: 0;">
+                <i class="bx bx-dots-vertical-rounded fs-4"></i>
+            </button>
+
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
+                <li>
+                    <a class="dropdown-item" href="{{ route('perjalanan-dinas.export.pdf') }}">
+                        <i class="bx bxs-file-pdf me-1"></i> Export PDF
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item" href="{{ route('perjalanan-dinas.export.excel') }}">
+                        <i class="bx bxs-file me-1"></i> Export Excel
+                    </a>
+                </li>
+            </ul>
+        </div>
     </div>
 
     <div class="card-body">
 
         {{-- 🔽 Show Entries & Search --}}
         <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
-            <div class="d-flex align-items-center mb-2 mb-sm-0">
-                <select id="showEntries" class="form-select w-auto me-2">
-                    <option value="10" {{ $perPage == 10 ? 'selected' : '' }}>10</option>
-                    <option value="25" {{ $perPage == 25 ? 'selected' : '' }}>25</option>
-                    <option value="50" {{ $perPage == 50 ? 'selected' : '' }}>50</option>
-                    <option value="100" {{ $perPage == 100 ? 'selected' : '' }}>100</option>
-                </select>
-            </div>
 
             <form action="{{ route('perjalanan-dinas.index') }}" method="GET" class="d-flex align-items-center">
                 <input type="hidden" name="perPage" value="{{ request('perPage', $perPage) }}">
@@ -180,9 +186,24 @@
                 </tbody>
             </table>
         </div>
-        {{-- Pagination --}}
-        <div class="d-flex justify-content-center mt-3">
-            {{ $perjalanans->onEachSide(2)->links('pagination::bootstrap-5') }}
+        <div class="d-flex justify-content-between align-items-center flex-wrap mt-3">
+
+            {{-- LEFT: Pagination --}}
+            <div class="d-flex justify-content-center mt-3">
+                {{ $perjalanans->onEachSide(2)->links('pagination::bootstrap-5') }}
+            </div>
+
+            {{-- RIGHT: Show Entries --}}
+            <div class="d-flex align-items-center mb-2 mb-sm-0">
+                <label class="me-2 text-secondary">Show:</label>
+                <select id="showEntries" class="form-select w-auto">
+                    <option value="10" {{ $perPage == 10 ? 'selected' : '' }}>10</option>
+                    <option value="25" {{ $perPage == 25 ? 'selected' : '' }}>25</option>
+                    <option value="50" {{ $perPage == 50 ? 'selected' : '' }}>50</option>
+                    <option value="100" {{ $perPage == 100 ? 'selected' : '' }}>100</option>
+                </select>
+            </div>
+
         </div>
     </div>
 </div>
@@ -547,20 +568,20 @@ $(document).ready(function () {
             html = `
                 <div class="mb-3">
                     <label class="form-label">Provinsi Tujuan</label>
-                    <input type="text" name="provinsi_tujuan" class="form-control"
-                           value="${data.provinsi_tujuan || ''}" required>
+                    <input type="text" name="provinsi_tujuan_id" class="form-control"
+                           value="${data.provinsi_tujuan_id || ''}" required>
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label">Kota/Kabupaten Tujuan</label>
-                    <input type="text" name="kota_tujuan" class="form-control"
-                           value="${data.kota_tujuan || ''}" required>
+                    <input type="text" name="kota_tujuan_id" class="form-control"
+                           value="${data.kota_tujuan_id || ''}" required>
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label">Tempat Tujuan</label>
-                    <input type="text" name="tujuan" class="form-control"
-                           value="${data.tujuan || ''}" required>
+                    <input type="text" name="tujuan_spt" class="form-control"
+                           value="${data.tujuan_spt || ''}" required>
                 </div>`;
         }
 
@@ -583,7 +604,7 @@ $(document).ready(function () {
     /* ============================================================
        SELECT2 DI MODAL — AUTO INIT + FIX SCROLL
     ============================================================ */
-    $(document).on('shown.bs.modal', '.modal', function () {
+    $(document).on('show.bs.modal', '.modal', function () {
         $(this).find('.pegawai-select').each(function () {
 
             if ($(this).data('select2')) {
@@ -636,6 +657,17 @@ $(document).ready(function () {
         });
     });
 
+});
+</script>
+
+<script>
+document.getElementById('showEntries').addEventListener('change', function() {
+    let url = new URL(window.location.href);
+
+    url.searchParams.set('per_page', this.value);  // update per_page
+    url.searchParams.delete('page'); // reset pagination ke page 1
+
+    window.location.href = url.toString();
 });
 </script>
 

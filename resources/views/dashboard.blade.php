@@ -113,53 +113,91 @@
       </div>
     </div>
 
-  </div>{{-- row --}}
-
-{{-- ============================
-     ANGGARAN PER PERIODE (STYLE SPT NASI/SNACK)
-     ============================ --}}
-<div class="card shadow mb-4">
-  <div class="card-header bg-white">
-    <h5 class="fw-bold mb-0">Periode {{ date('Y') }}</h5>
   </div>
 
-  <div class="card-body">
+<div class="row g-4 mb-4 align-items-stretch">
 
-    {{-- ANGGARAN PERIODE --}}
-    <h6 class="fw-bold mb-3 mt-2">Anggaran Periode</h6>
+    {{-- Anggaran Periode --}}
+    <div class="col-md-5 col-lg-5">
+        <div class="card shadow h-100">
+            <div class="card-header bg-white">
+                <h5 class="fw-bold mb-0">Periode {{ date('Y') }}</h5>
+            </div>
 
-    {{-- Progress Bar --}}
-   
-<div class="progress mb-2" style="height: 10px;">
-    <div class="progress-bar bg-success"
-         role="progressbar"
-         style="width: {{ $persen }}%;">
+            <div class="card-body">
+
+                <h6 class="fw-bold mb-3 mt-2">Anggaran Perjalanan Dinas</h6>
+
+                <div class="position-relative mb-2" style="height: 10px;">
+                    <small class="position-absolute badge bg-success"
+                        style="right: 0; top: -30px; font-size: 12px; color:#fff;">
+                        {{ number_format($persen, 1) }}%
+                    </small>
+
+                    <div class="progress" style="height: 10px;">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated bg-success"
+                            role="progressbar"
+                            style="width: {{ $persen }}%;">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-muted small mb-4">
+                    <div>Total Anggaran: <span class="fw-bold">Rp {{ number_format($total_anggaran, 0, ',', '.') }}</span></div>
+                    <div>Terpakai: <span class="fw-bold">Rp {{ number_format($totalRealCost, 0, ',', '.') }}</span></div>
+                    <div class="fw-semibold text-success">
+                        Sisa: Rp {{ number_format($total_anggaran - $totalRealCost, 0, ',', '.') }}
+                    </div>
+                </div>
+
+            </div>
+        </div>
     </div>
+
+    {{-- Penggunaan Per Bidang --}}
+    <div class="col-md-7 col-lg-7">
+        <div class="card shadow h-100">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0">Penggunaan Anggaran Per Bidang</h5>
+            </div>
+
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped small">
+                        <thead class="table-light">
+                            <tr class="text-center">
+                                <th>No</th>
+                                <th>Bidang</th>
+                                <th>Total Penggunaan</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($penggunaanPerBidang as $row)
+                            <tr class="text-center">
+                                <td>{{ $loop->iteration }}</td>
+                                <td>{{ $row->bidang }}</td>
+                                <td class="fw-semibold">
+                                    Rp {{ number_format($row->total, 0, ',', '.') }}
+                                </td>
+                            </tr>
+                            @endforeach
+
+                            @if($penggunaanPerBidang->isEmpty())
+                            <tr>
+                                <td colspan="3" class="text-center text-muted">
+                                    Belum ada data penggunaan anggaran
+                                </td>
+                            </tr>
+                            @endif
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 
-
-
-    <div class="d-flex justify-content-between text-muted small mb-4">
-      <div>Total Anggaran: Rp {{ number_format($total_anggaran, 0, ',', '.') }}</div>
-       <small>{{ number_format($persen, 1) }}% terpakai</small>
-      <div>Real Cost: Rp {{ number_format($totalRealCost, 0, ',', '.') }}</div>
-      <div class="fw-semibold text-success">Sisa: Rp {{ number_format($total_anggaran - $totalRealCost, 0, ',', '.') }}</div>
-    </div>
-
-
-
-  </div>
-</div>
-
-
-
-
-
-
-
-  {{-- ============================
-       ROW 2: STATUS & PELAPOR
-       ============================ --}}
   <div class="row g-4 mb-4">
 
     {{-- Status Perjalanan Dinas --}}

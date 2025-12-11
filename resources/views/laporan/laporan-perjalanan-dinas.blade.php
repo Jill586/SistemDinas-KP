@@ -64,12 +64,6 @@
                 <a href="{{ route('laporan.index') }}" class="btn btn-secondary">
                     <i class="bx bx-reset"></i> Reset
                 </a>
-                <a href="{{ route('laporan-perjalanan.export.excel') }}" class="btn btn-success">
-                    <i class="fas fa-file-excel"></i> Export Excel
-                </a>
-                <a href="{{ route('laporan.export.pdf') }}" class="btn btn-danger">
-                        Export PDF
-                </a>  
             </div>
 
         </form>
@@ -77,22 +71,35 @@
 </div>
 
 <div class="card shadow rounded-2">
-    <div class="card-header bg-white">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
         <h5 class="mb-0 fw-bold">Daftar Laporan Perjalanan Dinas</h5>
+
+        <!-- 🔽 Dropdown Titik Tiga -->
+        <div class="dropdown">
+            <button class="btn btn-light btn-sm" type="button" id="dropdownMenuButton"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                style="border-radius: 50%; width: 35px; height: 35px; padding: 0;">
+                <i class="bx bx-dots-vertical-rounded fs-4"></i>
+            </button>
+
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
+                <li>
+                    <a class="dropdown-item" href="{{ route('laporan.export.pdf') }}">
+                        <i class="bx bxs-file-pdf me-1"></i> Export PDF
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item" href="{{ route('laporan-perjalanan.export.excel') }}">
+                        <i class="bx bxs-file me-1"></i> Export Excel
+                    </a>
+                </li>
+            </ul>
+        </div>
     </div>
 
     <div class="card-body">
 
           <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
-            {{-- 🔽 Show Entries --}}
-            <div class="d-flex align-items-center mb-2 mb-sm-0">
-            <select id="showEntries" class="form-select w-auto me-2">
-                <option value="10" {{ $perPage == 10 ? 'selected' : '' }}>10</option>
-                <option value="25" {{ $perPage == 25 ? 'selected' : '' }}>25</option>
-                <option value="50" {{ $perPage == 50 ? 'selected' : '' }}>50</option>
-                <option value="100" {{ $perPage == 100 ? 'selected' : '' }}>100</option>
-            </select>
-            </div>
 
              {{-- 🔍 Manual Search --}}
             <form action="{{ route('laporan.index') }}" method="GET" class="d-flex align-items-center">
@@ -169,7 +176,7 @@
                             <td class="text-center">
                                 @if($row->status_laporan === 'selesai')
                                     <button type="button"
-                                            class="btn btn-info"
+                                            class="btn btn-info btn-sm"
                                             data-bs-toggle="modal"
                                             data-bs-target="#modalDownload{{ $row->id }}">
                                         <i class="bx bx-show"></i>
@@ -181,7 +188,7 @@
                             <td class="text-center">
                                 <div class="d-flex flex-column align-items-center gap-2">
                                     @if($row->status_laporan === 'belum_dibuat')
-                                    <button class="btn btn-primary btn-edit"
+                                    <button class="btn btn-primary btn-edit btn-sm"
                                         data-id="{{ $row->id }}"
                                         data-nomor="{{ $row->nomor_spt }}"
                                         data-tujuan="{{ $row->tujuan_spt }}"
@@ -196,15 +203,19 @@
                                     @endif
 
                                     @if($row->status_laporan === 'selesai' || $row->status_laporan === 'diproses' || $row->status_laporan === 'revisi_operator')
-                                    <button type="button" class="btn btn-info"
+                                    <button type="button" class="btn btn-info btn-sm"
                                         data-bs-toggle="modal"
                                         data-bs-target="#modalDetail{{ $row->id }}">
                                         <i class="bx bx-show"></i>
                                     </button>
                                     @endif
 
-                                    @if($row->status_laporan === 'diproses' || $row->status_laporan === 'revisi_operator')
-                                    <button class="btn btn-warning btn-edit2"
+                                    @if(
+                                        $row->status_laporan === 'diproses' || 
+                                        $row->status_laporan === 'revisi_operator' ||
+                                        Auth::user()->role === 'super_admin'
+                                    )
+                                    <button class="btn btn-warning btn-edit2 btn-sm"
                                         data-bs-toggle="modal"
                                         data-bs-target="#modalEditLaporan"
                                         data-id="{{ $row->id }}"
@@ -230,9 +241,21 @@
                 </tbody>
             </table>
         </div>
-        {{-- Pagination --}}
-        <div class="d-flex justify-content-center mt-3">
-            {{ $perjalanans->onEachSide(2)->links('pagination::bootstrap-5') }}
+        <div class="d-flex justify-content-between align-items-center flex-wrap mt-3">
+            {{-- Pagination --}}
+            <div class="d-flex justify-content-center mt-3">
+                {{ $perjalanans->onEachSide(2)->links('pagination::bootstrap-5') }}
+            </div>
+
+            {{-- 🔽 Show Entries --}}
+            <div class="d-flex align-items-center mb-2 mb-sm-0">
+                <select id="showEntries" class="form-select w-auto me-2">
+                    <option value="10" {{ $perPage == 10 ? 'selected' : '' }}>10</option>
+                    <option value="25" {{ $perPage == 25 ? 'selected' : '' }}>25</option>
+                    <option value="50" {{ $perPage == 50 ? 'selected' : '' }}>50</option>
+                    <option value="100" {{ $perPage == 100 ? 'selected' : '' }}>100</option>
+                </select>
+            </div>
         </div>
     </div>
 </div>
@@ -602,6 +625,12 @@
                             'Transportasi Darat Siak - Pekanbaru (PP)',
                             'Transportasi Darat Siak - Bengkalis (PP)',
                             'Transportasi Darat Siak - Rokan Hilir (PP)',
+                            'Transportasi Darat Siak - Kampar (PP)',
+                            'Transportasi Darat Siak - Pelalawan (PP)',
+                            'Transportasi Darat Siak - Indragiri Hulu (PP)',
+                            'Transportasi Darat Siak - Indragiri Hilir (PP)',
+                            'Transportasi Darat Siak - Kuantan Singingi (PP)',
+                            'Transportasi Darat Siak - Meranti (PP)',
                         ],
 
                         'Transportasi Darat' => 'Taksi Riau',
@@ -613,6 +642,26 @@
                             'Hotel Riau Eselon III/Golongan IV',
                             'Hotel Riau Eselon IV/Golongan III',
                             'Hotel Riau Golongan II/I & Non ASN',
+                            'Hotel Sumatera Barat Kepala Daerah/Eselon I',
+                            'Hotel Sumatera Barat Anggota DPRD/Eselon II',
+                            'Hotel Sumatera Barat Eselon III/Golongan IV',
+                            'Hotel Sumatera Barat Eselon IV/Golongan III',
+                            'Hotel Sumatera Barat Golongan II/I & Non ASN',
+                            'Hotel Sumatra Utara Kepala Daerah/Eselon I',
+                            'Hotel Sumatra Utara Anggota DPRD/Eselon II',
+                            'Hotel Sumatra Utara Eselon III/Golongan IV',
+                            'Hotel Sumatra Utara Eselon IV/Golongan III',
+                            'Hotel Sumatra Utara Golongan II/I & Non ASN',
+                            'Hotel DKI Jakarta Kepala Daerah/Eselon I',
+                            'Hotel DKI Jakarta Anggota DPRD/Eselon II',
+                            'Hotel DKI Jakarta Eselon III/Golongan IV',
+                            'Hotel DKI Jakarta Eselon IV/Golongan III',
+                            'Hotel DKI Jakarta Golongan II/I & Non ASN',
+                            'Hotel Jawa Barat Kepala Daerah/Eselon I',
+                            'Hotel Jawa Barat Anggota DPRD/Eselon II',
+                            'Hotel Jawa Barat Eselon III/Golongan IV',
+                            'Hotel Jawa Barat Eselon IV/Golongan III',
+                            'Hotel Jawa Barat Golongan II/I & Non ASN',
                         ],
 
                         'Hotel 30%' => [

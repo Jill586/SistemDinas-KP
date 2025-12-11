@@ -15,8 +15,6 @@ use App\Exports\PerjalananDinasExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
 
-
-
 class PerjalananDinasController extends Controller
 {
     public function index(Request $request)
@@ -25,7 +23,6 @@ class PerjalananDinasController extends Controller
 
          // 🔍 Ambil input filter
         $search = $request->input('search');
-        $perPage = $request->get('per_page', 10);
         $data = PerjalananDinas::with('pegawai')->latest()->get();
 
         $query = PerjalananDinas::with(['pegawai', 'biaya']) // <— tambahkan eager load relasi pegawai & biaya
@@ -187,7 +184,7 @@ $this->validasiForm($request);
     {
         $perjalanan = PerjalananDinas::with('pegawai')->findOrFail($id);
         $pegawai = Pegawai::all();
-        return view('admin.form-pengajuan', compact('perjalanan', 'pegawai'));
+        return view('admin.perjalanan-dinas', compact('perjalanan', 'pegawai'));
     }
 
     public function update(Request $request, $id)
@@ -236,7 +233,7 @@ $this->validasiForm($request);
             $perjalanan->biaya()->delete();
             $this->hitungEstimasiBiaya($perjalanan, $request);
 
-            return redirect()->route('perjalanan-dinas.create')
+            return redirect()->route('perjalanan-dinas.index')
                              ->with('success', '✅ Pengajuan berhasil diperbarui! Status otomatis jadi PROSES.');
         } catch (\Throwable $e) {
             return back()
@@ -556,6 +553,4 @@ public function exportPdf(Request $request)
 
     return $pdf->download('data-perjalanan-dinas.pdf');
 }
-
-
 }

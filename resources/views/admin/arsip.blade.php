@@ -3,40 +3,40 @@
 @section('title', 'Arsip Periode')
 
 @section('content')
-<div class="card shadow mb-4">
+<div class="card mb-3 shadow rounded-2">
 
     <div class="card-body">
 
         <!-- Header Arsip Periode -->
-        <div class="card-header bg-white d-flex justify-content-between align-items-center">
-            <div>
-                <h5 class="fw-bold mb-0">Arsip Periode E-SPT</h5>
-                <small class="text-muted">Daftar arsip per tahun & total anggaran</small>
-            </div>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h5 class="mb-0 fw-bold">Arsip Periode E-SPT</h5>
+                    <small class="text-muted">Daftar arsip per tahun & total anggaran</small>
+                </div>
 
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalArsip">
-                Arsipkan
-            </button>
-        </div>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalArsip">
+                    Arsipkan
+                </button>
+            </div>
 
         <!-- Tabel Arsip -->
         <div class="table-responsive mt-3">
             <table class="table table-bordered" id="dataTable">
                 <thead class="table-light">
-                    <tr>
-                        <th style="width:40px">No</th>
+                    <tr class="text-center">
+                        <th>No</th>
                         <th>Periode</th>
                         <th>Total SPT</th>
                         <th>Luar Riau</th>
                         <th>Dalam Riau</th>
                         <th>Siak</th>
                         <th>Total Anggaran</th>
-                        <th style="width:150px">Aksi</th>
+                        <th>Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach ($arsip as $i => $a)
-                    <tr>
+                    <tr class="text-center">
                         <td>{{ $i + 1 }}</td>
                         <td>{{ $a->nama_periode }}</td>
                         <td>{{ $a->total_spt }}</td>
