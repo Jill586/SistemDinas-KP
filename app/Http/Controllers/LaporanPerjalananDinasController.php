@@ -504,14 +504,70 @@ class LaporanPerjalananDinasController extends Controller
             'saran_tindak_lanjut' => $request->saran_tindak_lanjut,
         ]);
 
-        // Update status laporan di tabel perjalanan_dinas
+        // Ambil biaya dari form
+        $biayaBaru = $request->biaya ?? [];
+
+        // Ambil biaya lama di database
+        $biayaLama = PerjalananDinasBiayaRiil::where('perjalanan_dinas_id', $id)->get();
+
+        // Hapus biaya yang sudah tidak ada di input
+        $idsBaru = collect($biayaBaru)->pluck('id')->filter()->toArray();
+        foreach ($biayaLama as $b) {
+            if (!in_array($b->id, $idsBaru)) {
+                $b->delete();
+            }
+        }
+
+        // Insert atau update biaya baru
+        foreach ($biayaBaru as $item) {
+
+            if (!empty($item['id'])) {
+                // UPDATE
+                PerjalananDinasBiayaRiil::where('id', $item['id'])->update([
+                    'deskripsi_biaya'   => $item['deskripsi'],
+                    'pegawai_id'  => $item['pegawai_id'],
+                    'provinsi'    => $item['provinsi'],
+                    'jumlah'      => $item['jumlah'],
+                    'satuan'      => $item['satuan'],
+                    'harga'       => $item['harga'],
+                    'bukti'       => $item['bukti'] ?? null,
+                    'keterangan'  => $item['keterangan'] ?? null,
+                ]);
+
+            } else {
+                // INSERT BARU
+                PerjalananDinasBiayaRiil::create([
+                    'perjalanan_dinas_id' => $id,
+                    'deskripsi_biaya'   => $item['deskripsi'],
+                    'pegawai_id'  => $item['pegawai_id'],
+                    'provinsi'    => $item['provinsi'],
+                    'jumlah'      => $item['jumlah'],
+                    'satuan'      => $item['satuan'],
+                    'harga'       => $item['harga'],
+                    'bukti'       => $item['bukti'] ?? null,
+                    'keterangan'  => $item['keterangan'] ?? null,
+                ]);
+            }
+        }
+
         $perjalanan->update([
             'status_laporan' => 'diproses'
         ]);
 
         return redirect()->back()->with('success', 'Laporan berhasil diperbarui.');
     }
-    
+
+   public function getLaporan($id)
+    {
+        $laporan = LaporanPerjalananDinas::where('perjalanan_dinas_id', $id)->first();
+        $biaya = PerjalananDinasBiayaRiil::where('perjalanan_dinas_id', $id)->get();
+
+        return response()->json([
+            'laporan' => $laporan,
+            'biaya' => $biaya,
+        ]);
+    }
+
    public function exportExcel(Request $request)
 {
     $user = Auth::user();

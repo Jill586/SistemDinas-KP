@@ -100,6 +100,7 @@ Route::middleware(['auth', 'role:admin_bidang'])->group(function () {
 
         // UPDATE LAPORAN (EDIT)
         Route::put('/laporan-perjadin/{id}/edit','updateLaporan')->name('laporan.updateLaporan');
+        Route::get('/laporan-perjadin/{id}/data', 'getData')->name('laporan.getData');
         Route::delete('/laporan/biaya/{id}','hapusBiaya')->name('laporan.hapusBiaya');
 
         Route::get('/laporan/download/{id}/{type}', 'downloadLaporan')->name('laporan.download');

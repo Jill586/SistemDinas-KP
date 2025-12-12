@@ -2,7 +2,8 @@
   <div class="app-brand demo">
     <div class="app-brand text-center py-3">
         <a href="{{ url('/') }}" class="app-brand-link d-inline-flex align-items-center justify-content-center">
-            <img src="https://siakkab.go.id/images/link/diskominfo.png" alt="Logo" width="30" height="30" class="me-2">
+            <img src="../assets3/img/favicon/favicon.ico" 
+              alt="Logo" width="30" height="30" class="me-2">
             <span class="app-brand-text demo menu-text fw-bolder text-uppercase">E-SPT</span>
         </a>
     </div>

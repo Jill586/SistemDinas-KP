@@ -165,16 +165,70 @@
               </select>
             </div>
             <div class="col-md-6">
-              <label class="form-label">Jabatan Struktural</label>
+              <label class="form-label">Jabatan</label>
               <select id="edit_jabatan_struktural" name="jabatan_struktural" class="form-select">
-                  <option value="">-- Pilih Jabatan Struktural --</option>
-                  <option value="Kepala Dinas">Kepala Dinas</option>
-                  <option value="Sekretaris">Sekretaris</option>
-                  <option value="Kasubbag Umum dan Kepegawaian">Kasubbag Umum dan Kepegawaian</option>
-                  <option value="Kasubbag Keuangan">Kasubbag Keuangan</option>
-                  <option value="Kabid TIK">Kabid TIK</option>
-                  <option value="Kabid IKPS">Kabid IKPS</option>
-                  <option value="Staff Pelaksana">Staff Pelaksana</option>
+                  <option value="">-- Pilih Jabatan --</option>
+                    <!-- STRUKTURAL -->
+                    <option value="Kepala Dinas">Kepala Dinas</option>
+                    <option value="Sekretaris">Sekretaris</option>
+                    <option value="Kasubbag Umum dan Kepegawaian">Kasubbag Umum dan Kepegawaian</option>
+                    <option value="Kasubbag Keuangan">Kasubbag Keuangan</option>
+                    <option value="Kabid TIK">Kabid TIK</option>
+                    <option value="Kabid IKPS">Kabid IKPS</option>
+                    <option value="Staff Pelaksana">Staff Pelaksana</option>
+                    <option value="Kasubbag Perencanaan dan Umum">Kasubbag Perencanaan dan Umum</option>
+                    <option value="Kasubbag Keuangan dan Kepegawaian">Kasubbag Keuangan dan Kepegawaian</option>
+
+                    <!-- JABATAN FUNGSIONAL & LAINNYA -->
+                    <option value="JF Pranata Humas Ahli Madya">JF Pranata Humas Ahli Madya</option>
+                    <option value="JF Statistisi Ahli Madya">JF Statistisi Ahli Madya</option>
+                    <option value="JF Arsiparis Ahli Madya">JF Arsiparis Ahli Madya</option>
+                    <option value="JF Pranata Komputer Ahli Madya">JF Pranata Komputer Ahli Madya</option>
+
+                    <option value="JF Perencana Ahli Muda">JF Perencana Ahli Muda</option>
+                    <option value="JF Arsiparis Ahli Muda">JF Arsiparis Ahli Muda</option>
+                    <option value="JF Pranata Humas Ahli Muda">JF Pranata Humas Ahli Muda</option>
+                    <option value="JF Pranata Komputer Ahli Muda">JF Pranata Komputer Ahli Muda</option>
+                    <option value="JF Statistisi Ahli Muda">JF Statistisi Ahli Muda</option>
+                    <option value="JF Manggala Informatika Ahli Muda">JF Manggala Informatika Ahli Muda</option>
+
+                    <option value="JF Arsiparis Ahli Pertama">JF Arsiparis Ahli Pertama</option>
+                    <option value="JF Analis Kebijakan Ahli Pertama">JF Analis Kebijakan Ahli Pertama</option>
+                    <option value="JF Perencana Ahli Pertama">JF Perencana Ahli Pertama</option>
+                    <option value="JF Pranata Humas Ahli Pertama">JF Pranata Humas Ahli Pertama</option>
+                    <option value="JF Pranata Komputer Ahli Pertama">JF Pranata Komputer Ahli Pertama</option>
+                    <option value="JF Statistisi Ahli Pertama">JF Statistisi Ahli Pertama</option>
+                    <option value="JF Manggala Informatika Ahli Pertama">JF Manggala Informatika Ahli Pertama</option>
+
+                    <option value="JF Arsiparis Penyelia">JF Arsiparis Penyelia</option>
+                    <option value="JF Pranata Komputer Penyelia">JF Pranata Komputer Penyelia</option>
+                    <option value="JF Asisten Statistisi Penyelia">JF Asisten Statistisi Penyelia</option>
+
+                    <option value="JF Arsiparis Mahir">JF Arsiparis Mahir</option>
+                    <option value="JF Pranata Komputer Mahir">JF Pranata Komputer Mahir</option>
+                    <option value="JF Asisten Statistisi Mahir">JF Asisten Statistisi Mahir</option>
+
+                    <option value="JF Arsiparis Terampil">JF Arsiparis Terampil</option>
+                    <option value="JF Pranata Komputer Terampil">JF Pranata Komputer Terampil</option>
+                    <option value="JF Asisten Statistisi Terampil">JF Asisten Statistisi Terampil</option>
+
+                    <option value="JF Pranata SDM Aparatur Ahli Pertama">JF Pranata SDM Aparatur Ahli Pertama</option>
+                    <option value="JF Pranata SDM Aparatur Penyelia">JF Pranata SDM Aparatur Penyelia</option>
+                    <option value="JF Pranata SDM Aparatur Mahir">JF Pranata SDM Aparatur Mahir</option>
+                    <option value="JF Pranata SDM Aparatur Terampil">JF Pranata SDM Aparatur Terampil</option>
+
+                    <!-- NON-JF / ADMINISTRATIF -->
+                    <option value="Penelaah Teknis Kebijakan">Penelaah Teknis Kebijakan</option>
+                    <option value="Penata Kelola Sistem dan Teknologi Informasi">Penata Kelola Sistem dan Teknologi Informasi</option>
+                    <option value="Penata Layanan Operasional">Penata Layanan Operasional</option>
+                    <option value="Pengolah Data dan Informasi">Pengolah Data dan Informasi</option>
+                    <option value="Pengelola Layanan Operasional">Pengelola Layanan Operasional</option>
+                    <option value="Pengadministrasi Perkantoran">Pengadministrasi Perkantoran</option>
+                    <option value="Operator Layanan Operasional">Operator Layanan Operasional</option>
+
+                    <!-- KHUSUS -->
+                    <option value="Pengendali Konten Internet">Pengendali Konten Internet</option>
+                    <option value="Pemeriksa Foresic Digital">Pemeriksa Foresic Digital</option>
               </select>
             </div>
             <div class="col-md-6">
@@ -202,6 +256,7 @@
                   <option value="Golongan VII">Golongan VII</option>
                   <option value="Golongan VIII">Golongan VIII</option>
                   <option value="Golongan IX">Golongan IX</option>
+                  <option value="-">-</option>
               </select>
             </div>
             <div class="col-md-6">
@@ -211,6 +266,7 @@
                   <option value="Sekretariat">Sekretariat</option>
                   <option value="IKPS">IKPS</option>
                   <option value="TIK">TIK</option>
+                  <option value="Persandian dan Statistik">Persandian dan Statistik</option>
               </select>
             </div>
           </div>
@@ -271,16 +327,70 @@
               </select>
             </div>
             <div class="col-md-6">
-              <label class="form-label">Jabatan Struktural</label>
+              <label class="form-label">Jabatan</label>
               <select name="jabatan_struktural" class="form-select">
-                  <option value="">-- Pilih Jabatan Struktural --</option>
-                  <option value="Kepala Dinas">Kepala Dinas</option>
-                  <option value="Sekretaris">Sekretaris</option>
-                  <option value="Kasubbag Umum">Kasubbag Umum dan Kepegawaian</option>
-                  <option value="Kasubbag Keuangan">Kasubbag Keuangan</option>
-                  <option value="Kabid TIK">Kabid TIK</option>
-                  <option value="Kabid IKPS">Kabid IKPS</option>
-                  <option value="Staff Pelaksana">Staff Pelaksana</option>
+                  <option value="">-- Pilih Jabatan --</option>
+                    <!-- STRUKTURAL -->
+                    <option value="Kepala Dinas">Kepala Dinas</option>
+                    <option value="Sekretaris">Sekretaris</option>
+                    <option value="Kasubbag Umum dan Kepegawaian">Kasubbag Umum dan Kepegawaian</option>
+                    <option value="Kasubbag Keuangan">Kasubbag Keuangan</option>
+                    <option value="Kabid TIK">Kabid TIK</option>
+                    <option value="Kabid IKPS">Kabid IKPS</option>
+                    <option value="Staff Pelaksana">Staff Pelaksana</option>
+                    <option value="Kasubbag Perencanaan dan Umum">Kasubbag Perencanaan dan Umum</option>
+                    <option value="Kasubbag Keuangan dan Kepegawaian">Kasubbag Keuangan dan Kepegawaian</option>
+
+                    <!-- JABATAN FUNGSIONAL & LAINNYA -->
+                    <option value="JF Pranata Humas Ahli Madya">JF Pranata Humas Ahli Madya</option>
+                    <option value="JF Statistisi Ahli Madya">JF Statistisi Ahli Madya</option>
+                    <option value="JF Arsiparis Ahli Madya">JF Arsiparis Ahli Madya</option>
+                    <option value="JF Pranata Komputer Ahli Madya">JF Pranata Komputer Ahli Madya</option>
+
+                    <option value="JF Perencana Ahli Muda">JF Perencana Ahli Muda</option>
+                    <option value="JF Arsiparis Ahli Muda">JF Arsiparis Ahli Muda</option>
+                    <option value="JF Pranata Humas Ahli Muda">JF Pranata Humas Ahli Muda</option>
+                    <option value="JF Pranata Komputer Ahli Muda">JF Pranata Komputer Ahli Muda</option>
+                    <option value="JF Statistisi Ahli Muda">JF Statistisi Ahli Muda</option>
+                    <option value="JF Manggala Informatika Ahli Muda">JF Manggala Informatika Ahli Muda</option>
+
+                    <option value="JF Arsiparis Ahli Pertama">JF Arsiparis Ahli Pertama</option>
+                    <option value="JF Analis Kebijakan Ahli Pertama">JF Analis Kebijakan Ahli Pertama</option>
+                    <option value="JF Perencana Ahli Pertama">JF Perencana Ahli Pertama</option>
+                    <option value="JF Pranata Humas Ahli Pertama">JF Pranata Humas Ahli Pertama</option>
+                    <option value="JF Pranata Komputer Ahli Pertama">JF Pranata Komputer Ahli Pertama</option>
+                    <option value="JF Statistisi Ahli Pertama">JF Statistisi Ahli Pertama</option>
+                    <option value="JF Manggala Informatika Ahli Pertama">JF Manggala Informatika Ahli Pertama</option>
+
+                    <option value="JF Arsiparis Penyelia">JF Arsiparis Penyelia</option>
+                    <option value="JF Pranata Komputer Penyelia">JF Pranata Komputer Penyelia</option>
+                    <option value="JF Asisten Statistisi Penyelia">JF Asisten Statistisi Penyelia</option>
+
+                    <option value="JF Arsiparis Mahir">JF Arsiparis Mahir</option>
+                    <option value="JF Pranata Komputer Mahir">JF Pranata Komputer Mahir</option>
+                    <option value="JF Asisten Statistisi Mahir">JF Asisten Statistisi Mahir</option>
+
+                    <option value="JF Arsiparis Terampil">JF Arsiparis Terampil</option>
+                    <option value="JF Pranata Komputer Terampil">JF Pranata Komputer Terampil</option>
+                    <option value="JF Asisten Statistisi Terampil">JF Asisten Statistisi Terampil</option>
+
+                    <option value="JF Pranata SDM Aparatur Ahli Pertama">JF Pranata SDM Aparatur Ahli Pertama</option>
+                    <option value="JF Pranata SDM Aparatur Penyelia">JF Pranata SDM Aparatur Penyelia</option>
+                    <option value="JF Pranata SDM Aparatur Mahir">JF Pranata SDM Aparatur Mahir</option>
+                    <option value="JF Pranata SDM Aparatur Terampil">JF Pranata SDM Aparatur Terampil</option>
+
+                    <!-- NON-JF / ADMINISTRATIF -->
+                    <option value="Penelaah Teknis Kebijakan">Penelaah Teknis Kebijakan</option>
+                    <option value="Penata Kelola Sistem dan Teknologi Informasi">Penata Kelola Sistem dan Teknologi Informasi</option>
+                    <option value="Penata Layanan Operasional">Penata Layanan Operasional</option>
+                    <option value="Pengolah Data dan Informasi">Pengolah Data dan Informasi</option>
+                    <option value="Pengelola Layanan Operasional">Pengelola Layanan Operasional</option>
+                    <option value="Pengadministrasi Perkantoran">Pengadministrasi Perkantoran</option>
+                    <option value="Operator Layanan Operasional">Operator Layanan Operasional</option>
+
+                    <!-- KHUSUS -->
+                    <option value="Pengendali Konten Internet">Pengendali Konten Internet</option>
+                    <option value="Pemeriksa Foresic Digital">Pemeriksa Foresic Digital</option>
               </select>
             </div>
             <div class="col-md-6">
@@ -308,6 +418,7 @@
                   <option value="Golongan VII">Golongan VII</option>
                   <option value="Golongan VIII">Golongan VIII</option>
                   <option value="Golongan IX">Golongan IX</option>
+                  <option value="-">-</option>
               </select>
             </div>
             <div class="col-md-6">
@@ -317,6 +428,7 @@
                   <option value="Sekretariat">Sekretariat</option>
                   <option value="IKPS">IKPS</option>
                   <option value="TIK">TIK</option>
+                  <option value="Persandian dan Statistik">Persandian dan Statistik</option>
               </select>
             </div>
           </div>

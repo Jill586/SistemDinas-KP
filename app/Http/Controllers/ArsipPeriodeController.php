@@ -54,20 +54,25 @@ public function store(Request $request)
     return redirect()->back()->with('success', 'Periode berhasil diarsipkan!');
 }
 
-public function update(Request $request, $id)
-{
-    $arsip = ArsipPeriode::findOrFail($id);
+    public function update(Request $request, $id)
+    {
+        $arsip = ArsipPeriode::findOrFail($id);
 
-    $arsip->update([
-        'total_spt' => $request->total_spt,
-        'total_luar_riau' => $request->total_luar_riau,
-        'total_dalam_riau' => $request->total_dalam_riau,
-        'total_siak' => $request->total_siak,
-        'total_anggaran' => $request->total_anggaran,
-    ]);
+        // Nonaktifkan arsip lain
+        ArsipPeriode::where('id', '!=', $id)->update(['is_active' => 0]);
 
-    return back()->with('success', 'Arsip berhasil diperbarui!');
-}
+        // Update data + aktifkan kembali arsip ini
+        $arsip->update([
+            'total_spt'          => $request->total_spt,
+            'total_luar_riau'    => $request->total_luar_riau,
+            'total_dalam_riau'   => $request->total_dalam_riau,
+            'total_siak'         => $request->total_siak,
+            'total_anggaran'     => $request->total_anggaran,
+            'is_active'          => 1      // ← OTOMATIS AKTIF
+        ]);
+
+        return back()->with('success', 'Arsip berhasil diperbarui!');
+    }
 
     public function destroy($id)
     {

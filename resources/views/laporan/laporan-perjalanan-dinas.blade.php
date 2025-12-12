@@ -226,7 +226,9 @@
                                         data-tanggal_laporan="{{ optional($row->laporan)->tanggal_laporan }}"
                                         data-hasil="{{ optional($row->laporan)->ringkasan_hasil_kegiatan }}"
                                         data-kendala="{{ optional($row->laporan)->kendala_dihadapi }}"
-                                        data-saran="{{ optional($row->laporan)->saran_tindak_lanjut }}">
+                                        data-saran="{{ optional($row->laporan)->saran_tindak_lanjut }}"
+                                        data-laporan='@json($row->laporan)'
+                                        data-biayariil='@json($row->biayaRiil)'>
                                         <i class="bx bx-edit"></i>
                                     </button>
                                     @endif
@@ -359,6 +361,96 @@
                         <label class="form-label">Saran / Tindak Lanjut</label>
                         <textarea class="form-control" name="saran_tindak_lanjut" id="edit_saran" rows="3"></textarea>
                     </div>
+
+                    <div class="col-md-12 mb-4">
+                        <label class="form-label fw-bold">Upload Foto Dokumentasi</label>
+                        <input type="file" name="foto_dokumentasi[]" id="edit_fotoDokumentasi" multiple class="form-control" accept="image/*">
+                    </div>
+
+                    <div class="mt-4">
+                        <h6 class="fw-bold border-bottom pb-2 mb-3">Rincian Biaya Riil</h6>
+
+                <div id="listUang">
+                    @php
+                        $listBiaya = $biayaRiil ?? ($row->biayaRiil ?? collect());
+                    @endphp
+                    
+                    @foreach ($listBiaya as $index => $b)
+                        <div class="uang-item border rounded-3 p-3 mb-3">
+
+                            <input type="hidden" name="biaya[{{ $index }}][id]" value="{{ $b->id }}">
+
+                            <h6 class="fw-bold mb-3">Item Uang #{{ $index + 1 }}</h6>
+
+                            <div class="row g-3">
+
+                                <div class="col-md-3">
+                                    <label class="form-label fw-semibold">Deskripsi Biaya</label>
+                                    <select name="biaya[{{ $index }}][deskripsi]" class="form-select">
+                                        <option value="Transportasi" {{ $b->deskripsi_biaya == 'Transportasi' ? 'selected' : '' }}>Transportasi</option>
+                                        <option value="Taxi" {{ $b->deskripsi_biaya == 'Taxi' ? 'selected' : '' }}>Taxi</option>
+                                        <option value="Hotel" {{ $b->deskripsi_biaya == 'Hotel' ? 'selected' : '' }}>Hotel</option>
+                                        <option value="Hotel 30%" {{ $b->deskripsi_biaya == 'Hotel 30%' ? 'selected' : '' }}>Hotel (30%)</option>
+                                        <option value="BBM" {{ $b->deskripsi_biaya == 'BBM' ? 'selected' : '' }}>BBM</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label fw-semibold">Pegawai</label>
+                                    <select name="biaya[{{ $index }}][pegawai_id]" class="form-select">
+                                        @foreach ($pegawai as $pg)
+                                            <option value="{{ $pg->id }}" {{ $pg->id == $b->pegawai_id ? 'selected' : '' }}>
+                                                {{ $pg->nama }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label fw-semibold">Provinsi Tujuan</label>
+                                    <select name="biaya[{{ $index }}][provinsi]" class="form-select">
+                                        @foreach ($provinsi as $p)
+                                            <option value="{{ $p->provinsi_tujuan }}" {{ $b->provinsi == $p->provinsi_tujuan ? 'selected' : '' }}>
+                                                {{ $p->provinsi_tujuan }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label fw-semibold">Jumlah</label>
+                                    <input type="number" name="biaya[{{ $index }}][jumlah]" class="form-control" value="{{ $b->jumlah }}">
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label fw-semibold">Satuan</label>
+                                    <input type="text" name="biaya[{{ $index }}][satuan]" class="form-control" value="{{ $b->satuan }}">
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label fw-semibold">Harga Satuan (Rp)</label>
+                                    <input type="number" name="biaya[{{ $index }}][harga]" class="form-control" value="{{ $b->harga }}">
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label fw-semibold">Nomor Bukti</label>
+                                    <input type="text" name="biaya[{{ $index }}][bukti]" class="form-control" value="{{ $b->bukti }}">
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label fw-semibold">Upload Bukti Baru (Opsional)</label>
+                                    <input type="file" name="biaya[{{ $index }}][bukti_upload]" class="form-control">
+                                </div>
+
+                                <div class="mt-3">
+                                    <label class="form-label fw-semibold">Keterangan</label>
+                                    <textarea name="biaya[{{ $index }}][keterangan]" class="form-control" rows="2">{{ $b->keterangan }}</textarea>
+                                </div>
+
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
 
                 </div>
 
@@ -1415,4 +1507,137 @@ function printModal(id) {
 });
 </script>
 
+<script>
+    $(document).on('click', '.btnEdit2', function () {
+        let id = $(this).data('id');
+
+        // set action form
+        $('#formEditLaporan').attr('action', '/laporan-perjadin/' + id + '/edit');
+
+        // kosongkan biaya
+        $('#listUang').html('');
+
+        $.ajax({
+            url: '/laporan-perjadin/' + id + '/data',
+            type: 'GET',
+            success: function (res) {
+
+                // ====== ISI DATA LAPORAN ======
+                $('#edit_nomor_spt').val(res.nomor_spt);
+                $('#edit_tujuan').val(res.tujuan);
+                $('#edit_mulai').val(res.tanggal_mulai);
+                $('#edit_selesai').val(res.tanggal_selesai);
+
+                if (res.laporan) {
+                    $('#edit_tanggal_laporan').val(res.laporan.tanggal_laporan);
+                    $('#edit_hasil').val(res.laporan.ringkasan_hasil_kegiatan);
+                    $('#edit_kendala').val(res.laporan.kendala_dihadapi);
+                    $('#edit_saran').val(res.laporan.saran_tindak_lanjut);
+                }
+
+                // ====== ISI BIAYA RIIL ======
+                if (res.biaya.length > 0) {
+                    res.biaya.forEach((item, index) => {
+                        $('#listUang').append(biayaHTML(item, index));
+                    });
+                } else {
+                    $('#listUang').append(biayaHTML(null, 0));
+                }
+
+                // buka modal
+                $('#modalEditLaporan').modal('show');
+            }
+        });
+    });
+
+
+    // ========== TEMPLATE BIAYA ==========
+    function biayaHTML(item, i) {
+        return `
+        <div class="uang-item border rounded-3 p-3 mb-3">
+
+            <input type="hidden" name="biaya[${i}][id]" value="${item ? item.id : ''}">
+
+            <h6 class="fw-bold mb-3">Item Biaya #${i + 1}</h6>
+
+            <div class="row g-3">
+
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Deskripsi Biaya</label>
+                    <select name="biaya[${i}][deskripsi]" class="form-select">
+                        <option value="">-- Pilih --</option>
+                        <option ${item?.deskripsi_biaya == 'Transportasi' ? 'selected' : ''}>Transportasi</option>
+                        <option ${item?.deskripsi_biaya == 'Taxi' ? 'selected' : ''}>Taxi</option>
+                        <option ${item?.deskripsi_biaya == 'Hotel' ? 'selected' : ''}>Hotel</option>
+                        <option ${item?.deskripsi_biaya == 'Hotel 30%' ? 'selected' : ''}>Hotel (30%)</option>
+                        <option ${item?.deskripsi_biaya == 'BBM' ? 'selected' : ''}>BBM</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Pegawai</label>
+                    <select name="biaya[${i}][pegawai_id]" class="form-select">
+                        <option value="">-- Pilih Pegawai --</option>
+                        ${generatePegawaiOptions(item?.pegawai_id)}
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Provinsi</label>
+                    <select name="biaya[${i}][provinsi]" class="form-select">
+                        <option value="">-- Pilih Provinsi --</option>
+                        ${generateProvinsiOptions(item?.provinsi)}
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Jumlah</label>
+                    <input type="number" name="biaya[${i}][jumlah]" class="form-control"
+                        value="${item ? item.jumlah : 1}">
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Satuan</label>
+                    <input type="text" name="biaya[${i}][satuan]" class="form-control"
+                        value="${item ? item.satuan : ''}">
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Harga</label>
+                    <input type="number" name="biaya[${i}][harga]" class="form-control"
+                        value="${item ? item.harga_satuan : ''}">
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Nomor Bukti</label>
+                    <input type="text" name="biaya[${i}][bukti]" class="form-control"
+                       value="${item ? item.nomor_bukti : ''}">
+                </div>
+
+                <div class="mt-3">
+                    <label class="form-label fw-semibold">Keterangan</label>
+                    <textarea name="biaya[${i}][keterangan]" class="form-control" rows="2">${item ? item.keterangan : ''}</textarea>
+                </div>
+
+            </div>
+        </div>`;
+    }
+
+    function generatePegawaiOptions(selectedId) {
+        return `@foreach ($pegawai as $pg)
+            <option value="{{ $pg->id }}" ${selectedId == {{ $pg->id }} ? 'selected' : ''}>
+                {{ $pg->nama }}
+            </option>
+        @endforeach`;
+    }
+
+    function generateProvinsiOptions(selected) {
+        return `@foreach ($provinsi as $p)
+            <option value="{{ $p->provinsi_tujuan }}" ${selected == '{{ $p->provinsi_tujuan }}' ? 'selected' : ''}>
+                {{ $p->provinsi_tujuan }}
+            </option>
+        @endforeach`;
+    }
+
+</script>
 @endpush

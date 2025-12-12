@@ -16,6 +16,11 @@ class ArsipPeriode extends Model
         'total_dalam_riau',
         'total_siak',
         'total_anggaran',
+        'total_pengeluaran',
+        'total_realcost',
+        'perjalanan_hari_ini',
+        'perjalanan_bulan_ini',
+        'is_active',    
     ];
 }
 
