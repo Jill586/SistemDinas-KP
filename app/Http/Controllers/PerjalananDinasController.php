@@ -209,8 +209,11 @@ $this->validasiForm($request);
                 'tanggal_selesai',
             ]);
 
-            // Status otomatis PROSES
-            $perjalanan->status = 'diproses';
+            // Jika status BUKAN selesai, barulah ubah ke diproses
+            if ($perjalanan->status !== 'disetujui') {
+                $perjalanan->status = 'diproses';
+            }
+            $perjalanan->save();
 
             // Ganti file bukti jika ada
             if ($request->hasFile('bukti_undangan')) {

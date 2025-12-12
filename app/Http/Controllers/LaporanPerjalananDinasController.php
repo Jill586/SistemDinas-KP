@@ -13,7 +13,7 @@ use App\Exports\LaporanPerjalananExport;
 use App\Models\SbuItem;
 use Carbon\Carbon;
 use PDF;
-
+use Illuminate\Support\Facades\Storage;
 
 class LaporanPerjalananDinasController extends Controller
 {
@@ -493,66 +493,100 @@ class LaporanPerjalananDinasController extends Controller
 
     public function updateLaporan(Request $request, $id)
     {
+        // ============================
+        // 1. UPDATE DATA LAPORAN
+        // ============================
         $laporan = LaporanPerjalananDinas::where('perjalanan_dinas_id', $id)->firstOrFail();
-        $perjalanan = PerjalananDinas::findOrFail($id);
 
-        // Update laporan
         $laporan->update([
-            'tanggal_laporan' => $request->tanggal_laporan,
+            'tanggal_laporan'          => $request->tanggal_laporan,
             'ringkasan_hasil_kegiatan' => $request->ringkasan_hasil_kegiatan,
-            'kendala_dihadapi' => $request->kendala_dihadapi,
-            'saran_tindak_lanjut' => $request->saran_tindak_lanjut,
+            'kendala_dihadapi'         => $request->kendala_dihadapi,
+            'saran_tindak_lanjut'      => $request->saran_tindak_lanjut,
+            'foto_dokumentasi'        => $laporan->foto_dokumentasi,
         ]);
 
-        // Ambil biaya dari form
-        $biayaBaru = $request->biaya ?? [];
+        if ($request->hasFile('foto_dokumentasi')) {
 
-        // Ambil biaya lama di database
+            // Hapus foto lama
+            if ($laporan->foto_dokumentasi) {
+                foreach (json_decode($laporan->foto_dokumentasi) as $oldFile) {
+                    if (Storage::disk('public')->exists($oldFile)) {
+                        Storage::disk('public')->delete($oldFile);
+                    }
+                }
+            }
+
+            // Upload foto baru
+            $paths = [];
+            foreach ($request->file('foto_dokumentasi') as $file) {
+                $paths[] = $file->store('laporan-foto', 'public');
+            }
+
+            // Simpan ke DB
+            $laporan->foto_dokumentasi = json_encode($paths);
+            $laporan->save();
+        }
+
+        // ============================
+        // 2. PROSES RINCIAN BIAYA
+        // ============================
+        $inputBiaya = $request->biaya ?? [];
+
+        // Ambil semua biaya riil lama
         $biayaLama = PerjalananDinasBiayaRiil::where('perjalanan_dinas_id', $id)->get();
 
-        // Hapus biaya yang sudah tidak ada di input
-        $idsBaru = collect($biayaBaru)->pluck('id')->filter()->toArray();
+        // Ambil ID biaya dari input form
+        $idsDariForm = collect($inputBiaya)->pluck('id')->filter()->toArray();
+
+        // Hapus biaya yang sudah tidak muncul dalam form
         foreach ($biayaLama as $b) {
-            if (!in_array($b->id, $idsBaru)) {
+            if (!in_array($b->id, $idsDariForm)) {
                 $b->delete();
             }
         }
 
-        // Insert atau update biaya baru
-        foreach ($biayaBaru as $item) {
+        // UPDATE semua biaya yang ada ID nya
+        foreach ($inputBiaya as $item) {
 
+            // Hanya proses biaya lama (yang punya ID)
             if (!empty($item['id'])) {
-                // UPDATE
-                PerjalananDinasBiayaRiil::where('id', $item['id'])->update([
-                    'deskripsi_biaya'   => $item['deskripsi'],
-                    'pegawai_id'  => $item['pegawai_id'],
-                    'provinsi'    => $item['provinsi'],
-                    'jumlah'      => $item['jumlah'],
-                    'satuan'      => $item['satuan'],
-                    'harga'       => $item['harga'],
-                    'bukti'       => $item['bukti'] ?? null,
-                    'keterangan'  => $item['keterangan'] ?? null,
-                ]);
 
-            } else {
-                // INSERT BARU
-                PerjalananDinasBiayaRiil::create([
-                    'perjalanan_dinas_id' => $id,
-                    'deskripsi_biaya'   => $item['deskripsi'],
-                    'pegawai_id'  => $item['pegawai_id'],
-                    'provinsi'    => $item['provinsi'],
-                    'jumlah'      => $item['jumlah'],
-                    'satuan'      => $item['satuan'],
-                    'harga'       => $item['harga'],
-                    'bukti'       => $item['bukti'] ?? null,
-                    'keterangan'  => $item['keterangan'] ?? null,
-                ]);
+                $dataUpdate = [
+                    'deskripsi_biaya'     => $item['deskripsi'],
+                    'pegawai_id'          => $item['pegawai_id'],
+                    'provinsi_tujuan'     => $item['provinsi_tujuan'],
+                    'jumlah'              => $item['jumlah'],
+                    'satuan'              => $item['satuan'],
+                    'harga_satuan'        => $item['harga'],
+                    'nomor_bukti'         => $item['bukti'] ?? null,
+                    'keterangan_tambahan' => $item['keterangan'] ?? null,
+                ];
+
+                // Jika upload bukti baru
+                if (isset($item['upload_bukti']) && $item['upload_bukti'] instanceof \Illuminate\Http\UploadedFile) {
+                    $dataUpdate['bukti'] = $item['upload_bukti']->store('bukti_biaya', 'public');
+                }
+
+                // UPDATE biaya lama
+                PerjalananDinasBiayaRiil::where('id', $item['id'])->update($dataUpdate);
             }
+
+            // Jika tidak ada id = item baru → abaikan (tidak insert)
         }
 
-        $perjalanan->update([
-            'status_laporan' => 'diproses'
-        ]);
+        // ============================
+        // 3. UPDATE STATUS PERJALANAN DINAS
+        // ============================
+        // Ambil data perjalanan
+        $perjalanan = PerjalananDinas::findOrFail($id);
+
+        // Jika status BUKAN "selesai", baru ubah menjadi "diproses"
+        if ($perjalanan->status_laporan !== 'selesai') {
+            $perjalanan->update([
+                'status_laporan' => 'diproses'
+            ]);
+        }
 
         return redirect()->back()->with('success', 'Laporan berhasil diperbarui.');
     }
