@@ -51,16 +51,23 @@ class ArsipPeriodeController extends Controller
             ->where('perjalanan_dinas.jenis_spt', 'luar_daerah_luar_provinsi')
             ->sum('perjalanan_dinas_biaya_riil.subtotal_biaya');
 
-        ArsipPeriode::create([
-            'nama_periode'       => $tahun,
-            'total_spt'          => PerjalananDinas::count(),
-            'total_siak'         => $totalSiak,
-            'total_dalam_riau'   => $totalDalamRiau,
-            'total_luar_riau'    => $totalLuarRiau,
-            'total_anggaran'     => $request->batas_anggaran, // ⬅️ FIX
-            'batas_anggaran'     => $request->batas_anggaran,
-            'is_active'          => 1,
-        ]);
+       $totalAnggaranReal =
+        $totalSiak +
+        $totalDalamRiau +
+        $totalLuarRiau;
+
+    ArsipPeriode::create([
+        'nama_periode'       => $tahun,
+        'total_spt'          => PerjalananDinas::count(),
+
+        'total_siak'         => $totalSiak,
+        'total_dalam_riau'   => $totalDalamRiau,
+        'total_luar_riau'    => $totalLuarRiau,
+
+        'total_anggaran'     => $totalAnggaranReal,   // ✅ REALISASI
+        'batas_anggaran'     => $request->batas_anggaran, // ✅ PLAFON
+        'is_active'          => 1,
+    ]);
 
         return back()->with('success', 'Periode berhasil diarsipkan & diaktifkan');
     }
