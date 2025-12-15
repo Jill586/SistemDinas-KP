@@ -7,23 +7,18 @@ use Illuminate\Database\Eloquent\Model;
 
 class ArsipPeriode extends Model
 {
+    use HasFactory;
+
     protected $table = 'arsip_periode';
 
     protected $fillable = [
         'nama_periode',
         'total_spt',
-        'total_luar_riau',
-        'total_dalam_riau',
         'total_siak',
+        'total_dalam_riau',
+        'total_luar_riau',
         'total_anggaran',
-        'total_pengeluaran',
-        'total_realcost',
-        'perjalanan_hari_ini',
-        'perjalanan_bulan_ini',
-        'is_active',    
+        'batas_anggaran',
+        'is_active',
     ];
 }
-
-
-
-

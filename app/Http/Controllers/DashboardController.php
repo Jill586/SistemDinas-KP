@@ -85,13 +85,65 @@ public function index()
     ->where('is_active', 1)
     ->first();
 
-    $total_anggaran = $periodeAktif ? $periodeAktif->total_anggaran : 0;
+   $batas_anggaran = $periodeAktif ? $periodeAktif->batas_anggaran : 0;
+
+   $totalTerpakai = DB::table('perjalanan_dinas_biaya_riil')->sum('subtotal_biaya');
+
+    $persen = ($batas_anggaran > 0)
+        ? min(100, ($totalTerpakai / $batas_anggaran) * 100)
+        : 0;
+
+
+
+
+
 
     $sisaAnggaran = max(0, $total_anggaran - $totalRealCost);
 
-    $persen = ($total_anggaran > 0)
-        ? ($totalRealCost / $total_anggaran) * 100
-        : 0;
+
+
+$totalSiakReal = DB::table('perjalanan_dinas_biaya_riil')
+    ->join('perjalanan_dinas', 'perjalanan_dinas.id', '=', 'perjalanan_dinas_biaya_riil.perjalanan_dinas_id')
+    ->where('perjalanan_dinas.jenis_spt', 'dalam_daerah')
+    ->sum('perjalanan_dinas_biaya_riil.subtotal_biaya');
+$persenSiak = ($batas_anggaran > 0)
+    ? min(100, ($totalSiakReal / $batas_anggaran) * 100)
+    : 0;
+
+
+
+
+
+    $totalDalamRiauReal = DB::table('perjalanan_dinas_biaya_riil')
+    ->join('perjalanan_dinas', 'perjalanan_dinas_biaya_riil.perjalanan_dinas_id', '=', 'perjalanan_dinas.id')
+    ->where('perjalanan_dinas.provinsi_tujuan_id', 'RIAU')
+    ->where('perjalanan_dinas.kota_tujuan_id', '!=', 'Siak')
+    ->sum('perjalanan_dinas_biaya_riil.subtotal_biaya');
+
+
+
+
+   $persenDalamRiau = ($batas_anggaran > 0)
+    ? min(100, ($totalDalamRiauReal / $batas_anggaran) * 100)
+    : 0;
+
+
+
+
+
+    $totalLuarDaerahReal = DB::table('perjalanan_dinas_biaya_riil')
+    ->join('perjalanan_dinas', 'perjalanan_dinas_biaya_riil.perjalanan_dinas_id', '=', 'perjalanan_dinas.id')
+    ->where('perjalanan_dinas.provinsi_tujuan_id', '!=', 'RIAU')
+    ->sum('perjalanan_dinas_biaya_riil.subtotal_biaya');
+
+$persenLuarDaerah = ($batas_anggaran > 0)
+    ? min(100, ($totalLuarDaerahReal / $batas_anggaran) * 100)
+    : 0;
+
+
+
+
+
 
     return view('dashboard', compact(
         'jumlahPegawai',
@@ -108,7 +160,17 @@ public function index()
         'sisaAnggaran',
         'periodeAktif',
         'persen',
-        'penggunaanPerBidang'
+        'penggunaanPerBidang',
+        'totalSiakReal',
+        'totalLuarDaerahReal',
+        'persenSiak',
+        'persenLuarDaerah',
+        'totalDalamRiauReal',
+        'persenDalamRiau',
+        'batas_anggaran',
+
+
+
     ));
 }
 

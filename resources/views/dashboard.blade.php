@@ -121,7 +121,7 @@
     <div class="col-md-5 col-lg-5">
         <div class="card shadow h-100">
             <div class="card-header bg-white">
-                <h5 class="fw-bold mb-0">Periode {{ date('Y') }}</h5>
+                <h5 class="fw-bold mb-0"> Anggaran Periode {{ date('Y') }}</h5>
             </div>
 
             <div class="card-body">
@@ -142,13 +142,82 @@
                     </div>
                 </div>
 
-                <div class="text-muted small mb-4">
-                    <div>Total Anggaran: <span class="fw-bold">Rp {{ number_format($total_anggaran, 0, ',', '.') }}</span></div>
-                    <div>Terpakai: <span class="fw-bold">Rp {{ number_format($totalRealCost, 0, ',', '.') }}</span></div>
-                    <div class="fw-semibold text-success">
-                        Sisa: Rp {{ number_format($total_anggaran - $totalRealCost, 0, ',', '.') }}
+                 <div class="text-muted small mb-4">
+                   <div>Batas Anggaran:
+                        <span class="fw-bold">
+                            Rp {{ number_format($batas_anggaran, 0, ',', '.') }}
+                        </span>
+                    </div>
+
+                    <div>Terpakai:
+                        <span class="fw-bold">
+                            Rp {{ number_format($totalRealCost, 0, ',', '.') }}
+                        </span>
                     </div>
                 </div>
+
+                <h6 class="fw-semibold mt-4">Anggaran Dalam Daerah (Siak)</h6>
+
+                <div class="position-relative mb-3" style="height: 10px;">
+                    <small class="position-absolute badge bg-info"
+                        style="right: 0; top: -30px; font-size: 12px;">
+                        {{ number_format($persenSiak, 1) }}%
+                    </small>
+
+                    <div class="progress" style="height: 10px;">
+                        <div class="progress-bar bg-info progress-bar-striped"
+                            role="progressbar"
+                            style="width: {{ $persenSiak }}%;">
+                        </div>
+                    </div>
+
+                    <small class="text-muted">
+                        Rp {{ number_format($totalSiakReal, 0, ',', '.') }}
+                    </small>
+                </div>
+
+
+                <h6 class="fw-semibold mt-3">Anggaran Dalam Riau (Non Siak)</h6>
+
+                <div class="position-relative mb-3" style="height: 10px;">
+                    <small class="position-absolute badge bg-primary"
+                        style="right: 0; top: -30px; font-size: 12px;">
+                        {{ number_format($persenDalamRiau, 1) }}%
+                    </small>
+
+                    <div class="progress" style="height: 10px;">
+                        <div class="progress-bar bg-primary progress-bar-striped"
+                            role="progressbar"
+                            style="width: {{ $persenDalamRiau }}%;">
+                        </div>
+                    </div>
+
+                    <small class="text-muted">
+                        Rp {{ number_format($totalDalamRiauReal, 0, ',', '.') }}
+                    </small>
+                </div>
+
+
+                <h6 class="fw-semibold mt-3">Anggaran Luar Daerah</h6>
+
+                <div class="position-relative mb-2" style="height: 10px;">
+                    <small class="position-absolute badge bg-warning text-dark"
+                        style="right: 0; top: -30px; font-size: 12px;">
+                        {{ number_format($persenLuarDaerah, 1) }}%
+                    </small>
+
+                    <div class="progress" style="height: 10px;">
+                        <div class="progress-bar bg-warning progress-bar-striped progress-bar-animated"
+                            role="progressbar"
+                            style="width: {{ $persenLuarDaerah }}%;">
+                        </div>
+                    </div>
+
+                    <small class="text-muted">
+                        Rp {{ number_format($totalLuarDaerahReal, 0, ',', '.') }}
+                    </small>
+                </div>
+
 
             </div>
         </div>
