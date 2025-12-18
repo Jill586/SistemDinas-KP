@@ -58,6 +58,36 @@ public function store(Request $request)
 
     return back()->with('success', 'Periode berhasil diarsipkan');
 }
+
+public function update(Request $request, $id)
+{
+    $request->validate([
+        'total_siak'        => 'required|numeric|min:0',
+        'total_dalam_riau'  => 'required|numeric|min:0',
+        'total_luar_riau'   => 'required|numeric|min:0',
+        'batas_anggaran'    => 'required|numeric|min:1',
+    ]);
+
+    $arsip = ArsipPeriode::findOrFail($id);
+
+    // Hitung ulang total anggaran kategori
+    $totalAnggaran =
+        $request->total_siak +
+        $request->total_dalam_riau +
+        $request->total_luar_riau;
+
+    $arsip->update([
+        'total_siak'         => $request->total_siak,
+        'total_dalam_riau'   => $request->total_dalam_riau,
+        'total_luar_riau'    => $request->total_luar_riau,
+
+        'total_anggaran'     => $totalAnggaran,
+        'batas_anggaran'     => $request->batas_anggaran,
+    ]);
+
+    return back()->with('success', 'Arsip periode berhasil diperbarui');
+}
+
     public function destroy($id)
     {
         ArsipPeriode::findOrFail($id)->delete();
