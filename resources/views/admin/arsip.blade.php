@@ -22,12 +22,12 @@
         <div class="row mb-4">
             <div class="col-md-6">
                 <div class="border rounded p-3 bg-light">
-                    <div class="fw-semibold">Total Anggaran Periode Aktif</div>
+                    <div class="fw-semibold">Total Pagu Anggaran Tersedia di Periode Aktif</div>
                     <div class="fs-5 fw-bold">
-                        Rp {{ number_format($arsipAktif?->total_anggaran ?? 0, 0, ',', '.') }}
+                        Rp {{ number_format($arsipAktif?->batas_anggaran ?? 0, 0, ',', '.') }}
                     </div>
                     <small class="text-muted">
-                        dari Rp {{ number_format($arsipAktif?->batas_anggaran ?? 0, 0, ',', '.') }}
+                     Dari Rp {{ number_format($arsipAktif?->total_anggaran ?? 0, 0, ',', '.') }}
                     </small>
                 </div>
             </div>
@@ -41,9 +41,9 @@
                         <th>No</th>
                         <th>Periode</th>
                         <th>Total SPT</th>
-                        <th>Luar Riau</th>
-                        <th>Dalam Riau</th>
-                        <th>Siak</th>
+                        <th>Luar Daerah (Non Riau)</th>
+                        <th>Luar Daerah (Riau)</th>
+                        <th>Dalam Daerah (Siak)</th>
                         <th>Total Anggaran</th>
                         <th>Aksi</th>
                     </tr>
@@ -87,76 +87,175 @@
 
 {{-- MODAL ARSIP --}}
 <div class="modal fade" id="modalArsip" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <form action="{{ route('arsip.periode.store') }}" method="POST" class="modal-content">
             @csrf
+
+            {{-- HEADER --}}
             <div class="modal-header">
                 <h5 class="modal-title">Arsipkan Periode {{ date('Y') }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
 
+            {{-- BODY --}}
             <div class="modal-body">
-                <label class="form-label fw-semibold">Batas Anggaran Periode (Rp)</label>
-                <input type="number" name="batas_anggaran" class="form-control" required>
-                <small class="text-muted">Plafon anggaran (100%) periode ini</small>
+
+                {{-- Batas Anggaran Periode --}}
+                <div class="mb-4">
+                    <label class="form-label fw-semibold">Batas Anggaran Periode</label>
+                    <input type="number"
+                           name="batas_anggaran"
+                           class="form-control"
+                           min="0"
+                           required>
+                    <small class="text-muted">
+                        Plafon maksimum anggaran periode ini
+                    </small>
+                </div>
+
+                <hr>
+
+                {{-- Batas Anggaran Per Kategori --}}
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Luar Riau</label>
+                        <input type="number"
+                               name="total_luar_riau"
+                               class="form-control anggaran-input"
+                               value="0" min="0" required>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Dalam Riau</label>
+                        <input type="number"
+                               name="total_dalam_riau"
+                               class="form-control anggaran-input"
+                               value="0" min="0" required>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Siak</label>
+                        <input type="number"
+                               name="total_siak"
+                               class="form-control anggaran-input"
+                               value="0" min="0" required>
+                    </div>
+                </div>
+
+                <hr>
+
+                {{-- Total Otomatis --}}
+                <div>
+                    <label class="form-label fw-semibold">Total Anggaran</label>
+                    <input type="text"
+                           class="form-control fw-bold"
+                           id="totalAnggaranDisplay"
+                           value="Rp 0"
+                           readonly>
+                    <small class="text-muted">
+                        Otomatis dari penjumlahan anggaran per kategori
+                    </small>
+                </div>
+
             </div>
 
+            {{-- FOOTER --}}
             <div class="modal-footer">
                 <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
                 <button class="btn btn-primary">Simpan Arsip</button>
             </div>
+
         </form>
     </div>
 </div>
 
-<!-- Modal Edit Arsip -->
+{{-- MODAL EDIT ARSIP --}}
 @foreach ($arsip as $a)
-<div class="modal fade" id="modalEdit{{ $a->id }}" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="modalEdit{{ $a->id }}" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered modal-xl">
     <div class="modal-content shadow">
       <form action="{{ route('arsip.periode.update', $a->id) }}" method="POST">
         @csrf
         @method('PUT')
 
+        {{-- HEADER --}}
         <div class="modal-header">
-          <h5 class="modal-title">Edit Arsip Periode: {{ $a->nama_periode }}</h5>
+          <h5 class="modal-title">Edit Arsip Periode {{ $a->nama_periode }}</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
 
+        {{-- BODY --}}
         <div class="modal-body">
-          <div class="row mb-3">
-            <div class="col-md-6">
-              <label class="form-label fw-semibold">Total SPT</label>
-              <input type="number" name="total_spt" class="form-control" value="{{ $a->total_spt }}" required>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label fw-semibold">Total Anggaran (Rp)</label>
 
+          {{-- Batas Anggaran Periode --}}
+          <div class="mb-4">
+            <label class="form-label fw-semibold">Batas Anggaran Periode</label>
+            <input type="number"
+                   name="batas_anggaran"
+                   class="form-control"
+                   value="{{ $a->batas_anggaran }}"
+                   min="0"
+                   required>
+          </div>
+
+          <hr>
+
+          {{-- Batas Anggaran Per Kategori --}}
+          <div class="row mb-3">
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Luar Riau</label>
+              <input type="number"
+                     name="total_luar_riau"
+                     class="form-control anggaran-input"
+                     value="{{ $a->total_luar_riau }}"
+                     min="0"
+                     data-id="{{ $a->id }}"
+                     required>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Dalam Riau</label>
+              <input type="number"
+                     name="total_dalam_riau"
+                     class="form-control anggaran-input"
+                     value="{{ $a->total_dalam_riau }}"
+                     min="0"
+                     data-id="{{ $a->id }}"
+                     required>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Siak</label>
+              <input type="number"
+                     name="total_siak"
+                     class="form-control anggaran-input"
+                     value="{{ $a->total_siak }}"
+                     min="0"
+                     data-id="{{ $a->id }}"
+                     required>
             </div>
           </div>
 
-          <div class="row">
-            <div class="col-md-4 mb-3">
-              <label class="form-label fw-semibold">Luar Riau</label>
-              <input type="number" name="total_luar_riau" class="form-control" value="{{ $a->total_luar_riau }}" required>
-            </div>
+          <hr>
 
-            <div class="col-md-4 mb-3">
-              <label class="form-label fw-semibold">Dalam Riau</label>
-              <input type="number" name="total_dalam_riau" class="form-control" value="{{ $a->total_dalam_riau }}" required>
-            </div>
-
-            <div class="col-md-4 mb-3">
-              <label class="form-label fw-semibold">Siak</label>
-              <input type="number" name="total_siak" class="form-control" value="{{ $a->total_siak }}" required>
-            </div>
+          {{-- Total Otomatis --}}
+          <div>
+            <label class="form-label fw-semibold">Total Anggaran</label>
+            <input type="text"
+                   class="form-control fw-bold"
+                   id="totalAnggaranDisplay{{ $a->id }}"
+                   readonly>
+            <small class="text-muted">
+              Otomatis dari penjumlahan anggaran per kategori
+            </small>
           </div>
 
         </div>
 
+        {{-- FOOTER --}}
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-          <button type="button" class="btn btn-primary" onclick="submitEdit({{ $a->id }})">Simpan Perubahan</button>
+          <button class="btn btn-primary">Simpan Perubahan</button>
         </div>
 
       </form>
@@ -164,6 +263,7 @@
   </div>
 </div>
 @endforeach
+
 
 
 
@@ -247,4 +347,54 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 });
 </script>
+
+<script>
+document.addEventListener('input', function () {
+    let total = 0;
+
+    document.querySelectorAll('.anggaran-input').forEach(input => {
+        total += parseInt(input.value || 0);
+    });
+
+    document.getElementById('totalAnggaranDisplay').value =
+        'Rp ' + total.toLocaleString('id-ID');
+});
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+  document.querySelectorAll('.anggaran-input').forEach(input => {
+    input.addEventListener('input', function () {
+      const id = this.dataset.id;
+      let total = 0;
+
+      document.querySelectorAll(`.anggaran-input[data-id="${id}"]`)
+        .forEach(el => total += Number(el.value) || 0);
+
+      document.getElementById(`totalAnggaranDisplay${id}`).value =
+        'Rp ' + total.toLocaleString('id-ID');
+    });
+  });
+
+  // Hitung otomatis saat modal dibuka
+  document.querySelectorAll('.modal').forEach(modal => {
+    modal.addEventListener('shown.bs.modal', function () {
+      const inputs = modal.querySelectorAll('.anggaran-input');
+      if (!inputs.length) return;
+
+      const id = inputs[0].dataset.id;
+      let total = 0;
+
+      inputs.forEach(el => total += Number(el.value) || 0);
+
+      document.getElementById(`totalAnggaranDisplay${id}`).value =
+        'Rp ' + total.toLocaleString('id-ID');
+    });
+  });
+
+});
+</script>
+
+
 @endpush
