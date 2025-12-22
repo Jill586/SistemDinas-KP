@@ -111,7 +111,7 @@ public function update(Request $request, $id)
         $perjalanan->status_laporan = 'ditolak';
     } elseif ($request->aksi_verifikasi === 'revisi_operator') {
         $perjalanan->status_laporan = 'revisi_operator';
-     } elseif ($request->aksi_verifikasi === 'selesai') {
+    } elseif ($request->aksi_verifikasi === 'selesai') {
         $perjalanan->status_laporan = 'selesai';
         $laporan->status_bayar = 'sudah_bayar';
     }
