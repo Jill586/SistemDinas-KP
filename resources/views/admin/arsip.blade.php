@@ -42,8 +42,9 @@
                         <th>Periode</th>
                         <th>Total SPT</th>
                         <th>Luar Daerah (Non Riau)</th>
-                        <th>Luar Daerah (Riau)</th>
+                        <th>Dalam Daerah (Riau)</th>
                         <th>Dalam Daerah (Siak)</th>
+                        <th>Total Luar & Dalam Daerah</th>
                         <th>Total Anggaran</th>
                         <th>Aksi</th>
                     </tr>
@@ -57,6 +58,9 @@
                         <td>Rp {{ number_format($a->total_luar_riau, 0, ',', '.') }}</td>
                         <td>Rp {{ number_format($a->total_dalam_riau, 0, ',', '.') }}</td>
                         <td>Rp {{ number_format($a->total_siak, 0, ',', '.') }}</td>
+                        <td class="fw-semibold">
+                            Rp {{ number_format($a->total_luar_riau + $a->total_dalam_riau, 0, ',', '.') }}
+                        </td>
                         <td>Rp {{ number_format($a->total_anggaran, 0, ',', '.') }}</td>
                         <td>
                             <button class="btn btn-warning btn-sm"
@@ -152,19 +156,37 @@
                            id="totalAnggaranDisplay"
                            value="Rp 0"
                            readonly>
+                </div>
+
+
+                         <label class="form-label fw-semibold">Total Anggaran Luar & Dalam Daerah</label>
+                         <input type="text"
+                           class="form-control fw-bold"
+                            id="totalLuarDalam"
+                            class="form-control fw-bold bg-light"
+                            value="Rp 0"
+                            readonly>
                     <small class="text-muted">
                         Otomatis dari penjumlahan anggaran per kategori
                     </small>
-                </div>
+                    </div>
+
+                    {{-- FOOTER --}}
+                        <div class="modal-footer d-flex justify-content-end gap-2">
+                            <button type="button"
+                                    class="btn btn-secondary px-4"
+                                    data-bs-dismiss="modal">
+                                Batal
+                            </button>
+
+                            <button type="submit"
+                                    class="btn btn-primary px-4">
+                                Simpan Arsip
+                            </button>
+                        </div>
+
 
             </div>
-
-            {{-- FOOTER --}}
-            <div class="modal-footer">
-                <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                <button class="btn btn-primary">Simpan Arsip</button>
-            </div>
-
         </form>
     </div>
 </div>
@@ -239,24 +261,44 @@
           <hr>
 
           {{-- Total Otomatis --}}
-          <div>
-            <label class="form-label fw-semibold">Total Anggaran</label>
-            <input type="text"
-                   class="form-control fw-bold"
-                   id="totalAnggaranDisplay{{ $a->id }}"
-                   readonly>
-            <small class="text-muted">
-              Otomatis dari penjumlahan anggaran per kategori
-            </small>
-          </div>
+         {{-- Total Anggaran --}}
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Total Anggaran</label>
+                    <input type="text"
+                        id="totalAnggaranDisplay{{ $a->id }}"
+                        class="form-control fw-bold"
+                        readonly>
+                </div>
+
+                {{-- Total Anggaran Luar & Dalam Daerah --}}
+                <div class="mb-3">
+                    <label class="form-label fw-semibold"> Total Anggaran Luar & Dalam Daerah </label>
+                    <input type="text"
+                    id="totalLuarDalam{{ $a->id }}"
+                    class="form-control fw-bold bg-light"
+                    value="Rp {{ number_format($a->total_luar_riau + $a->total_dalam_riau, 0, ',', '.') }}"
+                    readonly>
+                    <small class="text-muted">
+                        Otomatis dari penjumlahan Luar Riau + Dalam Riau
+                    </small>
+                </div>
+
+                {{-- FOOTER --}}
+                <div class="modal-footer d-flex justify-content-end gap-2">
+                    <button type="button"
+                            class="btn btn-secondary px-4"
+                            data-bs-dismiss="modal">
+                        Batal
+                    </button>
+
+                    <button type="submit"
+                            class="btn btn-primary px-4">
+                        Simpan Arsip
+                    </button>
+                </div>
 
         </div>
 
-        {{-- FOOTER --}}
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-          <button class="btn btn-primary">Simpan Perubahan</button>
-        </div>
 
       </form>
     </div>
@@ -364,18 +406,21 @@ document.addEventListener('input', function () {
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 
-  document.querySelectorAll('.anggaran-input').forEach(input => {
-    input.addEventListener('input', function () {
-      const id = this.dataset.id;
-      let total = 0;
+ document.querySelectorAll('.anggaran-input').forEach(input => {
+  input.addEventListener('input', function () {
+    const id = this.dataset.id;
 
-      document.querySelectorAll(`.anggaran-input[data-id="${id}"]`)
-        .forEach(el => total += Number(el.value) || 0);
+    const luar = document.querySelector(`input[name="total_luar_riau"][data-id="${id}"]`)?.value || 0;
+    const dalam = document.querySelector(`input[name="total_dalam_riau"][data-id="${id}"]`)?.value || 0;
 
-      document.getElementById(`totalAnggaranDisplay${id}`).value =
-        'Rp ' + total.toLocaleString('id-ID');
-    });
+    const total = Number(luar) + Number(dalam);
+
+    const display = document.getElementById(`totalLuarDalam${id}`);
+    if (display) {
+        display.value = 'Rp ' + total.toLocaleString('id-ID');
+    }
   });
+});
 
   // Hitung otomatis saat modal dibuka
   document.querySelectorAll('.modal').forEach(modal => {
@@ -391,10 +436,37 @@ document.addEventListener('DOMContentLoaded', function () {
       document.getElementById(`totalAnggaranDisplay${id}`).value =
         'Rp ' + total.toLocaleString('id-ID');
     });
+    modal.addEventListener('shown.bs.modal', function () {
+        const id = modal.querySelector('.anggaran-input')?.dataset.id;
+        if (!id) return;
+
+        const luar = Number(document.querySelector(`input[name="total_luar_riau"][data-id="${id}"]`)?.value || 0);
+        const dalam = Number(document.querySelector(`input[name="total_dalam_riau"][data-id="${id}"]`)?.value || 0);
+
+        document.getElementById(`totalLuarDalam${id}`).value =
+            'Rp ' + (luar + dalam).toLocaleString('id-ID');
+        });
+
   });
 
 });
 </script>
+
+<script>
+document.addEventListener('input', function () {
+    const luar = document.querySelector('input[name="total_luar_riau"]')?.value || 0;
+    const dalam = document.querySelector('input[name="total_dalam_riau"]')?.value || 0;
+
+    const total = Number(luar) + Number(dalam);
+
+    const display = document.getElementById('totalLuarDalam');
+    if (display) {
+        display.value = 'Rp ' + total.toLocaleString('id-ID');
+    }
+});
+
+</script>
+
 
 
 @endpush

@@ -9,7 +9,38 @@
   {{-- ============================
        ROW 1: CARD-KARD UTAMA
        ============================ --}}
-  <div class="row g-4 mb-4">
+ <div class="row g-4 mb-4">
+    <div class="col-12">
+        <div class="card mb-3 shadow rounded-2">
+            <div class="card-body">
+                <form method="GET" action="{{ route('dashboard') }}" class="row g-2 align-items-end">
+
+                    <div class="col-md-2">
+                        <label class="form-label mb-1">Pilih Tahun</label>
+                        <select name="tahun" class="form-select">
+                            <option value="">-- Tahun --</option>
+                            @foreach([2024, 2025, 2026] as $t)
+                                <option value="{{ $t }}" {{ (isset($tahun) && $tahun == $t) ? 'selected' : '' }}>
+                                    {{ $t }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-6 d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bx bx-filter"></i> Filter
+                        </button>
+
+                        <a href="{{ route('verifikasi-pengajuan.index') }}" class="btn btn-secondary">
+                            <i class="bx bx-reset"></i> Reset
+                        </a>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+
 
     {{-- Pegawai --}}
     <div class="col-5th px-2">
@@ -184,6 +215,36 @@
                         </span>
                     </div>
                 </div>
+
+                <h6 class="fw-semibold mt-3">Anggaran Luar & Dalam Daerah</h6>
+
+                    <div class="position-relative mb-2" style="height: 10px;">
+                            <small class="position-absolute badge bg-danger"
+                                style="right: 0; top: -30px; font-size: 12px;">
+                                {{ number_format($persenLuarDalam, 1) }}%
+                            </small>
+
+                            <div class="progress" style="height: 10px;">
+                                <div class="progress-bar bg-danger progress-bar-striped"
+                                    role="progressbar"
+                                    style="width: {{ $persenLuarDalam }}%;">
+                                </div>
+                            </div>
+                        </div>
+
+                    <div class="text-muted small mb-3">
+                        <div>Batas Anggaran:
+                            <span class="fw-bold">
+                                Rp {{ number_format($batasLuarDalam, 0, ',', '.') }}
+                            </span>
+                        </div>
+                        <div>Terpakai:
+                            <span class="fw-bold">
+                                Rp {{ number_format($totalLuarDalamReal, 0, ',', '.') }}
+                            </span>
+                        </div>
+                    </div>
+
 
                 <h6 class="fw-semibold mt-3">Anggaran Dalam Riau (Non Siak)</h6>
                     <div class="position-relative mb-2" style="height: 10px;">

@@ -13,15 +13,25 @@ class DashboardController extends Controller
     /**
      * Display a listing of the resource.
      */
-public function index()
+public function index(Request $request)
 {
+    $tahun = $request->input('tahun');
+    $filterTahun = fn ($q) =>
+    $request->filled('tahun')
+        ? $q->whereYear('tanggal_spt', $tahun)
+        : $q;
+
+
     $jumlahPegawai = Pegawai::count();
 
     // Perjalanan bulan ini (status disetujui)
-    $jumlahPerjalanan = PerjalananDinas::whereMonth('tanggal_spt', Carbon::now()->month)
-        ->whereYear('tanggal_spt', Carbon::now()->year)
-        ->where('status', 'disetujui')
+    $jumlahPerjalanan = PerjalananDinas::where('status', 'disetujui')
+        ->when($request->filled('tahun'), fn ($q) =>
+            $q->whereYear('tanggal_spt', $tahun)
+        )
         ->count();
+
+
 
     // Perjalanan hari ini
     $perjalananHariIni = PerjalananDinas::whereDate('tanggal_mulai', Carbon::today())
@@ -29,23 +39,42 @@ public function index()
         ->count();
 
     // Top pelapor
-    $topPelapor = Pegawai::select('pegawai.*', DB::raw('COUNT(perjalanan_dinas_user.perjalanan_dinas_id) as total_perjalanan'))
-        ->leftJoin('perjalanan_dinas_user', 'perjalanan_dinas_user.pegawai_id', '=', 'pegawai.id')
-        ->groupBy('pegawai.id')
-        ->orderByDesc('total_perjalanan')
-        ->get();
+    $topPelapor = Pegawai::select(
+        'pegawai.*',
+        DB::raw('COUNT(perjalanan_dinas.id) as total_perjalanan')
+    )
+    ->leftJoin('perjalanan_dinas_user', 'perjalanan_dinas_user.pegawai_id', '=', 'pegawai.id')
+    ->leftJoin('perjalanan_dinas', 'perjalanan_dinas.id', '=', 'perjalanan_dinas_user.perjalanan_dinas_id')
+    ->when($tahun, fn ($q) => $q->whereYear('perjalanan_dinas.tanggal_spt', $tahun))
+    ->groupBy('pegawai.id')
+    ->orderByDesc('total_perjalanan')
+    ->get();
 
     // Total seluruh biaya (SPT)
-    $totalBiaya = DB::table('perjalanan_dinas_biaya')->sum('subtotal_biaya');
+   $totalBiaya = DB::table('perjalanan_dinas_biaya')
+    ->when($request->filled('tahun'), fn ($q) =>
+        $q->whereYear('created_at', $tahun)
+    )
+    ->sum('subtotal_biaya');
+
 
     // Total biaya real cost (biaya riil)
-    $totalRealCost = DB::table('perjalanan_dinas_biaya_riil')->sum('subtotal_biaya');
+    $totalRealCost = DB::table('perjalanan_dinas_biaya_riil')
+        ->join('perjalanan_dinas', 'perjalanan_dinas.id', '=', 'perjalanan_dinas_biaya_riil.perjalanan_dinas_id')
+        ->when($request->filled('tahun'),
+            fn ($q) => $q->whereYear('perjalanan_dinas.tanggal_spt', $tahun)
+        )
+        ->sum('perjalanan_dinas_biaya_riil.subtotal_biaya');
 
-   $penggunaanPerBidang = DB::table('perjalanan_dinas_biaya_riil')
-    ->join('pegawai', 'perjalanan_dinas_biaya_riil.pegawai_id', '=', 'pegawai.id')
-    ->select('pegawai.bidang', DB::raw('SUM(perjalanan_dinas_biaya_riil.subtotal_biaya) AS total'))
-    ->groupBy('pegawai.bidang')
-    ->get();
+    $penggunaanPerBidang = DB::table('perjalanan_dinas_biaya_riil')
+        ->join('perjalanan_dinas', 'perjalanan_dinas.id', '=', 'perjalanan_dinas_biaya_riil.perjalanan_dinas_id')
+        ->join('pegawai', 'pegawai.id', '=', 'perjalanan_dinas_biaya_riil.pegawai_id')
+        ->when($request->filled('tahun'),
+            fn ($q) => $q->whereYear('perjalanan_dinas.tanggal_spt', $tahun)
+        )
+        ->select('pegawai.bidang', DB::raw('SUM(perjalanan_dinas_biaya_riil.subtotal_biaya) AS total'))
+        ->groupBy('pegawai.bidang')
+        ->get();
 
     // Ambil biaya terbaru (rekaman terakhir)
     $lastRecord = DB::table('perjalanan_dinas_biaya')
@@ -55,31 +84,46 @@ public function index()
     $totalBaru = $lastRecord ? $lastRecord->subtotal_biaya : 0;
 
     // Donut chart -> status
-    $statusCounts = PerjalananDinas::selectRaw('status, COUNT(*) as total')
-        ->groupBy('status')
-        ->pluck('total', 'status');
+    $statusCounts = PerjalananDinas::query()
+    ->when($request->filled('tahun'), fn ($q) =>
+        $q->whereYear('tanggal_spt', $tahun)
+    )
+    ->selectRaw('status, COUNT(*) as total')
+    ->groupBy('status')
+    ->pluck('total', 'status');
+
+
 
     // Bar chart -> jenis SPT
-    $jenisSptCounts = PerjalananDinas::selectRaw('jenis_spt, COUNT(*) as total')
-        ->groupBy('jenis_spt')
-        ->pluck('total', 'jenis_spt');
+    $jenisSptCounts = PerjalananDinas::when($tahun, fn ($q) => $q->whereYear('tanggal_spt', $tahun))
+    ->selectRaw('jenis_spt, COUNT(*) as total')
+    ->groupBy('jenis_spt')
+    ->pluck('total', 'jenis_spt');
+
 
     // Pie chart -> destinasi terbanyak
-    $topDestinasi = PerjalananDinas::select('kota_tujuan_id', DB::raw('COUNT(*) as total'))
-        ->groupBy('kota_tujuan_id')
-        ->orderByDesc('total')
-        ->take(5)
-        ->get();
+    $topDestinasi = PerjalananDinas::query()
+    ->when($request->filled('tahun'), fn ($q) =>
+        $q->whereYear('tanggal_spt', $tahun)
+    )
+    ->select('kota_tujuan_id', DB::raw('COUNT(*) as total'))
+    ->groupBy('kota_tujuan_id')
+    ->orderByDesc('total')
+    ->take(5)
+    ->get();
 
-   $periodeAktif = DB::table('arsip_periode')
-    ->where('is_active', 1)
-    ->first();
 
-    $batas_anggaran = $periodeAktif->batas_anggaran ?? 0;
-    $batasSiak = $periodeAktif->total_siak ?? 0;
-    $batasDalamRiau = $periodeAktif->total_dalam_riau ?? 0;
-    $batasLuarDaerah = $periodeAktif->total_luar_riau ?? 0;
+    $periodeAktif = DB::table('arsip_periode')
+        ->when($request->filled('tahun'),
+            fn ($q) => $q->where('tahun', $tahun),
+            fn ($q) => $q->where('is_active', 1)
+        )
+        ->first();
 
+    $batas_anggaran   = $periodeAktif->batas_anggaran ?? 0;
+    $batasSiak        = $periodeAktif->total_siak ?? 0;
+    $batasDalamRiau   = $periodeAktif->total_dalam_riau ?? 0;
+    $batasLuarDaerah  = $periodeAktif->total_luar_riau ?? 0;
 
 
     $total_anggaran = $periodeAktif ? $periodeAktif->total_anggaran : 0;
@@ -89,18 +133,17 @@ public function index()
         $sisaAnggaran = 0;
     }
 
-    $periodeAktif = DB::table('arsip_periode')
-    ->where('is_active', 1)
-    ->first();
 
-   $batas_anggaran = $periodeAktif ? $periodeAktif->batas_anggaran : 0;
 
-   $totalTerpakai = DB::table('perjalanan_dinas_biaya_riil')
+    $batas_anggaran = $periodeAktif ? $periodeAktif->batas_anggaran : 0;
+
+    $totalTerpakai = DB::table('perjalanan_dinas_biaya_riil')
     ->sum('subtotal_biaya');
 
     $persen = ($batas_anggaran > 0)
-        ? min(100, ($totalTerpakai / $batas_anggaran) * 100)
-        : 0;
+    ? round(min(100, ($totalRealCost / $batas_anggaran) * 100), 1)
+    : 0;
+
 
     $sisaAnggaran = max(0, $total_anggaran - $totalRealCost);
 
@@ -109,34 +152,57 @@ public function index()
     $totalSiakReal = DB::table('perjalanan_dinas_biaya_riil')
         ->join('perjalanan_dinas', 'perjalanan_dinas.id', '=', 'perjalanan_dinas_biaya_riil.perjalanan_dinas_id')
         ->where('perjalanan_dinas.jenis_spt', 'dalam_daerah')
+        ->when($request->filled('tahun'),
+            fn ($q) => $q->whereYear('perjalanan_dinas.tanggal_spt', $tahun)
+        )
         ->sum('perjalanan_dinas_biaya_riil.subtotal_biaya');
-    $persenSiak = ($batas_anggaran > 0)
-        ? min(100, ($totalSiakReal / $batas_anggaran) * 100)
-        : 0;
+
+        $persenSiak = ($batasSiak > 0)
+            ? round(min(100, ($totalSiakReal / $batasSiak) * 100), 1)
+            : 0;
+
 
 
 
 
 
     $totalDalamRiauReal = DB::table('perjalanan_dinas_biaya_riil')
-    ->join('perjalanan_dinas', 'perjalanan_dinas.id', '=', 'perjalanan_dinas_biaya_riil.perjalanan_dinas_id')
-    ->where('perjalanan_dinas.provinsi_tujuan_id', 'RIAU')
-    ->where('perjalanan_dinas.kota_tujuan_id', '!=', 'Siak')
-    ->sum('perjalanan_dinas_biaya_riil.subtotal_biaya');
+        ->join('perjalanan_dinas', 'perjalanan_dinas.id', '=', 'perjalanan_dinas_biaya_riil.perjalanan_dinas_id')
+        ->where('perjalanan_dinas.provinsi_tujuan_id', 'RIAU')
+        ->where('perjalanan_dinas.kota_tujuan_id', '!=', 'Siak')
+         ->when($request->filled('tahun'),
+        fn ($q) => $q->whereYear('perjalanan_dinas.tanggal_spt', $tahun)
+    )
+        ->sum('perjalanan_dinas_biaya_riil.subtotal_biaya');
 
     $persenDalamRiau = ($batasDalamRiau > 0)
-        ? min(100, ($totalDalamRiauReal / $batasDalamRiau) * 100)
+        ? round(min(100, ($totalDalamRiauReal / $batasDalamRiau) * 100), 1)
         : 0;
+
 
 
    $totalLuarDaerahReal = DB::table('perjalanan_dinas_biaya_riil')
     ->join('perjalanan_dinas', 'perjalanan_dinas.id', '=', 'perjalanan_dinas_biaya_riil.perjalanan_dinas_id')
     ->where('perjalanan_dinas.provinsi_tujuan_id', '!=', 'RIAU')
+     ->when($request->filled('tahun'),
+        fn ($q) => $q->whereYear('perjalanan_dinas.tanggal_spt', $tahun)
+    )
     ->sum('perjalanan_dinas_biaya_riil.subtotal_biaya');
 
     $persenLuarDaerah = ($batasLuarDaerah > 0)
-        ? min(100, ($totalLuarDaerahReal / $batasLuarDaerah) * 100)
+        ? round(min(100, ($totalLuarDaerahReal / $batasLuarDaerah) * 100), 1)
         : 0;
+
+
+    $batasLuarDalam = $batasDalamRiau + $batasLuarDaerah;
+    $totalLuarDalamReal = $totalDalamRiauReal + $totalLuarDaerahReal;
+
+    $persenLuarDalam = ($batasLuarDalam > 0)
+        ? round(min(100, ($totalLuarDalamReal / $batasLuarDalam) * 100), 1)
+        : 0;
+
+
+
 
 
     return view('dashboard', compact(
@@ -170,7 +236,12 @@ public function index()
     // LUAR
     'totalLuarDaerahReal',
     'persenLuarDaerah',
-    'batasLuarDaerah'
+    'batasLuarDaerah',
+
+    //LUAR DALAM DAERAH
+    'totalLuarDalamReal',
+    'batasLuarDalam',
+    'persenLuarDalam'
 ));
 
 }
