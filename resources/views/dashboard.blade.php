@@ -148,177 +148,204 @@
 
 <div class="row g-4 mb-4 align-items-stretch">
 
-    {{-- Anggaran Periode --}}
-    <div class="col-md-5 col-lg-5">
-        <div class="card shadow h-100">
+   <div class="row align-items-stretch mt-4">
+
+    {{-- ===================== KOLOM KIRI ===================== --}}
+    <div class="col-md-5 col-lg-5 d-flex flex-column gap-4">
+
+        {{-- CARD 1 : ANGGARAN PERIODE --}}
+        <div class="card shadow">
             <div class="card-header bg-white">
-                <h5 class="fw-bold mb-0"> Anggaran Periode {{ date('Y') }}</h5>
+                <h5 class="fw-bold mb-0">Anggaran Periode {{ date('Y') }}</h5>
             </div>
 
-            <div class="card-body">
+            <div class="card-body py-3">
 
-                <h6 class="fw-bold mb-3 mt-2">Anggaran Perjalanan Dinas</h6>
+                <h6 class="fw-bold mb-1 mt-2">Anggaran Perjalanan Dinas</h6>
 
+                {{-- TOTAL --}}
                 <div class="position-relative mb-2" style="height: 10px;">
                     <small class="position-absolute badge bg-success"
-                        style="right: 0; top: -30px; font-size: 12px; color:#fff;">
+                        style="right: 0; top: -30px; font-size: 12px;">
                         {{ number_format($persen, 1) }}%
                     </small>
 
                     <div class="progress" style="height: 10px;">
-                        <div class="progress-bar progress-bar-striped progress-bar-animated bg-success"
-                            role="progressbar"
-                            style="width: {{ $persen }}%;">
+                        <div class="progress-bar bg-success progress-bar-striped progress-bar-animated"
+                            style="width: {{ $persen }}%">
                         </div>
                     </div>
                 </div>
 
-                 <div class="text-muted small mb-4">
-                   <div>Batas Anggaran:
+                <div class="text-muted small mb-2">
+                    <div>
+                        Batas Anggaran:
                         <span class="fw-bold">
                             Rp {{ number_format($batas_anggaran, 0, ',', '.') }}
                         </span>
                     </div>
-
-                    <div>Terpakai:
+                    <div>
+                        Terpakai:
                         <span class="fw-bold">
                             Rp {{ number_format($totalRealCost, 0, ',', '.') }}
                         </span>
                     </div>
                 </div>
+            </div>
 
-                <h6 class="fw-semibold mt-4">Anggaran Dalam Daerah (Siak)</h6>
 
-                <div class="position-relative mb-2" style="height: 10px;">
-                    <small class="position-absolute badge bg-info"
-                        style="right: 0; top: -30px; font-size: 12px;">
-                        {{ number_format($persenSiak, 1) }}%
-                    </small>
-
-                    <div class="progress" style="height: 10px;">
-                        <div class="progress-bar bg-info progress-bar-striped"
-                            role="progressbar"
-                            style="width: {{ $persenSiak }}%;">
+                {{-- SIAK --}}
+                            <div class="card shadow mt-3">
+                        <div class="card-header bg-white">
+                            <h5 class="fw-bold mb-0">Anggaran Dalam Daerah Siak</h5>
                         </div>
-                    </div>
-                </div>
+                        <div class="card-body">
 
-                <div class="text-muted small mb-3">
-                    <div>Batas Anggaran:
-                        <span class="fw-bold">
-                            Rp {{ number_format($batasSiak, 0, ',', '.') }}
-                        </span>
-                    </div>
-                    <div>Terpakai:
-                        <span class="fw-bold">
-                            Rp {{ number_format($totalSiakReal, 0, ',', '.') }}
-                        </span>
-                    </div>
-                </div>
-
-                <h6 class="fw-semibold mt-3">Anggaran Luar & Dalam Daerah</h6>
-
-                    <div class="position-relative mb-2" style="height: 10px;">
-                            <small class="position-absolute badge bg-danger"
+                        <div class="position-relative mb-2" style="height: 10px;">
+                            <small class="position-absolute badge bg-info"
                                 style="right: 0; top: -30px; font-size: 12px;">
-                                {{ number_format($persenLuarDalam, 1) }}%
+                                {{ number_format($persenSiak, 1) }}%
                             </small>
 
                             <div class="progress" style="height: 10px;">
-                                <div class="progress-bar bg-danger progress-bar-striped"
-                                    role="progressbar"
-                                    style="width: {{ $persenLuarDalam }}%;">
+                                <div class="progress-bar bg-info progress-bar-striped"
+                                    style="width: {{ $persenSiak }}%">
                                 </div>
                             </div>
                         </div>
 
-                    <div class="text-muted small mb-3">
-                        <div>Batas Anggaran:
-                            <span class="fw-bold">
-                                Rp {{ number_format($batasLuarDalam, 0, ',', '.') }}
-                            </span>
-                        </div>
-                        <div>Terpakai:
-                            <span class="fw-bold">
-                                Rp {{ number_format($totalLuarDalamReal, 0, ',', '.') }}
-                            </span>
-                        </div>
-                    </div>
-
-
-                <h6 class="fw-semibold mt-3">Anggaran Dalam Riau (Non Siak)</h6>
-                    <div class="position-relative mb-2" style="height: 10px;">
-                        <small class="position-absolute badge bg-primary"
-                            style="right: 0; top: -30px; font-size: 12px;">
-                            {{ number_format($persenDalamRiau, 1) }}%
-                        </small>
-
-                        <div class="progress" style="height: 10px;">
-                            <div class="progress-bar bg-primary progress-bar-striped"
-                                role="progressbar"
-                                style="width: {{ $persenDalamRiau }}%;">
+                        <div class="text-muted small">
+                            <div>
+                                Batas Anggaran:
+                                <span class="fw-bold">
+                                    Rp {{ number_format($batasSiak, 0, ',', '.') }}
+                                </span>
+                            </div>
+                            <div>
+                                Terpakai:
+                                <span class="fw-bold">
+                                    Rp {{ number_format($totalSiakReal, 0, ',', '.') }}
+                                </span>
                             </div>
                         </div>
+
                     </div>
+                </div>
+            </div>
 
-                    <div class="text-muted small mb-3">
-                        <div>Batas Anggaran:
-                            <span class="fw-bold">
-                                Rp {{ number_format($batasDalamRiau, 0, ',', '.') }}
-                            </span>
-                        </div>
-                        <div>Terpakai:
-                            <span class="fw-bold">
-                                Rp {{ number_format($totalDalamRiauReal, 0, ',', '.') }}
-                            </span>
-                        </div>
-                    </div>
+        {{-- CARD 2 : TOTAL LUAR & DALAM DAERAH --}}
+        <div class="card shadow">
+            <div class="card-header bg-white">
+                <h5 class="fw-bold mb-0">Total Anggaran Luar Daerah</h5>
+            </div>
 
+            <div class="card-body">
 
+                <h6 class="fw-semibold mb-2">Total Luar & Dalam Daerah</h6>
 
-                <h6 class="fw-semibold mt-3">Anggaran Luar Daerah (Riau)</h6>
                 <div class="position-relative mb-2" style="height: 10px;">
-                    <small class="position-absolute badge bg-warning text-dark"
+                    <small class="position-absolute badge bg-danger"
                         style="right: 0; top: -30px; font-size: 12px;">
-                        {{ number_format($persenLuarDaerah, 1) }}%
+                        {{ number_format($persenLuarDalam, 1) }}%
                     </small>
 
                     <div class="progress" style="height: 10px;">
-                        <div class="progress-bar bg-warning progress-bar-striped progress-bar-animated"
-                            role="progressbar"
-                            style="width: {{ $persenLuarDaerah }}%;">
+                        <div class="progress-bar bg-danger progress-bar-striped"
+                            style="width: {{ $persenLuarDalam }}%">
                         </div>
                     </div>
                 </div>
 
-                <div class="text-muted small mb-3">
-                    <div>Batas Anggaran:
+                <div class="text-muted small mb-4">
+                    <div>
+                        Batas Anggaran:
                         <span class="fw-bold">
-                            Rp {{ number_format($batasLuarDaerah, 0, ',', '.') }}
+                            Rp {{ number_format($batasLuarDalam, 0, ',', '.') }}
                         </span>
                     </div>
-                    <div>Terpakai:
+                    <div>
+                        Terpakai:
                         <span class="fw-bold">
-                            Rp {{ number_format($totalLuarDaerahReal, 0, ',', '.') }}
+                            Rp {{ number_format($totalLuarDalamReal, 0, ',', '.') }}
                         </span>
                     </div>
                 </div>
 
+                <h6 class="fw-semibold small mb-2">Rincian</h6>
 
+                {{-- DALAM RIAU --}}
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between small fw-semibold">
+                        <span>Luar Daerah Dalam Provinsi Riau</span>
+                        <span>{{ number_format($persenDalamRiau, 1) }}%</span>
+                    </div>
+
+                    <div class="progress mb-1" style="height: 6px;">
+                        <div class="progress-bar bg-primary"
+                            style="width: {{ $persenDalamRiau }}%">
+                        </div>
+                    </div>
+
+                    <div class="text-muted small d-flex justify-content-between">
+                        <span>
+                            Batas:
+                            <span class="fw-bold">
+                                Rp {{ number_format($batasDalamRiau, 0, ',', '.') }}
+                            </span>
+                        </span>
+                        <span>
+                            Terpakai:
+                            <span class="fw-bold">
+                                Rp {{ number_format($totalDalamRiauReal, 0, ',', '.') }}
+                            </span>
+                        </span>
+                    </div>
+                </div>
+
+                {{-- LUAR DAERAH --}}
+                <div>
+                    <div class="d-flex justify-content-between small fw-semibold">
+                        <span>Luar Daerah (Dalam Provinsi Riau)</span>
+                        <span>{{ number_format($persenLuarDaerah, 1) }}%</span>
+                    </div>
+
+                    <div class="progress mb-1" style="height: 6px;">
+                        <div class="progress-bar bg-warning"
+                            style="width: {{ $persenLuarDaerah }}%">
+                        </div>
+                    </div>
+
+                    <div class="text-muted small d-flex justify-content-between">
+                        <span>
+                            Batas:
+                            <span class="fw-bold">
+                                Rp {{ number_format($batasLuarDaerah, 0, ',', '.') }}
+                            </span>
+                        </span>
+                        <span>
+                            Terpakai:
+                            <span class="fw-bold">
+                                Rp {{ number_format($totalLuarDaerahReal, 0, ',', '.') }}
+                            </span>
+                        </span>
+                    </div>
+                </div>
 
             </div>
         </div>
+
     </div>
 
-    {{-- Penggunaan Per Bidang --}}
+    {{-- ===================== KOLOM KANAN ===================== --}}
     <div class="col-md-7 col-lg-7">
         <div class="card shadow h-100">
-            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+
+            <div class="card-header bg-white">
                 <h5 class="fw-bold mb-0">Penggunaan Anggaran Per Bidang</h5>
             </div>
 
             <div class="card-body">
-                <div class="table-responsive">
+                <div class="table-responsive h-100">
                     <table class="table table-bordered table-striped small">
                         <thead class="table-light">
                             <tr class="text-center">
@@ -349,8 +376,11 @@
                     </table>
                 </div>
             </div>
+
         </div>
     </div>
+
+</div>
 
 </div>
 
