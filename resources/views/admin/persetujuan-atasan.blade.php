@@ -142,6 +142,7 @@
                         <th>Tujuan</th>
                         <th>Personil</th>
                         <th>Pelaksanaan</th>
+                        <th>Uraian</th>
                         <th>Status</th>
                         <th>Aksi</th>
                     </tr>
@@ -171,6 +172,7 @@
                                 s/d
                                 {{ \Carbon\Carbon::parse($row->tanggal_selesai)->format('d M Y') }}
                             </td>
+                            <td>{{ $row->uraian_spt }}</td>
                             <td class="text-center">
                                 @if($row->status == 'disetujui')
                                     <span class="badge bg-label-success">SELESAI</span>

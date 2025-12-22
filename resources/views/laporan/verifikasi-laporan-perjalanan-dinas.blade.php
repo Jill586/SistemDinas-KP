@@ -136,8 +136,10 @@
                         <th>Nomor SPT</th>
                         <th>Tanggal SPT</th>
                         <th>Tujuan</th>
-                        <th>Nama Pegawai</th>
+                        <th>Personil</th>
+                        <th>Uraian</th>
                         <th>Status Laporan</th>
+                        <th>Status bayar</th>
                         <th>Tanggal Dibuat</th>
                         <th>Aksi</th>
                     </tr>
@@ -154,6 +156,7 @@
                                     {{ $u->nama }}@if(!$loop->last), @endif
                                 @endforeach
                             </td>
+                            <td>{{ $row->uraian_spt ?? '-' }}</td>
                             <td class="text-center">
                                 @if ($row->status_laporan === 'diproses')
                                     <span class="badge bg-label-primary">Diproses</span>
@@ -165,13 +168,33 @@
                                     <span class="badge bg-secondary">Belum Dibuat</span>
                                 @endif
                             </td>
+                            <td class="text-center">
+                                @if(optional($row->laporan)->status_bayar === 'belum_bayar')
+                                    <span class="badge bg-label-danger">BELUM BAYAR</span>
+                                @elseif(optional($row->laporan)->status_bayar === 'verifikasi')
+                                    <span class="badge bg-label-warning">VERIFIKASI</span>
+                                @elseif(optional($row->laporan)->status_bayar === 'sudah_bayar')
+                                    <span class="badge bg-label-success">SUDAH BAYAR</span>
+                                @else
+                                    <span>-</span>
+                                @endif
+                            </td>
                             <td>{{ $row->created_at?->translatedFormat('d F Y') ?? '-' }}</td>
                             <td class="text-center">
-                                <button type="button" class="btn btn-info"
+                                <div class="d-flex flex-column align-items-center gap-2">
+                                    <button type="button" class="btn btn-info btn-sm"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#modalVerifikasi{{ $row->id }}">
+                                        <i class="bx bx-check-circle"></i>
+                                    </button>
+
+                                    <button 
+                                        class="btn btn-sm btn-success"
                                         data-bs-toggle="modal"
-                                        data-bs-target="#modalVerifikasi{{ $row->id }}">
-                                    <i class="bx bx-check-circle"></i>
-                                </button>
+                                        data-bs-target="#modalDokumen{{ $row->id }}">
+                                        <i class="bx bx-file"></i>
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                     @empty
@@ -202,6 +225,242 @@
         </div>
     </div>
 </div>
+
+@foreach ($laporans as $row)
+<div class="modal fade" id="modalDokumen{{ $row->id }}" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <form
+            action="{{ route('verifikasi-laporan.update', $row->id) }}"
+            method="POST"
+        >
+            @csrf
+            @method('PUT')
+
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Dokumen Perjalanan Dinas</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+
+                    @php
+                        $laporan = $row->laporan;
+                    @endphp
+
+                    <table class="table table-bordered align-middle">
+                        <thead class="table-light">
+                            <tr class="text-center">
+                                <th>Jenis Dokumen</th>
+                                <th width="140">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                            {{-- SPT --}}
+                            <tr>
+                                <td>SPT</td>
+                                <td>
+                                    @if($laporan && $laporan->file_spt)
+                                        <a href="javascript:void(0)"
+                                            class="btn btn-info btn-sm me-1 btn-preview-file"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#modalPreviewFile"
+                                            data-file="{{ asset('storage/' . $laporan->file_spt) }}">
+                                                <i class="bx bx-show"></i>
+                                        </a>
+                                        <a href="{{ asset('storage/' . $laporan->file_spt) }}"
+                                        download
+                                        class="btn btn-primary btn-sm">
+                                            <i class="bx bx-download"></i>
+                                        </a>
+                                    @else
+                                        <span>-</span>
+                                    @endif
+                                </td>
+                            </tr>
+
+                            {{-- SPPD --}}
+                            <tr>
+                                <td>SPPD</td>
+                                <td>
+                                    @if($laporan && $laporan->file_sppd)
+                                        <a href="javascript:void(0)"
+                                            class="btn btn-info btn-sm me-1 btn-preview-file"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#modalPreviewFile"
+                                            data-file="{{ asset('storage/' . $laporan->file_sppd) }}">
+                                                <i class="bx bx-show"></i>
+                                        </a>
+                                        <a href="{{ asset('storage/' . $laporan->file_sppd) }}"
+                                        download
+                                        class="btn btn-primary btn-sm">
+                                            <i class="bx bx-download"></i>
+                                        </a>
+                                    @else
+                                        <span>-</span>
+                                    @endif
+                                </td>
+                            </tr>
+
+                            {{-- Surat Undangan --}}
+                            <tr>
+                                <td>Surat Undangan / Dasar SPT</td>
+                                <td>
+                                    @if($laporan && $laporan->file_surat_undangan)
+                                        <a href="javascript:void(0)"
+                                            class="btn btn-info btn-sm me-1 btn-preview-file"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#modalPreviewFile"
+                                            data-file="{{ asset('storage/' . $laporan->file_surat_undangan) }}">
+                                                <i class="bx bx-show"></i>
+                                        </a>
+                                        <a href="{{ asset('storage/' . $laporan->file_surat_undangan) }}"
+                                        download
+                                        class="btn btn-primary btn-sm">
+                                            <i class="bx bx-download"></i>
+                                        </a>
+                                    @else
+                                        <span>-</span>
+                                    @endif
+                                </td>
+                            </tr>
+
+                            {{-- Laporan Perjadin --}}
+                            <tr>
+                                <td>Laporan Perjalanan Dinas</td>
+                                <td>
+                                    @if($laporan && $laporan->file_laporan_perjadin)
+                                        <a href="javascript:void(0)"
+                                            class="btn btn-info btn-sm me-1 btn-preview-file"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#modalPreviewFile"
+                                            data-file="{{ asset('storage/' . $laporan->file_laporan_perjadin) }}">
+                                                <i class="bx bx-show"></i>
+                                        </a>
+                                        <a href="{{ asset('storage/' . $laporan->file_laporan_perjadin) }}"
+                                        download
+                                        class="btn btn-primary btn-sm">
+                                            <i class="bx bx-download"></i>
+                                        </a>
+                                    @else
+                                        <span>-</span>
+                                    @endif
+                                </td>
+                            </tr>
+
+                            {{-- Bukti Pengeluaran --}}
+                            <tr>
+                                <td>Bukti Pengeluaran Perjadin</td>
+                                <td>
+                                    @if($laporan && $laporan->file_bukti_pengeluaran)
+                                        <a href="javascript:void(0)"
+                                            class="btn btn-info btn-sm me-1 btn-preview-file"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#modalPreviewFile"
+                                            data-file="{{ asset('storage/' . $laporan->file_bukti_pengeluaran) }}">
+                                            <i class="bx bx-show"></i>
+                                        </a>
+                                        <a href="{{ asset('storage/' . $laporan->file_bukti_pengeluaran) }}"
+                                        download
+                                        class="btn btn-primary btn-sm">
+                                            <i class="bx bx-download"></i>
+                                        </a>
+                                    @else
+                                        <span>-</span>
+                                    @endif
+                                </td>
+                            </tr>
+
+                            {{-- SPM --}}
+                            <tr>
+                                <td>Surat Pertanggungjawaban Mutlak</td>
+                                <td>
+                                    @if($laporan && $laporan->file_spm)
+                                        <a href="javascript:void(0)"
+                                            class="btn btn-info btn-sm me-1 btn-preview-file"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#modalPreviewFile"
+                                            data-file="{{ asset('storage/' . $laporan->file_spm) }}">
+                                            <i class="bx bx-show"></i>
+                                        </a>
+                                        <a href="{{ asset('storage/' . $laporan->file_spm) }}"
+                                        download
+                                        class="btn btn-primary btn-sm">
+                                            <i class="bx bx-download"></i>
+                                        </a>
+                                    @else
+                                        <span>-</span>
+                                    @endif
+                                </td>
+                            </tr>
+
+                            {{-- Penginapan 30% --}}
+                            <tr>
+                                <td>Surat Pernyataan 30% Penginapan</td>
+                                <td>
+                                    @if($laporan && $laporan->file_surat_30_persen_penginapan)
+                                        <a href="javascript:void(0)"
+                                            class="btn btn-info btn-sm me-1 btn-preview-file"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#modalPreviewFile"
+                                            data-file="{{ asset('storage/' . $laporan->file_surat_30_persen_penginapan) }}">
+                                            <i class="bx bx-show"></i>
+                                        </a>
+                                        <a href="{{ asset('storage/' . $laporan->file_surat_30_persen_penginapan) }}"
+                                        download
+                                        class="btn btn-primary btn-sm">
+                                            <i class="bx bx-download"></i>
+                                        </a>
+                                    @else
+                                        <span>-</span>
+                                    @endif
+                                </td>
+                            </tr>
+
+                            {{-- Kwitansi --}}
+                            <tr>
+                                <td>Kwitansi Pembayaran</td>
+                                <td>
+                                    @if($laporan && $laporan->file_kwitansi)
+                                        <a href="javascript:void(0)"
+                                            class="btn btn-info btn-sm me-1 btn-preview-file"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#modalPreviewFile"
+                                            data-file="{{ asset('storage/' . $laporan->file_kwitansi) }}">
+                                            <i class="bx bx-show"></i>
+                                        </a>
+                                        <a href="{{ asset('storage/' . $laporan->file_kwitansi) }}"
+                                        download
+                                        class="btn btn-primary btn-sm">
+                                            <i class="bx bx-download"></i>
+                                        </a>
+                                    @else
+                                        <span>-</span>
+                                    @endif
+                                </td>
+                            </tr>
+
+                        </tbody>
+                    </table>
+
+                </div>
+
+                <div class="modal-footer">
+                        <input type="hidden" name="aksi_verifikasi" value="selesai">
+
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            Batal
+                        </button>
+                        <button type="submit" class="btn btn-success fw-bold">
+                            <i class="bx bx-check-circle"></i> Serahkan untuk Verifikasi
+                        </button>
+                    </div>
+            </div>
+        </form>
+    </div>
+</div>
+@endforeach
 
 <!-- Modal Verifikasi -->
 @foreach ($laporans as $row)
@@ -666,6 +925,24 @@
   </div>
 </div>
 @endforeach
+
+<!-- MODAL PREVIEW FILE -->
+<div class="modal fade" id="modalPreviewFile" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Preview Dokumen</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body p-0" style="height:85vh">
+                <iframe id="iframePreview"
+                    style="width:100%; height:100%; border:none;">
+                </iframe>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -694,6 +971,24 @@ $(document).ready(function () {
             }
         });
     });
+});
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const modal = document.getElementById('modalPreviewFile');
+    const iframe = document.getElementById('iframePreview');
+
+    modal.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        const fileUrl = button.getAttribute('data-file');
+        iframe.src = fileUrl;
+    });
+
+    modal.addEventListener('hidden.bs.modal', function () {
+        iframe.src = '';
+    });
+    
 });
 </script>
 @endpush

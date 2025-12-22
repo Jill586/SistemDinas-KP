@@ -133,8 +133,10 @@
                         <th>TGL. SPT</th>
                         <th>TUJUAN</th>
                         <th>PELAKSANAAN</th>
+                        <th>URAIAN</th>
                         <th>STATUS SPT</th>
                         <th>STATUS LAPORAN</th>
+                        <th>STATUS BAYAR</th>
                         <th>DOKUMEN LAPORAN</th>
                         <th>AKSI LAPORAN</th>
                     </tr>
@@ -151,6 +153,7 @@
                                 s/d
                                 {{ \Carbon\Carbon::parse($row->tanggal_selesai)->format('d M Y') }}
                             </td>
+                            <td>{{ $row->uraian_spt ?? '-' }}</td>
                             <td class="text-center">
                                 @if($row->status == 'selesai')
                                     <span class="badge bg-label-success">SELESAI</span>
@@ -171,6 +174,17 @@
                                     <span class="badge bg-label-warning">REVISI OPERATOR</span>
                                 @else
                                     <span class="badge bg-label-warning">{{ strtoupper($row->status_laporan) }}</span>
+                                @endif
+                            </td>
+                            <td class="text-center">
+                                @if(optional($row->laporan)->status_bayar === 'belum_bayar')
+                                    <span class="badge bg-label-danger">BELUM BAYAR</span>
+                                @elseif(optional($row->laporan)->status_bayar === 'verifikasi')
+                                    <span class="badge bg-label-warning">VERIFIKASI</span>
+                                @elseif(optional($row->laporan)->status_bayar === 'sudah_bayar')
+                                    <span class="badge bg-label-success">SUDAH BAYAR</span>
+                                @else
+                                    <span>-</span>
                                 @endif
                             </td>
                             <td class="text-center">
@@ -232,6 +246,16 @@
                                         <i class="bx bx-edit"></i>
                                     </button>
                                     @endif
+
+                                    @if($row->status_laporan === 'selesai')
+                                    <button class="btn btn-success btn-sm"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#modalUploadPdf{{ $row->id }}"
+                                        data-id="{{ $row->id }}"
+                                        data-nomor="{{ $row->nomor_spt }}">
+                                        <i class="bx bx-upload"></i>
+                                    </button>
+                                    @endif
                                 </div>
                             </td>
                         </tr>
@@ -261,6 +285,104 @@
         </div>
     </div>
 </div>
+
+{{-- MODAL UPLOAD DOKUMEN --}}
+@foreach ($perjalanans as $row)
+<div class="modal fade" id="modalUploadPdf{{ $row->id }}" tabindex="-1" aria-labelledby="modalUploadPdfLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <form
+            action="{{ route('laporan.upload-dokumen', $row->perjalanan_id ?? $row->id) }}"
+            method="POST"
+            enctype="multipart/form-data">
+            @csrf
+
+            <input type="hidden" name="spt_id" id="upload_spt_id">
+
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-semibold" id="modalUploadPdfLabel">
+                        Upload Dokumen Perjalanan Dinas
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+
+                    <div class="row g-3">
+
+                        {{-- SPT --}}
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">SPT</label>
+                            <input type="file" name="file_spt" class="form-control" accept="application/pdf">
+                        </div>
+
+                        {{-- SPPD --}}
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">SPPD</label>
+                            <input type="file" name="file_sppd" class="form-control" accept="application/pdf">
+                        </div>
+
+                        {{-- Surat Undangan / Dasar SPT --}}
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">
+                                Surat Undangan / Dasar SPT <span class="text-muted">(jika ada)</span>
+                            </label>
+                            <input type="file" name="file_surat_undangan" class="form-control" accept="application/pdf">
+                        </div>
+
+                        {{-- Laporan Perjadin --}}
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Laporan Perjalanan Dinas</label>
+                            <input type="file" name="file_laporan_perjadin" class="form-control" accept="application/pdf">
+                        </div>
+
+                        {{-- Bukti Pengeluaran --}}
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">
+                                Bukti Pengeluaran Perjadin
+                                <small class="text-muted">(BBM, Tiket, Penginapan, dll)</small>
+                            </label>
+                            <input type="file" name="file_bukti_pengeluaran" class="form-control" accept="application/pdf">
+                        </div>
+
+                        {{-- Surat Pertanggungjawaban Mutlak --}}
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Surat Pertanggungjawaban Mutlak</label>
+                            <input type="file" name="file_spm" class="form-control" accept="application/pdf">
+                        </div>
+
+                        {{-- Surat Pernyataan 30% Penginapan --}}
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">
+                                Surat Pernyataan 30% Penginapan
+                                <span class="text-muted">(jika ada)</span>
+                            </label>
+                            <input type="file" name="file_surat_30_persen_penginapan" class="form-control" accept="application/pdf">
+                        </div>
+
+                        {{-- Kwitansi --}}
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Kwitansi Pembayaran</label>
+                            <input type="file" name="file_kwitansi" class="form-control" accept="application/pdf">
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        Batal
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                         Upload
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+@endforeach
 
 {{-- Modal Download khusus untuk row ini --}}
 @foreach($perjalanans as $row)

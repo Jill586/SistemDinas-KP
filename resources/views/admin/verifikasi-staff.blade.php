@@ -121,6 +121,7 @@
                         <th>Tujuan</th>
                         <th>Personil</th>
                         <th>Pelaksanaan</th>
+                        <th>Uraian</th>
                         <th>Estimasi Biaya</th>
                         <th>Status</th>
                         <th>Aksi</th>
@@ -150,6 +151,7 @@
                                 s/d
                                 {{ \Carbon\Carbon::parse($row->tanggal_selesai)->format('d M Y') }}
                             </td>
+                            <td>{{ $row->uraian_spt }}</td>
                             <td class="text-end">
                                 Rp {{ number_format($row->total_estimasi_biaya ?? 0, 0, ',', '.') }}
                             </td>

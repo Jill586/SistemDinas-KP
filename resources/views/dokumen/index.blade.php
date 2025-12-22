@@ -113,6 +113,7 @@
                         <th>Tujuan</th>
                         <th>Personil</th>
                         <th>Pelaksanaan</th>
+                        <th>Uraian</th>
                         <th>Status</th>
                         <th>Aksi</th>
                     </tr>
@@ -144,6 +145,8 @@
                                 -
                             @endif
                         </td>
+                        
+                        <td>{{ $row->uraian_spt ?? '-' }}</td>
 
                         <td class="text-center">
                             @switch($row->status)

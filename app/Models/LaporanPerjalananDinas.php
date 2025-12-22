@@ -21,6 +21,15 @@ class LaporanPerjalananDinas extends Model
         'status_laporan',
         'catatan_preview',
         'total_biaya_riil_dilaporkan',
+        'status_bayar',
+        'file_spt',
+        'file_sppd',
+        'file_surat_undangan',
+        'file_laporan_perjadin',
+        'file_bukti_pengeluaran',
+        'file_spm',
+        'file_surat_30_persen_penginapan',
+        'file_kwitansi',
     ];
 
     // Relasi ke tabel perjalanan_dinas

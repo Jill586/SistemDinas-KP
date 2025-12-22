@@ -107,8 +107,7 @@ Route::middleware(['auth', 'role:admin_bidang'])->group(function () {
         Route::get('/export-laporanperjalanan-dinas','exportExcel')->name('laporan-perjalanan.export.excel');
         Route::get('/laporan/pdf', 'exportPdf')->name('laporan.export.pdf');
 
-
-
+        Route::post('/laporan/{perjalanan}/upload-dokumen', 'uploadDokumen')->name('laporan.upload-dokumen');
     });
 });
 /*

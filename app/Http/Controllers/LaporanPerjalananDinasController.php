@@ -240,6 +240,54 @@ class LaporanPerjalananDinasController extends Controller
             ($request->aksi === 'verifikasi' ? 'dan dikirim untuk verifikasi.' : 'sebagai draft.'));
     }
 
+    public function uploadDokumen(Request $request, PerjalananDinas $perjalanan)
+    {
+        // 🔒 WAJIB ADA
+        $laporan = LaporanPerjalananDinas::where(
+            'perjalanan_dinas_id',
+            $perjalanan->id
+        )->first();
+
+        if (!$laporan) {
+            return back()->with('error', 'Data laporan belum dibuat.');
+        }
+
+        $dokumenMap = [
+            'file_spt',
+            'file_sppd',
+            'file_surat_undangan',
+            'file_laporan_perjadin',
+            'file_bukti_pengeluaran',
+            'file_spm',
+            'file_surat_30_persen_penginapan',
+            'file_kwitansi',
+        ];
+
+        $adaUpload = false;
+
+        foreach ($dokumenMap as $field) {
+            if ($request->hasFile($field)) {
+                $adaUpload = true;
+
+                // hapus file lama
+                if ($laporan->$field && Storage::disk('public')->exists($laporan->$field)) {
+                    Storage::disk('public')->delete($laporan->$field);
+                }
+
+                $laporan->$field = $request->file($field)
+                    ->store("perjadin/{$perjalanan->id}", 'public');
+            }
+        }
+
+        if ($adaUpload) {
+            $laporan->status_bayar = 'verifikasi';
+        }
+
+        $laporan->save();
+
+        return back()->with('success', 'Dokumen berhasil diupload.');
+    }
+
     public function downloadLaporan($id, $type)
     {
         $perjalanan = PerjalananDinas::with(['pegawai', 'laporan', 'biaya.sbuItem'])->findOrFail($id);

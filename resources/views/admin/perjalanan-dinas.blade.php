@@ -113,6 +113,7 @@
                         <th>Tujuan</th>
                         <th>Personil</th>
                         <th>Pelaksanaan</th>
+                        <th>Uraian</th>
                         <th>Status</th>
                         <th>Aksi</th>
                     </tr>
@@ -134,6 +135,7 @@
                                 s/d
                                 {{ \Carbon\Carbon::parse($row->tanggal_selesai)->format('d M Y') }}
                             </td>
+                            <td>{{ $row->uraian_spt }}</td>
                             <td class="text-center">
                                 @if($row->status == 'disetujui')
                                     <span class="badge bg-label-success">SELESAI</span>
@@ -296,10 +298,12 @@
 
                         {{-- Personil --}}
                         <div class="mb-3">
-                            <label class="form-label">Personil yang Berangkat</label>
-                            <select name="pegawai_ids[]" class="form-select pegawai-select"
-                                multiple
-                                data-dropdown-parent="#modalEdit{{ $row->id }}">
+                            <label class="form-label fw-semibold">Personil yang Berangkat</label>
+
+                            <select name="pegawai_ids[]"
+                                    class="form-select pegawai-select"
+                                    multiple
+                                    data-dropdown-parent="#modalEdit{{ $row->id }}">
                                 @foreach($pegawai as $p)
                                     <option value="{{ $p->id }}"
                                         {{ in_array($p->id, $row->pegawai->pluck('id')->toArray()) ? 'selected' : '' }}>
