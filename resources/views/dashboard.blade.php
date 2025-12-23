@@ -189,10 +189,11 @@
                     </div>
                 </div>
             </div>
+            </div>
 
 
                 {{-- SIAK --}}
-                            <div class="card shadow mt-3">
+                            <div class="card shadow">
                         <div class="card-header bg-white">
                             <h5 class="fw-bold mb-0">Anggaran Dalam Daerah Siak</h5>
                         </div>
@@ -228,7 +229,7 @@
 
                     </div>
                 </div>
-            </div>
+
 
         {{-- CARD 2 : TOTAL LUAR & DALAM DAERAH --}}
         <div class="card shadow">
@@ -302,7 +303,7 @@
                 {{-- LUAR DAERAH --}}
                 <div>
                     <div class="d-flex justify-content-between small fw-semibold">
-                        <span>Luar Daerah (Dalam Provinsi Riau)</span>
+                        <span>Luar Daerah (Luar Provinsi Riau)</span>
                         <span>{{ number_format($persenLuarDaerah, 1) }}%</span>
                     </div>
 
