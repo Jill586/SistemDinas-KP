@@ -303,7 +303,7 @@
                 {{-- LUAR DAERAH --}}
                 <div>
                     <div class="d-flex justify-content-between small fw-semibold">
-                        <span>Luar Daerah (Luar Provinsi Riau)</span>
+                        <span>Luar Daerah Luar Provinsi Riau</span>
                         <span>{{ number_format($persenLuarDaerah, 1) }}%</span>
                     </div>
 
