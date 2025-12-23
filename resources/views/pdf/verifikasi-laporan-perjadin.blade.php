@@ -24,8 +24,10 @@
             <th>Nomor SPT</th>
             <th>Tanggal SPT</th>
             <th>Nama Pegawai</th>
+            <th>Uraian</th>
             <th>Tujuan</th>
             <th>Status Laporan</th>
+            <th>Status Bayar</th>
             <th>Tanggal Dibuat</th>
         </tr>
     </thead>
@@ -37,10 +39,12 @@
             <td>{{ $d->nomor_spt }}</td>
             <td>{{ \Carbon\Carbon::parse($d->tanggal_spt)->translatedFormat('d M Y') }}</td>
             <td>{{ $d->pegawai->pluck('nama')->join(', ') }}</td>
+            <td>{{ $d->uraian_spt }}</td>
             <td>{{ $d->tujuan_spt }}</td>
             <td style="text-transform: uppercase;">
                 {{ str_replace('_', ' ', $d->status_laporan) }}
             </td>
+            <td>{{ strtoupper($d->status_bayar_laporan ?? '-') }}</td>
             <td>
                 {{ $d->created_at
                         ? \Carbon\Carbon::parse($d->created_at)->translatedFormat('d F Y')

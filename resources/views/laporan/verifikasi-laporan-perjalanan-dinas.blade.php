@@ -140,12 +140,33 @@
                         <th>Uraian</th>
                         <th>Status Laporan</th>
                         <th>Status bayar</th>
+                        <th>Total Dibayar</th>
                         <th>Tanggal Dibuat</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse ($laporans as $index => $row)
+                        @php
+                            $totalSemuaPegawai = 0;
+
+                            foreach ($row->pegawai as $pg) {
+                                $totalDibayarPegawai = 0;
+
+                                $uangHarian = $row->biaya
+                                    ->where('pegawai_id_terkait', $pg->id)
+                                    ->filter(fn($b) => $b->sbuItem && $b->sbuItem->kategori_biaya === 'UANG_HARIAN')
+                                    ->first();
+
+                                $totalDibayarPegawai += $uangHarian->subtotal_biaya ?? 0;
+
+                                foreach ($row->biayaRiil->where('pegawai_id', $pg->id) as $riil) {
+                                    $totalDibayarPegawai += $riil->subtotal_biaya;
+                                }
+
+                                $totalSemuaPegawai += $totalDibayarPegawai;
+                            }
+                        @endphp
                         <tr>
                             <td class="text-center">{{ $index + 1 }}</td>
                             <td>{{ $row->nomor_spt ?? '-' }}</td>
@@ -179,6 +200,9 @@
                                     <span>-</span>
                                 @endif
                             </td>
+                            <td class="text-end">
+                                Rp {{ number_format($totalSemuaPegawai) }}
+                            </td>
                             <td>{{ $row->created_at?->translatedFormat('d F Y') ?? '-' }}</td>
                             <td class="text-center">
                                 <div class="d-flex flex-column align-items-center gap-2">
@@ -199,7 +223,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="text-center text-muted py-3">
+                            <td colspan="11" class="text-center text-muted py-3">
                                 Belum ada laporan perjalanan dinas.
                             </td>
                         </tr>
@@ -709,6 +733,10 @@
                 @endif
 
         {{-- NOMINAL DIBAYARKAN --}}
+        @php
+            $totalSemuaPegawai = 0;
+        @endphp
+
         <div class="table-responsive">
         <table class="table table-bordered table-striped">
             <thead class="table-light text-center">
@@ -861,6 +889,12 @@
                                         <td colspan="5" class="text-end">TOTAL DIBAYARKAN</td>
                                         <td class="text-end">Rp {{ number_format($totalDibayarPegawai) }}</td>
                                     </tr>
+                                    @php
+                                        $totalSemuaPegawai += $totalDibayarPegawai;
+                                    @endphp
+                                    @php
+                                        $row->total_dibayar_semua = $totalSemuaPegawai;
+                                    @endphp
                             </tbody>
                         </table>
                     @endforeach

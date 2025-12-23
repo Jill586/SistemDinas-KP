@@ -22,8 +22,12 @@ class VerifikasiLaporanExport implements FromCollection, WithMapping, WithHeadin
 
     public function collection()
     {
-        $query = PerjalananDinas::with('pegawai')
-            ->whereIn('status_laporan', ['diproses', 'selesai']);
+        $query = PerjalananDinas::with([
+            'pegawai',
+            'biaya.sbuItem',
+            'biayaRiil',
+            'laporan'
+        ])->whereIn('status_laporan', ['diproses', 'selesai']);
 
         if ($this->request->filled('bulan')) {
             $query->whereMonth('tanggal_spt', $this->request->bulan);
@@ -49,19 +53,61 @@ class VerifikasiLaporanExport implements FromCollection, WithMapping, WithHeadin
 
     public function map($row): array
     {
+        // ===============================
+        // HITUNG TOTAL DIBAYARKAN (VALID)
+        // ===============================
+        $totalSemuaPegawai = 0;
+
+        foreach ($row->pegawai as $pg) {
+            $totalDibayarPegawai = 0;
+
+            // UANG HARIAN
+            $uangHarian = $row->biaya
+                ->where('pegawai_id_terkait', $pg->id)
+                ->filter(fn ($b) =>
+                    $b->sbuItem &&
+                    $b->sbuItem->kategori_biaya === 'UANG_HARIAN'
+                )
+                ->first();
+
+            $totalDibayarPegawai += $uangHarian->subtotal_biaya ?? 0;
+
+            // BIAYA RIIL
+            foreach ($row->biayaRiil->where('pegawai_id', $pg->id) as $riil) {
+                $totalDibayarPegawai += $riil->subtotal_biaya;
+            }
+
+            $totalSemuaPegawai += $totalDibayarPegawai;
+        }
+
         return [
+            // 1
             $row->nomor_spt ?? '-',
 
+            // 2
             $row->tanggal_spt
                 ? Carbon::parse($row->tanggal_spt)->format('d M Y')
                 : '-',
 
+            // 3
             $row->tujuan_spt ?? '-',
 
+            // 4
             $row->pegawai->pluck('nama')->implode(', ') ?: '-',
 
+            // 5 (Uraian)
+            $row->uraian ?? '-',
+
+            // 6
             ucfirst($row->status_laporan) ?? '-',
 
+            // 7
+            optional($row->laporan)->status_bayar ?? '-',
+
+            // 8
+            $totalSemuaPegawai,
+
+            // 9
             $row->created_at
                 ? Carbon::parse($row->created_at)->translatedFormat('d F Y')
                 : '-',
@@ -75,7 +121,10 @@ class VerifikasiLaporanExport implements FromCollection, WithMapping, WithHeadin
             'Tanggal SPT',
             'Tujuan',
             'Nama Pegawai',
+            'Uraian',
             'Status Laporan',
+            'Status Bayar',
+            'Total Dibayar',
             'Tanggal Dibuat'
         ];
     }

@@ -38,8 +38,10 @@
             <th>Tgl SPT</th>
             <th>Tujuan</th>
             <th>Pelaksanaan</th>
+            <th>Uraian</th>
             <th>Status SPT</th>
             <th>Status Laporan</th>
+            <th>Status Bayar</th>
         </tr>
     </thead>
 
@@ -53,8 +55,10 @@
             <td>
                 {{ $d->tanggal_mulai }} s/d {{ $d->tanggal_selesai }}
             </td>
+            <td>{{ $d->uraian_spt }}</td>
             <td>{{ strtoupper($d->status) }}</td>
             <td>{{ strtoupper($d->status_laporan ?? '-') }}</td>
+            <td>{{ strtoupper($d->status_bayar_laporan ?? '-') }}</td>
         </tr>
         @endforeach
     </tbody>

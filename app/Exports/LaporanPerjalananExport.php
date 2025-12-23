@@ -25,35 +25,38 @@ class LaporanPerjalananExport implements FromCollection, WithHeadings, WithStyle
 
         foreach ($this->data as $item) {
 
-            // Personil
-            $personil = $item->pegawai->pluck('nama')->join(', ');
+        $personil = $item->pegawai->pluck('nama')->join(', ');
 
-            // Tanggal SPT
-            $tglSpt = $item->tanggal_spt
-                ? Carbon::parse($item->tanggal_spt)->format('d M Y')
-                : '-';
+        $tglSpt = $item->tanggal_spt
+            ? Carbon::parse($item->tanggal_spt)->format('d M Y')
+            : '-';
 
-            // Pelaksanaan
-            $pelaksanaan =
-                ($item->tanggal_mulai ? Carbon::parse($item->tanggal_mulai)->format('d M Y') : '-') .
-                ' s/d ' .
-                ($item->tanggal_selesai ? Carbon::parse($item->tanggal_selesai)->format('d M Y') : '-');
+        $pelaksanaan =
+            ($item->tanggal_mulai ? Carbon::parse($item->tanggal_mulai)->format('d M Y') : '-') .
+            ' s/d ' .
+            ($item->tanggal_selesai ? Carbon::parse($item->tanggal_selesai)->format('d M Y') : '-');
 
-            // Status laporan
-            $statusLaporan = $item->status_laporan ?? '-';
+        $statusLaporan = $item->status_laporan ?? '-';
 
-            $rows[] = [
-                'NO'                => $no++,
-                'Nomor SPT'         => $item->nomor_spt ?? '-',
-                'TGL SPT'           => $tglSpt,
-                'TUJUAN'            => $item->tujuan_spt ?? '-',
-                'PERSONIL'          => $personil,
-                'PELAKSANAAN'       => $pelaksanaan,
-                'STATUS SPT'        => strtoupper($item->status ?? '-'),
-                'STATUS LAPORAN'    => strtoupper($statusLaporan),
-                'DOKUMEN LAPORAN'   => '-',   // Sesuai tampilan tabel
-            ];
-        }
+        $statusBayarLaporan = optional($item->laporan)->status_bayar;
+
+        // ✅ FIX: ambil dari kolom yang BENAR
+        $uraian = $item->uraian_spt ?? '-';
+
+        $rows[] = [
+            'NO'                => $no++,
+            'Nomor SPT'         => $item->nomor_spt ?? '-',
+            'TGL SPT'           => $tglSpt,
+            'TUJUAN'            => $item->tujuan_spt ?? '-',
+            'PERSONIL'          => $personil,
+            'PELAKSANAAN'       => $pelaksanaan,
+            'URAIAN'            => $uraian,
+            'STATUS SPT'        => strtoupper($item->status ?? '-'),
+            'STATUS LAPORAN'    => strtoupper($statusLaporan),
+            'STATUS PEMBAYARAN' => strtoupper($statusBayarLaporan ?? '-'),
+            'DOKUMEN LAPORAN'   => '-',
+        ];
+    }
 
         return collect($rows);
     }
@@ -67,8 +70,10 @@ class LaporanPerjalananExport implements FromCollection, WithHeadings, WithStyle
             'TUJUAN',
             'PERSONIL',
             'PELAKSANAAN',
+            'URAIAN',
             'STATUS SPT',
             'STATUS LAPORAN',
+            'STATUS PEMBAYARAN',
             'DOKUMEN LAPORAN',
         ];
     }

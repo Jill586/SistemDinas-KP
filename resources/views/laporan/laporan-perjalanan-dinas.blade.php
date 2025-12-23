@@ -247,21 +247,33 @@
                                     </button>
                                     @endif
 
-                                    @if($row->status_laporan === 'selesai')
-                                    <button class="btn btn-success btn-sm"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#modalUploadPdf{{ $row->id }}"
-                                        data-id="{{ $row->id }}"
-                                        data-nomor="{{ $row->nomor_spt }}">
-                                        <i class="bx bx-upload"></i>
-                                    </button>
+                                    @php
+                                        $statusBayar = $row->laporan->status_bayar ?? null;
+                                    @endphp
+
+                                    @if(
+                                        (
+                                            in_array($statusBayar, ['verifikasi', 'sudah_bayar']) &&
+                                            Auth::user()->role === 'super_admin'
+                                        )
+                                        ||
+                                        (
+                                            $row->status_laporan === 'selesai' &&
+                                            !in_array($statusBayar, ['verifikasi', 'sudah_bayar'])
+                                        )
+                                    )
+                                        <button class="btn btn-success btn-sm"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#modalUploadPdf{{ $row->id }}">
+                                            <i class="bx bx-upload"></i>
+                                        </button>
                                     @endif
                                 </div>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="text-center">Belum ada data perjalanan dinas</td>
+                            <td colspan="11" class="text-center">Belum ada data perjalanan dinas</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -308,18 +320,31 @@
 
                 <div class="modal-body">
 
+                    <div class="alert alert-info">
+                        <i class="bx bx-alarm-exclamation"></i>
+                        <strong>Perhatian:</strong><br>
+                        Seluruh dokumen pada form ini <strong>wajib diunggah secara bersamaan</strong> dalam satu kali proses upload.
+                        Pastikan semua file telah dipilih sebelum menekan tombol <strong>Upload</strong>.
+                        <br>
+                        <span class="text-muted">
+                            Maksimal ukuran setiap file adalah <strong>5 MB</strong> dan hanya mendukung format <strong>PDF, JPG, PNG</strong>.
+                        </span>
+                    </div>
+
                     <div class="row g-3">
 
                         {{-- SPT --}}
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">SPT</label>
-                            <input type="file" name="file_spt" class="form-control" accept="application/pdf">
+                            <label class="form-label fw-semibold">SPT </label>
+                            <input type="file" name="file_spt" class="form-control" accept="application/pdf,image/jpeg,image/png,image/jpg" data-max-size="5120">
+                            <small class="text-muted">Ukuran maksimal 5 MB (PDF, JPG, PNG)</small>
                         </div>
 
                         {{-- SPPD --}}
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">SPPD</label>
-                            <input type="file" name="file_sppd" class="form-control" accept="application/pdf">
+                            <input type="file" name="file_sppd" class="form-control" accept="application/pdf,image/jpeg,image/png,image/jpg" data-max-size="5120">
+                            <small class="text-muted">Ukuran maksimal 5 MB (PDF, JPG, PNG)</small>
                         </div>
 
                         {{-- Surat Undangan / Dasar SPT --}}
@@ -327,13 +352,15 @@
                             <label class="form-label fw-semibold">
                                 Surat Undangan / Dasar SPT <span class="text-muted">(jika ada)</span>
                             </label>
-                            <input type="file" name="file_surat_undangan" class="form-control" accept="application/pdf">
+                            <input type="file" name="file_surat_undangan" class="form-control" accept="application/pdf,image/jpeg,image/png,image/jpg" data-max-size="5120">
+                            <small class="text-muted">Ukuran maksimal 5 MB (PDF, JPG, PNG)</small>
                         </div>
 
                         {{-- Laporan Perjadin --}}
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Laporan Perjalanan Dinas</label>
-                            <input type="file" name="file_laporan_perjadin" class="form-control" accept="application/pdf">
+                            <input type="file" name="file_laporan_perjadin" class="form-control" accept="application/pdf,image/jpeg,image/png,image/jpg" data-max-size="5120">
+                            <small class="text-muted">Ukuran maksimal 5 MB (PDF, JPG, PNG)</small>
                         </div>
 
                         {{-- Bukti Pengeluaran --}}
@@ -342,13 +369,15 @@
                                 Bukti Pengeluaran Perjadin
                                 <small class="text-muted">(BBM, Tiket, Penginapan, dll)</small>
                             </label>
-                            <input type="file" name="file_bukti_pengeluaran" class="form-control" accept="application/pdf">
+                            <input type="file" name="file_bukti_pengeluaran" class="form-control" accept="application/pdf,image/jpeg,image/png,image/jpg" data-max-size="5120">
+                            <small class="text-muted">Ukuran maksimal 5 MB (PDF, JPG, PNG)</small>
                         </div>
 
                         {{-- Surat Pertanggungjawaban Mutlak --}}
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Surat Pertanggungjawaban Mutlak</label>
-                            <input type="file" name="file_spm" class="form-control" accept="application/pdf">
+                            <input type="file" name="file_spm" class="form-control" accept="application/pdf,image/jpeg,image/png,image/jpg" data-max-size="5120">
+                            <small class="text-muted">Ukuran maksimal 5 MB (PDF, JPG, PNG)</small>
                         </div>
 
                         {{-- Surat Pernyataan 30% Penginapan --}}
@@ -357,13 +386,15 @@
                                 Surat Pernyataan 30% Penginapan
                                 <span class="text-muted">(jika ada)</span>
                             </label>
-                            <input type="file" name="file_surat_30_persen_penginapan" class="form-control" accept="application/pdf">
+                            <input type="file" name="file_surat_30_persen_penginapan" class="form-control" accept="application/pdf,image/jpeg,image/png,image/jpg" data-max-size="5120">
+                            <small class="text-muted">Ukuran maksimal 5 MB (PDF, JPG, PNG)</small>
                         </div>
 
                         {{-- Kwitansi --}}
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Kwitansi Pembayaran</label>
-                            <input type="file" name="file_kwitansi" class="form-control" accept="application/pdf">
+                            <input type="file" name="file_kwitansi" class="form-control" accept="application/pdf,image/jpeg,image/png,image/jpg" data-max-size="5120">
+                            <small class="text-muted">Ukuran maksimal 5 MB (PDF, JPG, PNG)</small>
                         </div>
 
                     </div>

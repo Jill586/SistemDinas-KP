@@ -41,7 +41,6 @@
         </div>
     </div>
 
-
     {{-- Pegawai --}}
     <div class="col-5th px-2">
       <div class="card h-100">
@@ -147,8 +146,6 @@
   </div>
 
 <div class="row g-4 mb-4 align-items-stretch">
-
-   <div class="row align-items-stretch mt-4">
 
     {{-- ===================== KOLOM KIRI ===================== --}}
     <div class="col-md-5 col-lg-5 d-flex flex-column gap-4">
@@ -376,10 +373,7 @@
                     </table>
                 </div>
             </div>
-
         </div>
-    </div>
-
 </div>
 
 </div>
@@ -486,6 +480,62 @@
     </div>
 
   </div>{{-- row --}}
+
+<div class="row g-4 mb-4">
+
+    {{-- PIE CHART --}}
+    <div class="col-md-6 col-lg-6">
+        <div class="card shadow h-100">
+            <div class="card-header bg-white">
+                <h5 class="mb-0 fw-bold">Status Pembayaran</h5>
+            </div>
+            <div class="card-body" style="height: 420px;">
+                <canvas id="pieStatusBayar"></canvas>
+            </div>
+        </div>
+    </div>
+
+    {{-- TABEL RINGKASAN --}}
+    <div class="col-md-6 col-lg-6">
+        <div class="card shadow h-100">
+            <div class="card-header bg-white">
+                <h5 class="mb-0 fw-bold">Ringkasan Pembayaran SPT</h5>
+            </div>
+            <div class="card-body">
+                {{-- TABEL --}}
+                <div class="table-responsive">
+                  <table class="table table-bordered text-center align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Sudah Bayar</th>
+                            <th>Belum Bayar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <div class="fw-semibold">{{ $jumlahSudahBayar }} SPT</div>
+                                <div class="text-success fw-bold">
+                                    Rp {{ number_format($totalSudahBayar) }}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="fw-semibold">{{ $jumlahBelumBayar }} SPT</div>
+                                <div class="text-danger fw-bold">
+                                    Rp {{ number_format($totalBelumBayar) }}
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+</div>
 
 </div>{{-- wrapper --}}
 
@@ -605,6 +655,40 @@
       }
     }
   });
+</script>
+
+<script>
+    const rawDataBayar = @json($statusBayar);
+
+    const labelsBayar = rawDataBayar.map(item => item.status_bayar);
+    const dataBayar = rawDataBayar.map(item => item.total);
+
+    const ctxStatusBayar = document.getElementById('pieStatusBayar').getContext('2d');
+
+    new Chart(ctxStatusBayar, {
+        type: 'pie',
+        data: {
+            labels: labelsBayar,
+            datasets: [{
+                data: dataBayar,
+                backgroundColor: [
+                    '#f39c12', // belum bayar
+                    '#3498db', // verifikasi
+                    '#2ecc71'  // sudah bayar
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
 </script>
 
 @endsection
